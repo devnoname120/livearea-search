@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resource version="0.1" type="normal" id="livearea_search_plugin">
+    <pagetable>
+        <page id="page_home_search">
+            <button sound="_common_sound_button_enter" style="_common_default_style_button" id="button_home_search">
+                <layout_hint align="2,1" anchor="2,1" size="180,56" pos="-20,20" />
+            </button>
+        </page>
+
+        <page id="page_search_results">
+            <plane style="style_results_backdrop" texture="_common_texture_dialog_fill_white" id="plane_results_backdrop">
+                <layout_hint size="960,544" />
+            </plane>
+
+            <plane style="style_results_surface" texture="_common_texture_dialog_fill_white" id="plane_results_surface">
+                <layout_hint size="920,512" />
+            </plane>
+
+            <plane style="style_results_header" texture="_common_texture_dialog_fill_white" id="plane_results_header">
+                <layout_hint align="0,2" anchor="0,2" size="920,72" pos="0,-16" />
+
+                <text_box style="style_search_box" id="text_box_search" auto_scroll="1" ime_type="0" edit_mode="1" paste_mode="1" edit_auto_transition_mode="0">
+                    <layout_hint align="1,1" anchor="1,1" size="730,58" pos="18,0" />
+                </text_box>
+
+                <text style="style_results_count" id="text_results_count">
+                    <layout_hint align="2,1" anchor="2,1" size="150,58" pos="-18,0" />
+                </text>
+
+                <plane style="_common_default_style_plane" texture="_common_texture_ruled_line" id="plane_header_rule">
+                    <layout_hint align="0,1" anchor="0,1" size="920,1" />
+                </plane>
+            </plane>
+
+            <list_view style="style_results_list" id="list_results">
+                <layout_hint align="0,0" anchor="0,0" size="920,440" pos="0,-36" />
+            </list_view>
+
+            <text style="style_empty_text" id="text_empty">
+                <layout_hint size="860,120" pos="0,-10" />
+            </text>
+
+            <corner_button style="_common_style_corner_bottom_left" id="button_results_close" />
+        </page>
+    </pagetable>
+
+    <templatetable>
+        <template fast_open="1" id="template_result_item">
+            <list_item style="_common_style_list_item_transparent" id="result_list_item">
+                <layout_hint adjust="0,2" size="920,70" />
+                <image_button sound="_common_sound_image_button" style="style_result_button" enable_long_press_text_auto_scroll="1" id="button_result">
+                    <layout_hint size="920,70" />
+                    <focus_hint focus_shape="3" />
+
+                    <plane style="style_result_icon_container" id="plane_result_icon_container">
+                        <layout_hint align="1,0" anchor="1,0" size="64,64" pos="3,0" />
+                        <app_icon_simple enable_tap="0" texture="_common_texture_dialog_fill_white" id="app_icon_result">
+                            <layout_hint size="64,64" />
+                        </app_icon_simple>
+                    </plane>
+
+                    <text style="style_result_title" id="text_result_title">
+                        <layout_hint align="1,2" anchor="1,2" adjust="2,2" pos="82,-16" />
+                    </text>
+
+                    <text style="style_result_metadata" id="text_result_metadata">
+                        <layout_hint align="1,1" anchor="1,1" adjust="2,2" pos="82,14" />
+                    </text>
+                </image_button>
+            </list_item>
+        </template>
+    </templatetable>
+
+    <styletable>
+        <style_plane color="0,0,0,0.42" id="style_results_backdrop" />
+        <style_plane color="0.075,0.09,0.12,0.96" id="style_results_surface" />
+        <style_plane color="0.11,0.13,0.17,0.98" id="style_results_header" />
+        <style_plane color="0,0,0,0" id="style_result_icon_container" />
+        <style_text_box bottom_margin="8" color="1,1,1,1" glowobj="glow_obj" sound="_common_sound_text_box" right_margin="8" top_margin="8" left_margin="8" textobj="text_obj" planeobj="plane_obj" id="style_search_box">
+            <textobj font_size="26" align_y="1" align_x="0" text_align="1" line_pitch="40" ellipsis="1" id="text_obj" />
+            <planeobj texture0="_common_texture_text_box" id="plane_obj" />
+            <planeobj texture0="_common_texture_checkbox_textbox_glow" blend="2" id="glow_obj" />
+        </style_text_box>
+
+        <style_text textobj="text_obj" id="style_results_count">
+            <textobj font_size="22" bold="0" color="0.82,0.84,0.88,1" align_x="2" align_y="1" ellipsis="1" id="text_obj" />
+        </style_text>
+
+        <style_text textobj="text_obj" id="style_empty_text">
+            <textobj font_size="28" bold="0" color="0.82,0.84,0.88,1" align_x="1" align_y="1" ellipsis="1" id="text_obj" />
+        </style_text>
+
+        <style_list_view color="0,0,0,0" id="style_results_list" sbar_v_margin="6,80,9" />
+        <style_image_button glow_obj="glow_obj" bg_obj="background_obj" id="style_result_button">
+            <planeobj texture0="_common_texture_list_70px" color="1,1,1,0.76" id="background_obj" />
+            <planeobj texture0="_common_texture_list_glow_70px" blend="2" id="glow_obj" />
+        </style_image_button>
+
+        <style_text textobj="text_obj" id="style_result_title">
+            <textobj font_size="24" bold="1" color="1,1,1,1" align_x="0" align_y="1" ellipsis="1" max_line_count="1" id="text_obj" />
+        </style_text>
+
+        <style_text textobj="text_obj" id="style_result_metadata">
+            <textobj font_size="18" bold="0" color="0.78,0.81,0.86,1" align_x="0" align_y="1" ellipsis="1" max_line_count="1" id="text_obj" />
+        </style_text>
+    </styletable>
+
+    <stringtable />
+</resource>

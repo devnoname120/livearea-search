@@ -1,0 +1,17 @@
+.superpowers/
+/build/
+/build-*/
+/CMakeFiles/
+/CMakeCache.txt
+/Testing/
+*.suprx
+*.skprx
+*.velf
+*.elf
+*.rco
+*.rcd
+*.o
+*.obj
+*.pdb
+*.user
+.DS_Store
