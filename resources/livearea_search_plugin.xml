@@ -7,21 +7,30 @@
             </corner_button>
         </page>
 
+        <page id="page_notification_occluder">
+            <plane style="style_notification_bar_occluder" id="plane_notification_bar_occluder">
+                <layout_hint align="2,2" anchor="2,2" size="80,32" />
+            </plane>
+            <plane style="style_notification_header_occluder" id="plane_notification_header_occluder">
+                <layout_hint align="2,2" anchor="2,2" size="80,32" pos="0,-32" />
+            </plane>
+        </page>
+
         <page id="page_search_results">
-            <plane style="style_results_backdrop" texture="_common_texture_dialog_fill_white" id="plane_results_backdrop">
+            <plane style="style_results_backdrop" id="plane_results_backdrop">
                 <layout_hint size="960,512" pos="0,-16" />
             </plane>
 
-            <plane style="style_results_surface" texture="_common_texture_dialog_fill_white" id="plane_results_surface">
+            <plane style="style_results_surface" id="plane_results_surface">
                 <layout_hint size="960,512" pos="0,-16" />
             </plane>
 
-            <plane style="style_results_ime_surface" texture="_common_texture_dialog_fill_white" id="plane_results_ime_surface">
-                <layout_hint size="960,200" pos="0,68" />
+            <plane style="style_results_ime_surface" id="plane_results_ime_surface">
+                <layout_hint size="960,208" pos="0,72" />
             </plane>
 
-            <plane style="style_results_header" texture="_common_texture_dialog_fill_white" id="plane_results_header">
-                <layout_hint align="0,2" anchor="0,2" size="960,72" pos="0,-32" />
+            <plane style="style_results_header" id="plane_results_header">
+                <layout_hint align="0,2" anchor="0,2" size="960,64" pos="0,-32" />
 
                 <text_box style="style_search_box" id="text_box_search" auto_scroll="1" ime_type="0" edit_mode="1" paste_mode="1" edit_auto_transition_mode="0">
                     <layout_hint align="1,1" anchor="1,1" size="770,58" pos="18,0" />
@@ -37,7 +46,7 @@
             </plane>
 
             <list_view style="style_results_list" id="list_results">
-                <layout_hint align="0,0" anchor="0,0" size="960,440" pos="0,-52" />
+                <layout_hint align="0,0" anchor="0,0" size="960,448" pos="0,-48" />
             </list_view>
 
             <text style="style_empty_text" id="text_empty">
@@ -72,16 +81,30 @@
     </templatetable>
 
     <styletable>
-        <style_plane color="0,0,0,0.42" id="style_results_backdrop" />
+        <style_plane color="0,0,0,0.42" planeobj="results_backdrop_obj" id="style_results_backdrop">
+            <planeobj id="results_backdrop_obj" />
+        </style_plane>
+        <style_plane color="0,0,0,1" planeobj="notification_bar_occluder_obj" id="style_notification_bar_occluder">
+            <planeobj id="notification_bar_occluder_obj" />
+        </style_plane>
+        <style_plane color="0.11,0.13,0.17,1" planeobj="notification_header_occluder_obj" id="style_notification_header_occluder">
+            <planeobj id="notification_header_occluder_obj" />
+        </style_plane>
         <style_corner_button sound="_common_sound_corner_button_menu" key_focus="0" corner_obj="home_search_corner_obj" glow_obj="home_search_glow_obj" color="1,1,1,1" highlight_obj="home_search_highlight_obj" focus_in_group="0" direct_key="0" bg_obj="home_search_bg_obj" layout_type="3" id="style_home_search_corner">
             <planeobj color="0.16,0.15,0.22,0.8" texture0="_common_texture_corner_button_base" id="home_search_bg_obj" />
             <planeobj size="64,64,0" texture0="texture_home_search" id="home_search_corner_obj" pos="13,-11,0" />
             <planeobj texture0="_common_texture_corner_button_highlight" id="home_search_highlight_obj" />
             <planeobj texture0="_common_texture_corner_button_glow" blend="2" id="home_search_glow_obj" />
         </style_corner_button>
-        <style_plane color="0.075,0.09,0.12,1" id="style_results_surface" />
-        <style_plane color="0.075,0.09,0.12,1" id="style_results_ime_surface" />
-        <style_plane color="0.11,0.13,0.17,1" id="style_results_header" />
+        <style_plane color="0.075,0.09,0.12,1" planeobj="results_surface_obj" id="style_results_surface">
+            <planeobj id="results_surface_obj" />
+        </style_plane>
+        <style_plane color="0.075,0.09,0.12,1" planeobj="results_ime_surface_obj" id="style_results_ime_surface">
+            <planeobj id="results_ime_surface_obj" />
+        </style_plane>
+        <style_plane color="0.11,0.13,0.17,1" planeobj="results_header_obj" id="style_results_header">
+            <planeobj id="results_header_obj" />
+        </style_plane>
         <style_plane color="0,0,0,0" id="style_result_icon_container" />
         <style_text_box bottom_margin="8" color="1,1,1,1" glowobj="glow_obj" sound="_common_sound_text_box" right_margin="8" top_margin="8" left_margin="8" textobj="text_obj" planeobj="plane_obj" id="style_search_box">
             <textobj font_size="26" align_y="1" align_x="0" text_align="1" line_pitch="40" ellipsis="1" id="text_obj" />

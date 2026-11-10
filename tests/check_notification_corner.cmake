@@ -1,11 +1,13 @@
-if(NOT DEFINED NOTIFICATION_HEADER OR
+if(NOT DEFINED RESOURCE_XML OR
+   NOT DEFINED NOTIFICATION_HEADER OR
    NOT DEFINED NOTIFICATION_SOURCE OR
    NOT DEFINED OVERLAY_HEADER OR
    NOT DEFINED SEARCH_OVERLAY)
     message(FATAL_ERROR
-        "NOTIFICATION_HEADER, NOTIFICATION_SOURCE, OVERLAY_HEADER, and SEARCH_OVERLAY are required")
+        "RESOURCE_XML, NOTIFICATION_HEADER, NOTIFICATION_SOURCE, OVERLAY_HEADER, and SEARCH_OVERLAY are required")
 endif()
 
+file(READ "${RESOURCE_XML}" resource_xml)
 file(READ "${NOTIFICATION_HEADER}" notification_header)
 file(READ "${NOTIFICATION_SOURCE}" notification_source)
 file(READ "${OVERLAY_HEADER}" overlay_header)
@@ -13,10 +15,11 @@ file(READ "${SEARCH_OVERLAY}" search_overlay)
 
 foreach(required_header IN ITEMS
     "class NotificationCornerGuard"
+    "explicit NotificationCornerGuard(paf::Plugin* plugin);"
     "bool Suppress();"
     "bool Restore();"
-    "bool suppression_started_;"
-    "bool was_visible_;")
+    "paf::Plugin* plugin_;"
+    "paf::ui::Scene* page_;")
     string(FIND "${notification_header}" "${required_header}" found)
     if(found EQUAL -1)
         message(FATAL_ERROR "Missing notification-corner guard API: ${required_header}")
@@ -24,17 +27,10 @@ foreach(required_header IN ITEMS
 endforeach()
 
 foreach(required_source IN ITEMS
-    "kNotificationCornerWidgetHash = 0x718CB7FFU"
-    "paf::Plugin::Find(\"indicator_plugin\")"
-    "GetTableElement(paf::resource::TableType_Page)"
-    ".GetFirstChild()"
-    "paf::cxml::util::GetIDHash(page, \"id\", &page_id)"
-    "indicator->PageRoot(page_id)"
-    "root->FindChild(paf::IDParam(kNotificationCornerWidgetHash))"
-    "page = page.GetNextSibling();"
-    "was_visible_ = widget->IsVisible();"
-    "widget->Hide(paf::common::transition::Type_Reset);"
-    "widget->Show(paf::common::transition::Type_Reset);"
+    "NotificationCornerGuard::NotificationCornerGuard(paf::Plugin* plugin)"
+    "occluder_param.overwrite_draw_priority = 7;"
+    "plugin_->PageOpen(\"page_notification_occluder\", occluder_param)"
+    "plugin_->PageClose(\"page_notification_occluder\", close_param)"
     "NotificationCornerGuard::~NotificationCornerGuard()"
     "const bool notification_restored = notification_corner_.Restore();"
     "Restore();")
@@ -44,26 +40,43 @@ foreach(required_source IN ITEMS
     endif()
 endforeach()
 
-string(FIND "${notification_source}" "kIndicatorPageHash" fixed_page_hash)
-if(NOT fixed_page_hash EQUAL -1)
-    message(FATAL_ERROR
-        "The indicator page is runtime-selected on 3.60; do not hard-code a page hash")
-endif()
-
 foreach(forbidden_source IN ITEMS
-    "PageInactivate"
-    "indicator->Hide"
-    "indicator->Stop")
+    "paf::Plugin::Find(\"indicator_plugin\")"
+    "paf::Plugin::Find(\"topmenu_plugin\")"
+    "PageRoot("
+    "FindChild("
+    "kNotificationCornerWidgetHash"
+    "kNotificationPageHash")
     string(FIND "${notification_source}" "${forbidden_source}" found)
     if(NOT found EQUAL -1)
         message(FATAL_ERROR
-            "Notification suppression must not hide or stop the whole indicator plugin: ${forbidden_source}")
+            "Use only the plugin-owned occluder page; never mutate indicator or topmenu page roots or dynamic children: ${forbidden_source}")
+    endif()
+endforeach()
+
+foreach(required_resource IN ITEMS
+    "<page id=\"page_notification_occluder\">"
+    "id=\"plane_notification_bar_occluder\""
+    "align=\"2,2\" anchor=\"2,2\" size=\"80,32\""
+    "id=\"plane_notification_header_occluder\""
+    "align=\"2,2\" anchor=\"2,2\" size=\"80,32\" pos=\"0,-32\""
+    "color=\"0,0,0,1\" planeobj=\"notification_bar_occluder_obj\""
+    "color=\"0.11,0.13,0.17,1\" planeobj=\"notification_header_occluder_obj\"")
+    string(FIND "${resource_xml}" "${required_resource}" found)
+    if(found EQUAL -1)
+        message(FATAL_ERROR
+            "Missing narrow high-priority notification occluder resource: ${required_resource}")
     endif()
 endforeach()
 
 string(FIND "${overlay_header}" "NotificationCornerGuard notification_corner_;" guard_member)
 if(guard_member EQUAL -1)
     message(FATAL_ERROR "SearchOverlay must own the notification-corner guard")
+endif()
+
+string(FIND "${search_overlay}" "notification_corner_(plugin)" guard_initialization)
+if(guard_initialization EQUAL -1)
+    message(FATAL_ERROR "SearchOverlay must bind the occluder guard to its own PAF plugin")
 endif()
 
 string(REGEX MATCHALL "notification_corner_\\.Suppress\\(\\);" suppress_calls "${search_overlay}")

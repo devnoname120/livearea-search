@@ -91,6 +91,7 @@ add_test(
 add_test(
     NAME livearea_search_notification_corner
     COMMAND ${CMAKE_COMMAND}
+        -DRESOURCE_XML=${CMAKE_SOURCE_DIR}/resources/livearea_search_plugin.xml
         -DNOTIFICATION_HEADER=${CMAKE_SOURCE_DIR}/src/vita/notification_corner.h
         -DNOTIFICATION_SOURCE=${CMAKE_SOURCE_DIR}/src/vita/notification_corner.cpp
         -DOVERLAY_HEADER=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.h

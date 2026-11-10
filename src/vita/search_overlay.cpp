@@ -94,6 +94,7 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       empty_text_(NULL),
       result_count_(NULL),
       close_button_(NULL),
+      notification_corner_(plugin),
       icon_cache_(NULL),
       visibility_registered_(false),
       home_visible_(false),
@@ -561,14 +562,14 @@ void SearchOverlay::SetResultsEditingLayout() {
         close_button_->Hide(paf::common::transition::Type_Reset);
     }
     if (result_list_ != NULL) {
-        result_list_->SetSize(960.0f, 200.0f, 0.0f);
-        result_list_->SetPos(0.0f, 68.0f, 0.0f);
+        result_list_->SetSize(960.0f, 192.0f, 0.0f);
+        result_list_->SetPos(0.0f, 80.0f, 0.0f);
         result_list_->SyncViewSize();
         result_list_->DisableEvent(paf::ui::EV_FOCUS);
         result_list_->ReleaseFocus();
     }
     if (empty_text_ != NULL) {
-        empty_text_->SetPos(0.0f, 68.0f, 0.0f);
+        empty_text_->SetPos(0.0f, 80.0f, 0.0f);
     }
     UpdateResultPresentation();
 }
@@ -592,13 +593,13 @@ void SearchOverlay::SetResultsDisplayLayout() {
         close_button_->Show(paf::common::transition::Type_Reset);
     }
     if (result_list_ != NULL) {
-        result_list_->SetSize(960.0f, 440.0f, 0.0f);
-        result_list_->SetPos(0.0f, -52.0f, 0.0f);
+        result_list_->SetSize(960.0f, 448.0f, 0.0f);
+        result_list_->SetPos(0.0f, -48.0f, 0.0f);
         result_list_->SyncViewSize();
         result_list_->EnableEvent(paf::ui::EV_FOCUS);
     }
     if (empty_text_ != NULL) {
-        empty_text_->SetPos(0.0f, -52.0f, 0.0f);
+        empty_text_->SetPos(0.0f, -48.0f, 0.0f);
     }
     UpdateResultPresentation();
     if (result_list_ != NULL && !results_.empty()) {

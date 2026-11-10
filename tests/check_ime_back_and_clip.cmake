@@ -33,6 +33,18 @@ if(sync_call_count LESS 2)
         "Both IME and expanded ListView geometry changes must synchronize the PAF view box")
 endif()
 
+foreach(required_geometry IN ITEMS
+    "result_list_->SetSize(960.0f, 192.0f, 0.0f);"
+    "result_list_->SetPos(0.0f, 80.0f, 0.0f);"
+    "result_list_->SetSize(960.0f, 448.0f, 0.0f);"
+    "result_list_->SetPos(0.0f, -48.0f, 0.0f);")
+    string(FIND "${source}" "${required_geometry}" found)
+    if(found EQUAL -1)
+        message(FATAL_ERROR
+            "ListView clipping geometry must align both viewport edges to PAF's 32-pixel grid: ${required_geometry}")
+    endif()
+endforeach()
+
 foreach(forbidden IN ITEMS
     "SCE_CTRL_CIRCLE"
     "SCE_CTRL_CROSS")

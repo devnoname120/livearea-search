@@ -16,7 +16,8 @@ endif()
 foreach(required_resource IN ITEMS
     "<layout_hint size=\"960,512\" pos=\"0,-16\" />"
     "id=\"plane_results_ime_surface\""
-    "<layout_hint size=\"960,200\" pos=\"0,68\" />"
+    "<layout_hint size=\"960,208\" pos=\"0,72\" />"
+    "<layout_hint align=\"0,0\" anchor=\"0,0\" size=\"960,448\" pos=\"0,-48\" />"
     "id=\"list_results\""
     "id=\"text_box_search\"")
     string(FIND "${resource_xml}" "${required_resource}" required_index)
@@ -36,8 +37,8 @@ foreach(required_source IN ITEMS
     "Vector<SearchResult> next_results;"
     "results_.swap(next_results);"
     "param.cell_index"
-    "result_list_->SetSize(960.0f, 200.0f, 0.0f);"
-    "result_list_->SetPos(0.0f, 68.0f, 0.0f);")
+    "result_list_->SetSize(960.0f, 192.0f, 0.0f);"
+    "result_list_->SetPos(0.0f, 80.0f, 0.0f);")
     string(FIND "${search_overlay}" "${required_source}" required_index)
     if(required_index EQUAL -1)
         message(FATAL_ERROR "Missing progressive-search or IME re-entry behavior: ${required_source}")

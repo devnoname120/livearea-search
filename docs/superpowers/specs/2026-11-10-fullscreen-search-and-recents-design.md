@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved on 2026-11-10. This document supersedes the compact IME surface and empty-query-close behavior in `2026-11-09-livearea-search-design.md`. The existing Home-only magnifier control, progressive search, icon-cache policy, deferred kinetic-scroll teardown, startup self-disable fail-safe, and title launch route remain in force unless explicitly changed below.
+Approved on 2026-11-10 and corrected after Vita 146 hardware validation. This document supersedes the compact IME surface and empty-query-close behavior in `2026-11-09-livearea-search-design.md`. The existing Home-only magnifier control, progressive search, icon-cache policy, deferred kinetic-scroll teardown, startup self-disable fail-safe, and title launch route remain in force unless explicitly changed below.
 
 ## Goal
 
@@ -17,12 +17,12 @@ The Vita logical display is `960 × 544`. The upper 32 px are reserved for the e
 ### Results mode without IME
 
 - An opaque `960 × 512` background begins immediately below the information bar and extends to the bottom edge.
-- A `960 × 72` header occupies the top of the search-owned area.
+- A `960 × 64` header occupies the top of the search-owned area.
 - The TextBox and status label retain native ScePaf styling, with horizontal padding contained inside the header rather than created by narrowing the whole surface.
 - A 1 px divider forms the exact boundary between header and list.
-- The ListView occupies the remaining `960 × 440` rectangle.
+- The ListView occupies the remaining `960 × 448` rectangle. Both viewport edges are aligned to PAF's 32-pixel ListView raster.
 - The first 70 px row begins directly below the divider. There is no spacer, top inset, or black margin.
-- The ListView and every recycled row are clipped to that `960 × 440` viewport. Overscroll, animation, focus glow, and recycled children must not draw above the divider, below the screen, or outside the horizontal bounds.
+- The ListView and every recycled row are clipped to that `960 × 448` viewport. Overscroll, animation, focus glow, and recycled children must not draw above the divider, below the screen, or outside the horizontal bounds.
 - The result background is fully opaque. The underlying Home wallpaper, bubbles, and top-right notification corner cannot show through it.
 
 ### Results mode with IME
@@ -30,17 +30,17 @@ The Vita logical display is `960 × 544`. The upper 32 px are reserved for the e
 PAF plugin draw ordering previously proved that a full-height plugin plane can obscure the system IME. The page therefore remains logically full-screen, but only the region not occupied by the keyboard is rendered by the search plugin while editing:
 
 - The same full-width header is aligned immediately below the information bar.
-- A full-width opaque results surface extends from the header divider to the keyboard boundary.
+- A `960 × 208` opaque results surface begins below the header. The ListView itself is `960 × 192`; its top and bottom edges are aligned to PAF's 32-pixel raster and remain above the keyboard boundary.
 - Progressive results remain visible in the available area above the keyboard.
 - No `920` px inset surface is used; there are no blue side margins.
 - Widgets below the keyboard boundary are hidden or clipped so the IME remains visually and interactively above the plugin.
-- When editing ends, the ListView expands to the full `960 × 440` viewport without changing its model or query.
+- When editing ends, the ListView expands to the full `960 × 448` viewport without changing its model or query.
 
 ### Information bar and notification corner
 
 The information bar, including clock, connection state, and battery, remains visible and unchanged.
 
-The blue top-right notification corner must not be visible while the search page is open. The preferred implementation is composition rather than private shell mutation: the opaque full-width search surface draws above the Home/topmenu corner but below the information bar. If hardware evidence shows that the corner remains above the page, a targeted shell-chrome adapter may hide only that corner widget and restore its exact prior visibility on every close, initialization failure, and destructor path. Hiding the entire information bar or indicator plugin is not permitted.
+The blue top-right notification corner must not be visible while the search page is open. Vita 146 hardware evidence showed that it is a higher-priority Home/topmenu draw path rather than the indicator widget originally inferred from the resource tree. The validated implementation therefore uses composition only: a separate non-interactive PAF page contains an `80 × 32` black plane over the unused extreme top-right information-bar corner and an `80 × 32` header-colored plane immediately below it. Only this narrow page uses draw priority 7; the main result page remains below the system IME. It opens and closes with the result page, restores the Home bubble on close, and never mutates or hides SceShell widgets, the information bar, or the indicator plugin.
 
 ## Search and navigation behavior
 
@@ -142,7 +142,7 @@ The overlay:
 - No valid recent apps: show `No recent apps`.
 - App removed after being recorded: omit it from the displayed list; compact it out on the next successful save.
 - IME composition constraint: never render plugin chrome over the keyboard region.
-- Notification-corner suppression failure: fail closed by covering it through the opaque page where possible; do not hide the information bar or alter unrelated shell widgets.
+- Notification-corner occluder open failure: log the failure and do not fall back to private shell mutation; the information bar and unrelated shell widgets must remain untouched.
 - Page close during active scrolling: use the already verified deferred/quiescent teardown path.
 
 ## Verification
@@ -154,8 +154,8 @@ The overlay:
 - Versioned parse/serialize round trip.
 - Missing, malformed, oversized, duplicate, and embedded-NUL persistence input.
 - Resource contract for a `960 × 512` search-owned area below the information bar.
-- Header width and position, zero gap before the first row, `960 × 440` list viewport, and fully opaque backgrounds.
-- Editing layout uses a full-width surface and does not restore the old `920 × 208` inset.
+- Header width and position, zero gap before the first row, `960 × 448` expanded viewport, and fully opaque untextured backgrounds.
+- Editing layout uses a `960 × 208` full-width backing surface with a 32-pixel-aligned `960 × 192` ListView and does not restore the old `920 × 208` inset.
 - Existing deferred-close lifecycle contract remains passing.
 
 ### Vita 146 validation
