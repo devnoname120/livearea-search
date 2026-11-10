@@ -99,7 +99,7 @@ Rules:
 - Ignore duplicate lines after the first occurrence.
 - A missing file means an empty history.
 - An invalid header, unreadable file, embedded NUL, oversized file, or malformed content means an empty history; search itself must still initialize.
-- Save by writing a temporary file in the same directory, synchronizing it, verifying the complete bytes, and renaming it over the destination. A failed save leaves the prior valid file intact and does not change whether the subsequent title-open request is attempted or how its result is reported.
+- Save by writing a temporary file in the same directory, synchronizing it, and verifying the complete bytes. Vita returns `EEXIST` rather than replacing an existing destination, so replacement uses a recoverable transaction: move the current destination to `.bak`, move the verified temporary file into place, verify the installed bytes, then remove `.bak`. Any failed install restores the backup, and startup/load recovers a stranded `.bak` when the destination is absent. A failed save leaves the prior valid file recoverable and does not change whether the subsequent title-open request is attempted or how its result is reported.
 
 The portable core owns ordering, deduplication, truncation, filtering, and serialization rules. A Vita adapter owns bounded file I/O and atomic replacement.
 
@@ -123,7 +123,7 @@ A Vita-specific adapter that:
 - reads the persistent file during overlay initialization;
 - treats missing or invalid data as an empty history;
 - writes and verifies a same-directory temporary file;
-- atomically replaces the destination only after verification.
+- installs only verified bytes through a same-directory backup transaction and recovers an interrupted replacement before loading.
 
 ### `SearchOverlay`
 

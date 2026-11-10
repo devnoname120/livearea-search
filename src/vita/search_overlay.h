@@ -7,6 +7,7 @@
 
 #include "icon_cache.h"
 #include "lsdb_index_source.h"
+#include "notification_corner.h"
 #include "recent_apps_file.h"
 
 namespace livearea_search {
@@ -103,6 +104,7 @@ private:
 
     AppIndex index_;
     LsdbIndexSource index_source_;
+    NotificationCornerGuard notification_corner_;
     RecentApps recent_apps_;
     RecentAppsFile recent_apps_file_;
     Vector<SearchResult> results_;

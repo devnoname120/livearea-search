@@ -6,13 +6,13 @@ LiveArea Search is a resident SceShell user plugin that adds a native ScePaf sea
 
 - The Search control is a native lower-right PAF `CornerButton` using Sony's base, highlight, glow, sound, and layout with only the stock ellipsis replaced by a magnifying-glass texture. It accepts front-touch input but is excluded from focus, keycode, and analog routing, so it does not interfere with Home navigation.
 - Search input uses the Vita IME through a PAF `TextBox`. Results update progressively as the text changes; the keyboard enter/search action only ends editing and expands the result surface.
-- The result page owns the complete `960 × 512` area below the Vita information bar. The bar remains visible, while an opaque full-width header and result surface cover the Home wallpaper, bubbles, and notification corner with no blue side or bottom bleed.
+- The result page owns the complete `960 × 512` area below the Vita information bar. The bar remains visible, while an opaque full-width header and result surface cover the Home wallpaper and bubbles with no blue side or bottom bleed. The indicator plugin's stable notification-corner widget is hidden only for the result-page lifetime and restored to its exact prior visibility on close or teardown.
 - While the IME is active, the same full-width surface ends immediately above the keyboard and keeps progressive results visible. Tapping the search field after submission reopens the IME without rebuilding unrelated shell state.
 - Results use PAF's vertical list layout, kinetic scrolling, focus handling, and 70 px common-list geometry.
 - Each row uses a native `app_icon_simple` widget and one title line; title-ID metadata is deliberately omitted.
 - Artwork is loaded asynchronously from LiveArea's plaintext `ur0:appmeta/<TITLE_ID>/icon0.png` copy. Visible rows pin their surfaces. Under surface-pool pressure, the cache releases only an unpinned, cache-owned least-recently-used surface and retries the load; evicted entries retain their source path and reload when revisited. Missing source files remain neutral placeholders without evicting valid artwork.
 - Results are ranked deterministically: exact title/title-ID, prefix, token prefix, substring, then metadata matches.
-- An empty query shows `Recent`: up to 20 unique applications most recently selected through LiveArea Search. Selecting an older entry moves it to the front, unavailable apps are omitted, and the bounded MRU order persists across reboot in `ur0:data/livearea-search/recent_apps.txt`.
+- An empty query shows `Recent`: up to 20 unique applications most recently selected through LiveArea Search. Selecting an older entry moves it to the front, unavailable apps are omitted, and the bounded MRU order persists across reboot in `ur0:data/livearea-search/recent_apps.txt`. Saves use a verified same-directory temporary file plus a recoverable backup transaction because Vita file renames do not replace an existing destination.
 - Recency is recorded and saved before SceShell is asked to open the title, so a failed save is logged without blocking the open attempt and a failed title-open request does not lose the in-memory selection.
 - Launching uses `sceAppMgrLaunchAppByUri(0x20000, "psgm:open?titleid=...")`, so SceShell retains normal application lifecycle ownership.
 - The overlay fails closed and hides whenever an application owns the foreground or the required shell state cannot be read. The Home control additionally checks the verified topmenu Home page and horizontal-scroll focus/target, so it is absent from title LiveAreas, PlayStation Store, and other PAF surfaces.
@@ -33,7 +33,7 @@ cmake --build build-host --parallel 4
 ctest --test-dir build-host --output-on-failure
 ```
 
-The host suite covers query normalization, ranking, stable ordering, result limits, catalog-record policy, title-ID validation, LiveArea URI construction, startup self-disable matching, exact Home-surface recognition, IME transition/adoption policy, deterministic pin-aware icon eviction, Recent MRU ordering/filtering/serialization, persistence-source safety, deferred close ordering, and full-screen PAF resource composition contracts.
+The host suite covers query normalization, ranking, stable ordering, result limits, catalog-record policy, title-ID validation, LiveArea URI construction, startup self-disable matching, exact Home-surface recognition, IME transition/adoption policy, deterministic pin-aware icon eviction, Recent MRU ordering/filtering/serialization, recoverable persistence ordering, targeted notification-corner lifecycle, deferred close ordering, and full-screen PAF resource composition contracts.
 
 ## Vita build
 

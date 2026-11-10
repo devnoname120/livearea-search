@@ -87,3 +87,13 @@ add_test(
         -DICON_CACHE_SOURCE=${CMAKE_SOURCE_DIR}/src/vita/icon_cache.cpp
         -P ${CMAKE_CURRENT_SOURCE_DIR}/check_close_lifecycle.cmake
 )
+
+add_test(
+    NAME livearea_search_notification_corner
+    COMMAND ${CMAKE_COMMAND}
+        -DNOTIFICATION_HEADER=${CMAKE_SOURCE_DIR}/src/vita/notification_corner.h
+        -DNOTIFICATION_SOURCE=${CMAKE_SOURCE_DIR}/src/vita/notification_corner.cpp
+        -DOVERLAY_HEADER=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.h
+        -DSEARCH_OVERLAY=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.cpp
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/check_notification_corner.cmake
+)

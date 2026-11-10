@@ -18,9 +18,16 @@ endforeach()
 foreach(required_source IN ITEMS
     "ur0:data/livearea-search/recent_apps.txt"
     "ur0:data/livearea-search/recent_apps.txt.tmp"
+    "ur0:data/livearea-search/recent_apps.txt.bak"
     "sceIoSyncByFd"
     "VerifyFile"
-    "sceIoRename"
+    "RecoverBackupIfNeeded"
+    "ReplaceVerifiedTemporary"
+    "RestoreBackup"
+    "const int recovery_result = RecoverBackupIfNeeded();"
+    "int result = RecoverBackupIfNeeded();"
+    "sceIoRename(kRecentPath, kBackupPath)"
+    "sceIoRename(kTemporaryPath, kRecentPath)"
     "RecentApps::kMaximumSerializedSize")
     string(FIND "${recent_source}" "${required_source}" found)
     if(found EQUAL -1)
@@ -28,7 +35,10 @@ foreach(required_source IN ITEMS
     endif()
 endforeach()
 
-string(FIND "${recent_source}" "sceIoRemove(kRecentPath);" destructive_remove)
-if(NOT destructive_remove EQUAL -1)
-    message(FATAL_ERROR "Do not delete the valid destination before replacement")
+string(FIND "${recent_source}" "sceIoRename(kRecentPath, kBackupPath)" backup_rename)
+string(FIND "${recent_source}" "sceIoRename(kTemporaryPath, kRecentPath)" install_rename REVERSE)
+if(backup_rename EQUAL -1 OR install_rename EQUAL -1 OR
+   NOT backup_rename LESS install_rename)
+    message(FATAL_ERROR
+        "An existing destination must be backed up before the temporary file is installed")
 endif()

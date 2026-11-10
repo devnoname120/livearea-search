@@ -51,6 +51,7 @@ add_executable(livearea_search_vita
     src/vita/launcher.cpp
     src/vita/libc_shim.c
     src/vita/lsdb_index_source.cpp
+    src/vita/notification_corner.cpp
     src/vita/paf_runtime.cpp
     src/vita/plugin_main.cpp
     src/vita/recent_apps_file.cpp

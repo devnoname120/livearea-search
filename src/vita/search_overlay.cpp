@@ -222,6 +222,9 @@ int SearchOverlay::OpenResultsPage() {
     if (results_page_ == NULL) {
         return -1;
     }
+    QueueInteractionLogResult(
+        "notification corner suppress",
+        notification_corner_.Suppress() ? 1 : 0);
 
     search_box_ = static_cast<paf::ui::TextBox*>(results_page_->FindChild("text_box_search"));
     results_backdrop_ = results_page_->FindChild("plane_results_backdrop");
@@ -328,6 +331,7 @@ void SearchOverlay::ProcessCloseRequest() {
 
 void SearchOverlay::CloseResultsPage() {
     if (plugin_ == NULL || results_page_ == NULL) {
+        notification_corner_.Restore();
         return;
     }
     close_requested_ = false;
@@ -360,6 +364,10 @@ void SearchOverlay::CloseResultsPage() {
     paf::Plugin::PageCloseParam close_param;
     close_param.fade = false;
     plugin_->PageClose("page_search_results", close_param);
+    const bool notification_restored = notification_corner_.Restore();
+    QueueInteractionLogResult(
+        "notification corner restore",
+        notification_restored ? 1 : 0);
 
     results_page_ = NULL;
     search_box_ = NULL;
@@ -575,6 +583,11 @@ void SearchOverlay::SetResultsDisplayLayout() {
 void SearchOverlay::UpdateVisibility() {
     if (home_page_ == NULL) {
         return;
+    }
+    if (results_page_ != NULL) {
+        notification_corner_.Suppress();
+    } else {
+        notification_corner_.Restore();
     }
 
     const bool shell_allows_overlay = ShellAllowsOverlay();
