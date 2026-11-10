@@ -35,6 +35,9 @@ foreach(forbidden IN ITEMS
     "texture=\"_common_texture_dialog_fill_white\" id=\"plane_results_surface\""
     "texture=\"_common_texture_dialog_fill_white\" id=\"plane_results_ime_surface\""
     "texture=\"_common_texture_dialog_fill_white\" id=\"plane_results_header\""
+    "page_ime_boundary_mask"
+    "plane_results_ime_mask"
+    "plane_results_clip"
     "color=\"0.075,0.09,0.12,0.96\""
     "color=\"0.11,0.13,0.17,0.98\"")
     string(FIND "${resource}" "${forbidden}" found)
@@ -45,12 +48,24 @@ endforeach()
 
 foreach(required_source IN ITEMS
     "SetCellSizeDefault(0, paf::math::v4(960.0f, 70.0f))"
-    "result_list_->SetSize(960.0f, 192.0f, 0.0f);"
-    "result_list_->SetPos(0.0f, 80.0f, 0.0f);"
+    "result_list_->SetSize(960.0f, 224.0f, 0.0f);"
+    "result_list_->SetPos(0.0f, 64.0f, 0.0f);"
+    "result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));"
     "result_list_->SetSize(960.0f, 448.0f, 0.0f);"
-    "result_list_->SetPos(0.0f, -48.0f, 0.0f);")
+    "result_list_->SetPos(0.0f, -48.0f, 0.0f);"
+    "result_list_->SetViewBox(paf::math::v4(-480.0f, 224.0f, 480.0f, -224.0f));")
     string(FIND "${overlay}" "${required_source}" found)
     if(found EQUAL -1)
         message(FATAL_ERROR "Missing runtime full-screen geometry: ${required_source}")
+    endif()
+endforeach()
+
+foreach(forbidden_height IN ITEMS
+    "result_list_->SetSize(960.0f, 192.0f, 0.0f);"
+    "result_list_->SetSize(960.0f, 208.0f, 0.0f);")
+    string(FIND "${overlay}" "${forbidden_height}" found)
+    if(NOT found EQUAL -1)
+        message(FATAL_ERROR
+            "The compact viewport must be 32-pixel aligned and camera-clipped exactly at the IME boundary: ${forbidden_height}")
     endif()
 endforeach()

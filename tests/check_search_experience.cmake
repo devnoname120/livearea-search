@@ -37,8 +37,9 @@ foreach(required_source IN ITEMS
     "Vector<SearchResult> next_results;"
     "results_.swap(next_results);"
     "param.cell_index"
-    "result_list_->SetSize(960.0f, 192.0f, 0.0f);"
-    "result_list_->SetPos(0.0f, 80.0f, 0.0f);")
+    "result_list_->SetSize(960.0f, 224.0f, 0.0f);"
+    "result_list_->SetPos(0.0f, 64.0f, 0.0f);"
+    "result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));")
     string(FIND "${search_overlay}" "${required_source}" required_index)
     if(required_index EQUAL -1)
         message(FATAL_ERROR "Missing progressive-search or IME re-entry behavior: ${required_source}")

@@ -6,10 +6,17 @@
 
 #include "launcher.h"
 #include "paf_memory.h"
+#include "paf_page_order.h"
 #include "shell_state.h"
 #include "startup_log.h"
 
 namespace livearea_search {
+namespace {
+
+const int kResultsDisplayDrawPriority = 6;
+const int kResultsEditingDrawPriority = 36;
+
+} // namespace
 
 SearchOverlay::ResultItemFactory::ResultItemFactory(SearchOverlay* overlay)
     : overlay_(overlay) {}
@@ -103,6 +110,7 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       results_pending_display_(false),
       ime_close_pending_(false),
       results_editing_layout_(false),
+      results_draw_priority_(kResultsDisplayDrawPriority),
       close_requested_(false),
       close_defer_frames_(0),
       initialized_(false) {}
@@ -296,6 +304,7 @@ int SearchOverlay::BeginImeEdit() {
     }
 
     SetResultsEditingLayout();
+    SetResultsDrawPriority(kResultsEditingDrawPriority);
     ime_transition_active_ = true;
     ime_editing_seen_ = false;
     results_pending_display_ = true;
@@ -409,6 +418,7 @@ void SearchOverlay::CloseResultsPage() {
     results_.clear();
     normalized_query_.clear();
     results_editing_layout_ = false;
+    results_draw_priority_ = kResultsDisplayDrawPriority;
     UpdateVisibility();
 }
 
@@ -504,6 +514,7 @@ void SearchOverlay::UpdateImeTransition() {
             editing_before_update)) {
         QueueInteractionLog("ime external edit adopted");
         SetResultsEditingLayout();
+        SetResultsDrawPriority(kResultsEditingDrawPriority);
         ime_transition_active_ = true;
         ime_editing_seen_ = true;
         results_pending_display_ = true;
@@ -514,6 +525,9 @@ void SearchOverlay::UpdateImeTransition() {
     }
 
     RefreshSearchFromText(false);
+    if (results_editing_layout_ && result_list_ != NULL) {
+        result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));
+    }
     const bool is_editing = search_box_->IsEditing();
     const bool shell_ready = IsBubbleHomeVisible();
     const ImeFrameAction action = ComputeImeFrameAction(
@@ -533,6 +547,7 @@ void SearchOverlay::UpdateImeTransition() {
         ime_editing_seen_ = false;
         results_pending_display_ = false;
         ime_close_pending_ = false;
+        SetResultsDrawPriority(kResultsDisplayDrawPriority);
         SetResultsDisplayLayout();
         QueueInteractionLog("ime transition show results returned");
         return;
@@ -542,6 +557,18 @@ void SearchOverlay::UpdateImeTransition() {
         ime_transition_active_ = false;
         RequestCloseResultsPage();
     }
+}
+
+void SearchOverlay::SetResultsDrawPriority(int priority) {
+    if (plugin_ == NULL || results_page_ == NULL || results_draw_priority_ == priority) {
+        return;
+    }
+    paf_page_order::SetPagePriority(
+        plugin_,
+        results_page_,
+        "page_search_results",
+        priority);
+    results_draw_priority_ = priority;
 }
 
 void SearchOverlay::SetResultsEditingLayout() {
@@ -562,14 +589,15 @@ void SearchOverlay::SetResultsEditingLayout() {
         close_button_->Hide(paf::common::transition::Type_Reset);
     }
     if (result_list_ != NULL) {
-        result_list_->SetSize(960.0f, 192.0f, 0.0f);
-        result_list_->SetPos(0.0f, 80.0f, 0.0f);
+        result_list_->SetSize(960.0f, 224.0f, 0.0f);
+        result_list_->SetPos(0.0f, 64.0f, 0.0f);
         result_list_->SyncViewSize();
+        result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));
         result_list_->DisableEvent(paf::ui::EV_FOCUS);
         result_list_->ReleaseFocus();
     }
     if (empty_text_ != NULL) {
-        empty_text_->SetPos(0.0f, 80.0f, 0.0f);
+        empty_text_->SetPos(0.0f, 72.0f, 0.0f);
     }
     UpdateResultPresentation();
 }
@@ -596,6 +624,7 @@ void SearchOverlay::SetResultsDisplayLayout() {
         result_list_->SetSize(960.0f, 448.0f, 0.0f);
         result_list_->SetPos(0.0f, -48.0f, 0.0f);
         result_list_->SyncViewSize();
+        result_list_->SetViewBox(paf::math::v4(-480.0f, 224.0f, 480.0f, -224.0f));
         result_list_->EnableEvent(paf::ui::EV_FOCUS);
     }
     if (empty_text_ != NULL) {

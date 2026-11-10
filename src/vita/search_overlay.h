@@ -83,6 +83,7 @@ private:
     void RebuildResultList();
     void UpdateResultPresentation();
     void UpdateImeTransition();
+    void SetResultsDrawPriority(int priority);
     void SetResultsEditingLayout();
     void SetResultsDisplayLayout();
     void UpdateVisibility();
@@ -123,6 +124,7 @@ private:
     bool results_pending_display_;
     bool ime_close_pending_;
     bool results_editing_layout_;
+    int results_draw_priority_;
     bool close_requested_;
     std::uint32_t close_defer_frames_;
     bool initialized_;

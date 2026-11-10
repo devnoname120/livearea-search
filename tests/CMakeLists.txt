@@ -106,3 +106,12 @@ add_test(
         -DOVERLAY_HEADER=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.h
         -P ${CMAKE_CURRENT_SOURCE_DIR}/check_ime_back_and_clip.cmake
 )
+
+add_test(
+    NAME livearea_search_ime_page_order
+    COMMAND ${CMAKE_COMMAND}
+        -DSEARCH_OVERLAY=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.cpp
+        -DOVERLAY_HEADER=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.h
+        -DPAF_PAGE_ORDER_HEADER=${CMAKE_SOURCE_DIR}/src/vita/paf_page_order.h
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/check_ime_page_order.cmake
+)

@@ -34,20 +34,46 @@ if(sync_call_count LESS 2)
 endif()
 
 foreach(required_geometry IN ITEMS
-    "result_list_->SetSize(960.0f, 192.0f, 0.0f);"
-    "result_list_->SetPos(0.0f, 80.0f, 0.0f);"
+    "result_list_->SetSize(960.0f, 224.0f, 0.0f);"
+    "result_list_->SetPos(0.0f, 64.0f, 0.0f);"
+    "result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));"
     "result_list_->SetSize(960.0f, 448.0f, 0.0f);"
-    "result_list_->SetPos(0.0f, -48.0f, 0.0f);")
+    "result_list_->SetPos(0.0f, -48.0f, 0.0f);"
+    "result_list_->SetViewBox(paf::math::v4(-480.0f, 224.0f, 480.0f, -224.0f));")
     string(FIND "${source}" "${required_geometry}" found)
     if(found EQUAL -1)
         message(FATAL_ERROR
-            "ListView clipping geometry must align both viewport edges to PAF's 32-pixel grid: ${required_geometry}")
+            "ListView clipping geometry must meet the header and system IME boundaries: ${required_geometry}")
+    endif()
+endforeach()
+
+string(REGEX MATCHALL
+    "result_list_->SetViewBox\\(paf::math::v4\\(-480\\.0f, 112\\.0f, 480\\.0f, -96\\.0f\\)\\)"
+    compact_viewbox_calls
+    "${source}")
+list(LENGTH compact_viewbox_calls compact_viewbox_call_count)
+if(compact_viewbox_call_count LESS 2)
+    message(FATAL_ERROR
+        "The exact IME view box must be set during layout and reasserted after progressive list updates")
+endif()
+
+foreach(forbidden_geometry IN ITEMS
+    "result_list_->SetSize(960.0f, 192.0f, 0.0f);"
+    "result_list_->SetSize(960.0f, 208.0f, 0.0f);")
+    string(FIND "${source}" "${forbidden_geometry}" found)
+    if(NOT found EQUAL -1)
+        message(FATAL_ERROR
+            "The compact ListView must use aligned internal geometry with an exact camera view box: ${forbidden_geometry}")
     endif()
 endforeach()
 
 foreach(forbidden IN ITEMS
     "SCE_CTRL_CIRCLE"
-    "SCE_CTRL_CROSS")
+    "SCE_CTRL_CROSS"
+    "page_ime_boundary_mask"
+    "plane_results_ime_mask"
+    "paf_widget_clip::"
+    "results_clip_")
     string(FIND "${source}" "${forbidden}" found)
     if(NOT found EQUAL -1)
         message(FATAL_ERROR "Back handling must not hard-code a physical face button: ${forbidden}")
