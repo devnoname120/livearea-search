@@ -30,6 +30,14 @@ add_test(
 )
 
 add_test(
+    NAME livearea_search_recent_file_contract
+    COMMAND ${CMAKE_COMMAND}
+        -DRECENT_FILE_HEADER=${CMAKE_SOURCE_DIR}/src/vita/recent_apps_file.h
+        -DRECENT_FILE_SOURCE=${CMAKE_SOURCE_DIR}/src/vita/recent_apps_file.cpp
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/check_recent_apps_file.cmake
+)
+
+add_test(
     NAME livearea_search_home_control
     COMMAND ${CMAKE_COMMAND}
         -DRESOURCE_XML=${CMAKE_SOURCE_DIR}/resources/livearea_search_plugin.xml

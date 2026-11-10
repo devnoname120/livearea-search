@@ -53,6 +53,7 @@ add_executable(livearea_search_vita
     src/vita/lsdb_index_source.cpp
     src/vita/paf_runtime.cpp
     src/vita/plugin_main.cpp
+    src/vita/recent_apps_file.cpp
     src/vita/search_overlay.cpp
     src/vita/startup_log.cpp
     src/vita/widget_event.cpp
