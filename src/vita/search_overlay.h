@@ -54,6 +54,11 @@ private:
         paf::ui::Handler* handler,
         paf::ui::Event* event,
         void* user_data);
+    static void OnBackKey(
+        int id,
+        paf::ui::Handler* handler,
+        paf::ui::Event* event,
+        void* user_data);
     static void OnResultDecide(
         int id,
         paf::ui::Handler* handler,
@@ -69,6 +74,7 @@ private:
     int OpenHomePage();
     int OpenResultsPage();
     int BeginImeEdit();
+    void HandleBack();
     void RequestCloseResultsPage();
     void ProcessCloseRequest();
     void CloseResultsPage();

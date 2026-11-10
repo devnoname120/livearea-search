@@ -89,4 +89,20 @@ DeferredResultCloseAction AdvanceDeferredResultClose(
     return DeferredResultCloseAction::Close;
 }
 
+ResultsBackAction ComputeResultsBackAction(
+    bool results_open,
+    bool ime_editing,
+    bool ime_transition_active) noexcept {
+    if (!results_open) {
+        return ResultsBackAction::None;
+    }
+    if (ime_editing) {
+        return ResultsBackAction::EndImeEdit;
+    }
+    if (ime_transition_active) {
+        return ResultsBackAction::None;
+    }
+    return ResultsBackAction::CloseResults;
+}
+
 } // namespace livearea_search

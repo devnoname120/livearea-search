@@ -523,6 +523,32 @@ void TestDeferredResultClosePolicy() {
         "a zero-frame request is ready for synchronous teardown");
 }
 
+void TestResultsBackPolicy() {
+    using livearea_search::ComputeResultsBackAction;
+    using livearea_search::ResultsBackAction;
+
+    Check(
+        ComputeResultsBackAction(false, false, false) ==
+            ResultsBackAction::None,
+        "Back is ignored when the results page is not open");
+    Check(
+        ComputeResultsBackAction(true, true, true) ==
+            ResultsBackAction::EndImeEdit,
+        "Back dismisses active IME editing before closing the results page");
+    Check(
+        ComputeResultsBackAction(true, true, false) ==
+            ResultsBackAction::EndImeEdit,
+        "an externally started TextBox edit is dismissed by Back");
+    Check(
+        ComputeResultsBackAction(true, false, true) ==
+            ResultsBackAction::None,
+        "the same Back press cannot close the page while IME dismissal is transitioning");
+    Check(
+        ComputeResultsBackAction(true, false, false) ==
+            ResultsBackAction::CloseResults,
+        "Back closes the results page only after editing is inactive");
+}
+
 void TestDeferredLogQueue() {
     livearea_search::DeferredLogQueue queue;
     char line[livearea_search::DeferredLogQueue::kLineCapacity];
@@ -606,6 +632,7 @@ int main() {
     TestExternalImeEditAdoption();
     TestImeTransitionPolicy();
     TestDeferredResultClosePolicy();
+    TestResultsBackPolicy();
     TestDeferredLogQueue();
     TestIconCacheEvictionPolicy();
 

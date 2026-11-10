@@ -26,6 +26,12 @@ enum class DeferredResultCloseAction {
     Close,
 };
 
+enum class ResultsBackAction {
+    None,
+    EndImeEdit,
+    CloseResults,
+};
+
 HomeVisibilityAction ComputeHomeVisibilityAction(
     bool currently_visible,
     bool topmenu_visible,
@@ -55,5 +61,9 @@ ImeFrameAction ComputeImeFrameAction(
 DeferredResultCloseAction AdvanceDeferredResultClose(
     bool close_requested,
     std::uint32_t& frames_remaining) noexcept;
+ResultsBackAction ComputeResultsBackAction(
+    bool results_open,
+    bool ime_editing,
+    bool ime_transition_active) noexcept;
 
 } // namespace livearea_search

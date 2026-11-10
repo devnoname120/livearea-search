@@ -242,6 +242,13 @@ int SearchOverlay::OpenResultsPage() {
         return -1;
     }
 
+    results_page_->SetKeycode(
+        paf::inputdevice::pad::Data::Keycode::PAD_ESCAPE);
+    results_page_->AddEventCallback(
+        paf::ui::Handler::CB_KEYCODE_PRESS,
+        OnBackKey,
+        this);
+
     search_box_->SetMaxLength(64);
     search_box_->AddEventCallback(
         paf::ui::TextBox::CB_TEXT_BOX_ENTER_PRESSED,
@@ -299,6 +306,26 @@ int SearchOverlay::BeginImeEdit() {
         RequestCloseResultsPage();
     }
     return result;
+}
+
+void SearchOverlay::HandleBack() {
+    const ResultsBackAction action = ComputeResultsBackAction(
+        results_page_ != NULL,
+        search_box_ != NULL && search_box_->IsEditing(),
+        ime_transition_active_);
+    if (action == ResultsBackAction::EndImeEdit) {
+        QueueInteractionLog("back dismiss ime");
+        ime_close_pending_ = false;
+        results_pending_display_ = true;
+        if (search_box_ != NULL) {
+            QueueInteractionLogResult("back end edit", search_box_->EndEdit());
+        }
+        return;
+    }
+    if (action == ResultsBackAction::CloseResults) {
+        QueueInteractionLog("back close results");
+        RequestCloseResultsPage();
+    }
 }
 
 void SearchOverlay::RequestCloseResultsPage() {
@@ -536,6 +563,7 @@ void SearchOverlay::SetResultsEditingLayout() {
     if (result_list_ != NULL) {
         result_list_->SetSize(960.0f, 200.0f, 0.0f);
         result_list_->SetPos(0.0f, 68.0f, 0.0f);
+        result_list_->SyncViewSize();
         result_list_->DisableEvent(paf::ui::EV_FOCUS);
         result_list_->ReleaseFocus();
     }
@@ -566,6 +594,7 @@ void SearchOverlay::SetResultsDisplayLayout() {
     if (result_list_ != NULL) {
         result_list_->SetSize(960.0f, 440.0f, 0.0f);
         result_list_->SetPos(0.0f, -52.0f, 0.0f);
+        result_list_->SyncViewSize();
         result_list_->EnableEvent(paf::ui::EV_FOCUS);
     }
     if (empty_text_ != NULL) {
@@ -794,7 +823,19 @@ void SearchOverlay::OnClose(
     SearchOverlay* overlay = static_cast<SearchOverlay*>(user_data);
     if (overlay != NULL) {
         QueueInteractionLog("close results callback");
-        overlay->RequestCloseResultsPage();
+        overlay->HandleBack();
+    }
+}
+
+void SearchOverlay::OnBackKey(
+    int,
+    paf::ui::Handler*,
+    paf::ui::Event*,
+    void* user_data) {
+    SearchOverlay* overlay = static_cast<SearchOverlay*>(user_data);
+    if (overlay != NULL) {
+        QueueInteractionLog("back key callback");
+        overlay->HandleBack();
     }
 }
 
