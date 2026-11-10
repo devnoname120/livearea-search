@@ -12,6 +12,23 @@ target_compile_options(livearea_search_tests
 
 add_test(NAME livearea_search_tests COMMAND livearea_search_tests)
 
+add_executable(livearea_search_recent_apps_tests
+    test_recent_apps.cpp
+)
+
+target_link_libraries(livearea_search_recent_apps_tests PRIVATE livearea_search_core)
+target_compile_features(livearea_search_recent_apps_tests PRIVATE cxx_std_11)
+
+target_compile_options(livearea_search_recent_apps_tests
+    PRIVATE
+        $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Wsign-conversion>
+)
+
+add_test(
+    NAME livearea_search_recent_apps_tests
+    COMMAND livearea_search_recent_apps_tests
+)
+
 add_test(
     NAME livearea_search_home_control
     COMMAND ${CMAKE_COMMAND}

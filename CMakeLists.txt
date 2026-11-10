@@ -14,6 +14,7 @@ add_library(livearea_search_core STATIC
     src/core/launch_uri.cpp
     src/core/module_readiness.cpp
     src/core/overlay_visibility.cpp
+    src/core/recent_apps.cpp
 )
 
 target_include_directories(livearea_search_core
