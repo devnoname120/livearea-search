@@ -144,6 +144,12 @@ int SearchOverlay::Initialize() {
         return result;
     }
 
+    const int recent_result = recent_apps_file_.Load(recent_apps_);
+    StartupLogResult("recent apps load", recent_result);
+    if (recent_result < 0) {
+        recent_apps_.Clear();
+    }
+
     icon_cache_ = PafNew<IconCache>(plugin_);
     StartupLogResult(
         "overlay icon cache ready",
@@ -263,13 +269,13 @@ int SearchOverlay::OpenResultsPage() {
     results_.clear();
     normalized_query_.clear();
     empty_text_->Hide(paf::common::transition::Type_Reset);
-    UpdateResultCount();
     SetResultsEditingLayout();
     UpdateVisibility();
     if (results_page_ == NULL || search_box_ == NULL) {
         return -1;
     }
     icon_cache_->SetNotificationsEnabled(true);
+    RefreshSearchFromText(true);
     return BeginImeEdit();
 }
 
@@ -281,7 +287,7 @@ int SearchOverlay::BeginImeEdit() {
     SetResultsEditingLayout();
     ime_transition_active_ = true;
     ime_editing_seen_ = false;
-    results_pending_display_ = !normalized_query_.empty();
+    results_pending_display_ = true;
     ime_close_pending_ = false;
     const int result = search_box_->BeginEdit();
     QueueInteractionLogResult("ime begin edit", result);
@@ -375,8 +381,8 @@ void SearchOverlay::SubmitSearch() {
         return;
     }
     RefreshSearchFromText(false);
-    ime_close_pending_ = normalized_query_.empty();
-    results_pending_display_ = !normalized_query_.empty();
+    ime_close_pending_ = false;
+    results_pending_display_ = true;
     QueueInteractionLog("search submit end edit");
     search_box_->EndEdit();
 }
@@ -400,7 +406,9 @@ void SearchOverlay::RefreshSearchFromText(bool force) {
     }
 
     Vector<SearchResult> next_results;
-    if (!normalized.empty()) {
+    if (normalized.empty()) {
+        recent_apps_.Resolve(index_.apps(), next_results);
+    } else {
         index_.Search(query, next_results, 128);
     }
     const std::size_t old_count = result_list_->GetCellNum(0);
@@ -410,7 +418,7 @@ void SearchOverlay::RefreshSearchFromText(bool force) {
     normalized_query_ = normalized;
     results_.clear();
     results_.swap(next_results);
-    results_pending_display_ = !normalized_query_.empty();
+    results_pending_display_ = true;
     QueueInteractionLogResult("search result count", static_cast<int>(results_.size()));
     RebuildResultList();
 }
@@ -434,16 +442,16 @@ void SearchOverlay::UpdateResultPresentation() {
     if (result_list_ == NULL || empty_text_ == NULL) {
         return;
     }
-    if (normalized_query_.empty()) {
-        result_list_->Hide(paf::common::transition::Type_Reset);
-        empty_text_->Hide(paf::common::transition::Type_Reset);
-        return;
-    }
     if (!results_.empty()) {
         result_list_->Show(paf::common::transition::Type_FadeinFast);
         empty_text_->Hide(paf::common::transition::Type_FadeinFast);
     } else {
         result_list_->Hide(paf::common::transition::Type_FadeinFast);
+        if (normalized_query_.empty()) {
+            SetText(empty_text_, "No recent apps");
+        } else {
+            SetText(empty_text_, "No matching applications");
+        }
         empty_text_->Show(paf::common::transition::Type_FadeinFast);
     }
 }
@@ -462,7 +470,7 @@ void SearchOverlay::UpdateImeTransition() {
         SetResultsEditingLayout();
         ime_transition_active_ = true;
         ime_editing_seen_ = true;
-        results_pending_display_ = !normalized_query_.empty();
+        results_pending_display_ = true;
         ime_close_pending_ = false;
     }
     if (!ime_transition_active_) {
@@ -602,6 +610,10 @@ void SearchOverlay::UpdateResultCount() {
     if (result_count_ == NULL) {
         return;
     }
+    if (normalized_query_.empty()) {
+        SetText(result_count_, "Recent");
+        return;
+    }
     char text[32];
     sceClibSnprintf(
         text,
@@ -639,10 +651,25 @@ bool SearchOverlay::IsBubbleHomeVisible() const {
 }
 
 int SearchOverlay::Launch(const String& title_id) {
+    recent_apps_.RetainAvailable(index_.apps());
+    recent_apps_.RecordSelection(title_id);
+    const int save_result = recent_apps_file_.Save(recent_apps_);
+    QueueInteractionLogResult("recent apps save", save_result);
+
     const int result = OpenTitleLiveArea(title_id);
     QueueInteractionLogResult("result launch", result);
     if (result >= 0) {
         RequestCloseResultsPage();
+    } else if (normalized_query_.empty() && result_list_ != NULL) {
+        Vector<SearchResult> next_results;
+        recent_apps_.Resolve(index_.apps(), next_results);
+        const std::size_t old_count = result_list_->GetCellNum(0);
+        if (old_count != 0) {
+            result_list_->DeleteCell(0, 0, old_count);
+        }
+        results_.clear();
+        results_.swap(next_results);
+        RebuildResultList();
     }
     return result;
 }

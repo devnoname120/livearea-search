@@ -3,9 +3,11 @@
 #include "paf_compat.h"
 
 #include <livearea_search/app_index.h>
+#include <livearea_search/recent_apps.h>
 
 #include "icon_cache.h"
 #include "lsdb_index_source.h"
+#include "recent_apps_file.h"
 
 namespace livearea_search {
 
@@ -101,6 +103,8 @@ private:
 
     AppIndex index_;
     LsdbIndexSource index_source_;
+    RecentApps recent_apps_;
+    RecentAppsFile recent_apps_file_;
     Vector<SearchResult> results_;
     String normalized_query_;
     IconCache* icon_cache_;

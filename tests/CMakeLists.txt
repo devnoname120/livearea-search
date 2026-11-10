@@ -38,6 +38,13 @@ add_test(
 )
 
 add_test(
+    NAME livearea_search_recent_overlay
+    COMMAND ${CMAKE_COMMAND}
+        -DSEARCH_OVERLAY=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.cpp
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/check_recent_overlay.cmake
+)
+
+add_test(
     NAME livearea_search_home_control
     COMMAND ${CMAKE_COMMAND}
         -DRESOURCE_XML=${CMAKE_SOURCE_DIR}/resources/livearea_search_plugin.xml
