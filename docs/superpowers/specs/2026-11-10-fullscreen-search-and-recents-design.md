@@ -8,7 +8,7 @@ Approved on 2026-11-10. This document supersedes the compact IME surface and emp
 
 Make LiveArea Search read as a native full-screen shell surface rather than an inset dialog. The Vita information bar remains visible. Everything below it is owned by the search page, with no LiveArea blue bleed-through, no partially hidden search field, no gap above the first result, and no result drawing outside the search viewport.
 
-When the query is empty, show up to 20 applications most recently launched through LiveArea Search. This history persists across reboot and is independent of ordinary LiveArea icon launches.
+When the query is empty, show up to 20 applications most recently selected through LiveArea Search. The selection is recorded even when opening the title's LiveArea subsequently fails. This history persists across reboot and is independent of ordinary LiveArea icon selections.
 
 ## Screen composition
 
@@ -57,16 +57,16 @@ The blue top-right notification corner must not be visible while the search page
 
 ### Semantics
 
-Recent history records only successful launches initiated by selecting a row in LiveArea Search, including selections made from the Recent list itself.
+Recent history records row activations in LiveArea Search, including selections made from the Recent list itself. Recency is updated before attempting to open the title, so a failed `psgm:open` request does not discard the user's selection.
 
-On successful launch:
+On row activation:
 
 1. Remove any existing occurrence of the title ID.
 2. Insert the title ID at the front.
 3. Truncate the sequence to 20 entries.
 4. Persist the new sequence atomically.
 
-Ordinary bubble launches and launches performed by other applications do not affect this list.
+Ordinary bubble selections and launches performed by other applications do not affect this list.
 
 ### Display
 
@@ -99,7 +99,7 @@ Rules:
 - Ignore duplicate lines after the first occurrence.
 - A missing file means an empty history.
 - An invalid header, unreadable file, embedded NUL, oversized file, or malformed content means an empty history; search itself must still initialize.
-- Save by writing a temporary file in the same directory, synchronizing it, verifying the complete bytes, and renaming it over the destination. A failed save leaves the prior valid file intact and does not turn a successful app launch into a launch failure.
+- Save by writing a temporary file in the same directory, synchronizing it, verifying the complete bytes, and renaming it over the destination. A failed save leaves the prior valid file intact and does not change whether the subsequent title-open request is attempted or how its result is reported.
 
 The portable core owns ordering, deduplication, truncation, filtering, and serialization rules. A Vita adapter owns bounded file I/O and atomic replacement.
 
@@ -110,7 +110,7 @@ The portable core owns ordering, deduplication, truncation, filtering, and seria
 A portable core type that:
 
 - loads validated title IDs from a bounded byte sequence;
-- records a successful launch with move-to-front semantics;
+- records a row selection with move-to-front semantics;
 - returns valid installed entries in MRU order;
 - serializes the versioned bounded representation.
 
@@ -130,7 +130,7 @@ A Vita-specific adapter that:
 The overlay:
 
 - switches between `Recent` and ranked-search models based on normalized TextBox content;
-- records recency only after `OpenTitleLiveArea` returns success;
+- records recency immediately before calling `OpenTitleLiveArea`, independent of that call's result;
 - changes between IME and full-list geometry without rebuilding unrelated shell state;
 - owns notification-corner occlusion/restoration for exactly the page lifetime;
 - preserves the deferred safe close state machine.
@@ -138,7 +138,7 @@ The overlay:
 ## Failure handling
 
 - Recent file missing, malformed, or unreadable: continue with an empty Recent list.
-- Recent save failure: retain the in-memory MRU for the current session, log the error, and continue the successful launch.
+- Recent save failure: retain the in-memory MRU for the current session, log the error, and still attempt to open the selected title.
 - No valid recent apps: show `No recent apps`.
 - App removed after being recorded: omit it from the displayed list; compact it out on the next successful save.
 - IME composition constraint: never render plugin chrome over the keyboard region.
@@ -166,12 +166,13 @@ Capture native screenshots and interaction evidence for:
 2. IME open with an empty query: full-width header and dark area to the keyboard boundary, no hidden header, no side bleed.
 3. Progressive typed results: first row flush below the divider and no drawing outside the list viewport.
 4. Return key: keyboard closes and the full-height list expands correctly.
-5. Successful launch and reopening Search: launched title appears first under Recent.
-6. Launching more than 20 unique titles: only the newest 20 remain.
-7. Relaunching an older title: it moves to the front without duplication.
-8. Reboot and reopen: Recent order persists.
-9. Clear a query: Recent reappears immediately.
-10. Kinetic flick plus immediate Circle: the page closes safely with no service loss or new core dump.
+5. Select a row whose title-open request succeeds, then reopen Search: the selected title appears first under Recent.
+6. Select a row while forcing or observing a title-open failure, then reopen Search: the selected title still appears first under Recent.
+7. Selecting more than 20 unique titles: only the newest 20 remain.
+8. Reselecting an older title: it moves to the front without duplication.
+9. Reboot and reopen: Recent order persists.
+10. Clear a query: Recent reappears immediately.
+11. Kinetic flick plus immediate Circle: the page closes safely with no service loss or new core dump.
 
 ### Build and publication
 
