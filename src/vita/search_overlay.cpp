@@ -262,7 +262,7 @@ int SearchOverlay::OpenResultsPage() {
     }
     result_list_->SetItemFactory(factory);
     result_list_->InsertSegment(0, 1);
-    result_list_->SetCellSizeDefault(0, paf::math::v4(920.0f, 70.0f));
+    result_list_->SetCellSizeDefault(0, paf::math::v4(960.0f, 70.0f));
     result_list_->SetSegmentLayoutType(0, paf::ui::ListView::LAYOUT_TYPE_LIST);
     result_list_->SetScrollType(paf::ui::ListView::SCROLL_TYPE_VERTICAL);
 
@@ -526,13 +526,13 @@ void SearchOverlay::SetResultsEditingLayout() {
         close_button_->Hide(paf::common::transition::Type_Reset);
     }
     if (result_list_ != NULL) {
-        result_list_->SetSize(920.0f, 170.0f, 0.0f);
-        result_list_->SetPos(0.0f, 73.0f, 0.0f);
+        result_list_->SetSize(960.0f, 200.0f, 0.0f);
+        result_list_->SetPos(0.0f, 68.0f, 0.0f);
         result_list_->DisableEvent(paf::ui::EV_FOCUS);
         result_list_->ReleaseFocus();
     }
     if (empty_text_ != NULL) {
-        empty_text_->SetPos(0.0f, 73.0f, 0.0f);
+        empty_text_->SetPos(0.0f, 68.0f, 0.0f);
     }
     UpdateResultPresentation();
 }
@@ -556,12 +556,12 @@ void SearchOverlay::SetResultsDisplayLayout() {
         close_button_->Show(paf::common::transition::Type_Reset);
     }
     if (result_list_ != NULL) {
-        result_list_->SetSize(920.0f, 440.0f, 0.0f);
-        result_list_->SetPos(0.0f, -36.0f, 0.0f);
+        result_list_->SetSize(960.0f, 440.0f, 0.0f);
+        result_list_->SetPos(0.0f, -52.0f, 0.0f);
         result_list_->EnableEvent(paf::ui::EV_FOCUS);
     }
     if (empty_text_ != NULL) {
-        empty_text_->SetPos(0.0f, -10.0f, 0.0f);
+        empty_text_->SetPos(0.0f, -52.0f, 0.0f);
     }
     UpdateResultPresentation();
     if (result_list_ != NULL && !results_.empty()) {

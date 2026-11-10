@@ -14,9 +14,9 @@ if(NOT metadata_index EQUAL -1)
 endif()
 
 foreach(required_resource IN ITEMS
-    "<layout_hint size=\"960,544\" />"
+    "<layout_hint size=\"960,512\" pos=\"0,-16\" />"
     "id=\"plane_results_ime_surface\""
-    "<layout_hint size=\"920,208\" pos=\"0,80\" />"
+    "<layout_hint size=\"960,200\" pos=\"0,68\" />"
     "id=\"list_results\""
     "id=\"text_box_search\"")
     string(FIND "${resource_xml}" "${required_resource}" required_index)
@@ -36,15 +36,22 @@ foreach(required_source IN ITEMS
     "Vector<SearchResult> next_results;"
     "results_.swap(next_results);"
     "param.cell_index"
-    "result_list_->SetSize(920.0f, 170.0f, 0.0f);"
-    "result_list_->SetPos(0.0f, 73.0f, 0.0f);")
+    "result_list_->SetSize(960.0f, 200.0f, 0.0f);"
+    "result_list_->SetPos(0.0f, 68.0f, 0.0f);")
     string(FIND "${search_overlay}" "${required_source}" required_index)
     if(required_index EQUAL -1)
         message(FATAL_ERROR "Missing progressive-search or IME re-entry behavior: ${required_source}")
     endif()
 endforeach()
 
-string(FIND "${search_overlay}" "RefreshSearchFromText(true);" forced_submit_refresh_index)
+string(FIND "${search_overlay}" "void SearchOverlay::SubmitSearch()" submit_start)
+string(FIND "${search_overlay}" "void SearchOverlay::RefreshSearchFromText" refresh_start)
+if(submit_start EQUAL -1 OR refresh_start EQUAL -1 OR NOT submit_start LESS refresh_start)
+    message(FATAL_ERROR "Could not isolate SubmitSearch for progressive-search validation")
+endif()
+math(EXPR submit_length "${refresh_start} - ${submit_start}")
+string(SUBSTRING "${search_overlay}" ${submit_start} ${submit_length} submit_source)
+string(FIND "${submit_source}" "RefreshSearchFromText(true);" forced_submit_refresh_index)
 if(NOT forced_submit_refresh_index EQUAL -1)
     message(FATAL_ERROR "Return must not rebuild unchanged progressive-search results")
 endif()

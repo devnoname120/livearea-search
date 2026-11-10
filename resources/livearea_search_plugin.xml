@@ -9,22 +9,22 @@
 
         <page id="page_search_results">
             <plane style="style_results_backdrop" texture="_common_texture_dialog_fill_white" id="plane_results_backdrop">
-                <layout_hint size="960,544" />
+                <layout_hint size="960,512" pos="0,-16" />
             </plane>
 
             <plane style="style_results_surface" texture="_common_texture_dialog_fill_white" id="plane_results_surface">
-                <layout_hint size="960,544" />
+                <layout_hint size="960,512" pos="0,-16" />
             </plane>
 
             <plane style="style_results_ime_surface" texture="_common_texture_dialog_fill_white" id="plane_results_ime_surface">
-                <layout_hint size="920,208" pos="0,80" />
+                <layout_hint size="960,200" pos="0,68" />
             </plane>
 
             <plane style="style_results_header" texture="_common_texture_dialog_fill_white" id="plane_results_header">
-                <layout_hint align="0,2" anchor="0,2" size="920,72" pos="0,-16" />
+                <layout_hint align="0,2" anchor="0,2" size="960,72" pos="0,-32" />
 
                 <text_box style="style_search_box" id="text_box_search" auto_scroll="1" ime_type="0" edit_mode="1" paste_mode="1" edit_auto_transition_mode="0">
-                    <layout_hint align="1,1" anchor="1,1" size="730,58" pos="18,0" />
+                    <layout_hint align="1,1" anchor="1,1" size="770,58" pos="18,0" />
                 </text_box>
 
                 <text style="style_results_count" id="text_results_count">
@@ -32,12 +32,12 @@
                 </text>
 
                 <plane style="_common_default_style_plane" texture="_common_texture_ruled_line" id="plane_header_rule">
-                    <layout_hint align="0,1" anchor="0,1" size="920,1" />
+                    <layout_hint align="0,1" anchor="0,1" size="960,1" />
                 </plane>
             </plane>
 
             <list_view style="style_results_list" id="list_results">
-                <layout_hint align="0,0" anchor="0,0" size="920,440" pos="0,-36" />
+                <layout_hint align="0,0" anchor="0,0" size="960,440" pos="0,-52" />
             </list_view>
 
             <text style="style_empty_text" id="text_empty">
@@ -51,9 +51,9 @@
     <templatetable>
         <template fast_open="1" id="template_result_item">
             <list_item style="_common_style_list_item_transparent" id="result_list_item">
-                <layout_hint adjust="0,2" size="920,70" />
+                <layout_hint adjust="0,2" size="960,70" />
                 <image_button sound="_common_sound_image_button" style="style_result_button" enable_long_press_text_auto_scroll="1" id="button_result">
-                    <layout_hint size="920,70" />
+                    <layout_hint size="960,70" />
                     <focus_hint focus_shape="3" />
 
                     <plane style="style_result_icon_container" id="plane_result_icon_container">
@@ -79,9 +79,9 @@
             <planeobj texture0="_common_texture_corner_button_highlight" id="home_search_highlight_obj" />
             <planeobj texture0="_common_texture_corner_button_glow" blend="2" id="home_search_glow_obj" />
         </style_corner_button>
-        <style_plane color="0.075,0.09,0.12,0.96" id="style_results_surface" />
-        <style_plane color="0.075,0.09,0.12,0.96" id="style_results_ime_surface" />
-        <style_plane color="0.11,0.13,0.17,0.98" id="style_results_header" />
+        <style_plane color="0.075,0.09,0.12,1" id="style_results_surface" />
+        <style_plane color="0.075,0.09,0.12,1" id="style_results_ime_surface" />
+        <style_plane color="0.11,0.13,0.17,1" id="style_results_header" />
         <style_plane color="0,0,0,0" id="style_result_icon_container" />
         <style_text_box bottom_margin="8" color="1,1,1,1" glowobj="glow_obj" sound="_common_sound_text_box" right_margin="8" top_margin="8" left_margin="8" textobj="text_obj" planeobj="plane_obj" id="style_search_box">
             <textobj font_size="26" align_y="1" align_x="0" text_align="1" line_pitch="40" ellipsis="1" id="text_obj" />
