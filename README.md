@@ -6,14 +6,18 @@ LiveArea Search is a resident SceShell user plugin that adds a native ScePaf sea
 
 - The Search control is a native lower-right PAF `CornerButton` using Sony's base, highlight, glow, sound, and layout with only the stock ellipsis replaced by a magnifying-glass texture. It accepts front-touch input but is excluded from focus, keycode, and analog routing, so it does not interfere with Home navigation.
 - Search input uses the Vita IME through a PAF `TextBox`. Results update progressively as the text changes; the keyboard enter/search action only ends editing and expands the result surface.
-- While the IME is active, the plugin uses a compact dark result region that ends immediately above the keyboard. Tapping the search field after submission reopens the IME and returns to this compact layout.
+- The result page owns the complete `960 × 512` area below the Vita information bar. The bar remains visible, while an opaque full-width header and result surface cover the Home wallpaper, bubbles, and notification corner with no blue side or bottom bleed.
+- While the IME is active, the same full-width surface ends immediately above the keyboard and keeps progressive results visible. Tapping the search field after submission reopens the IME without rebuilding unrelated shell state.
 - Results use PAF's vertical list layout, kinetic scrolling, focus handling, and 70 px common-list geometry.
 - Each row uses a native `app_icon_simple` widget and one title line; title-ID metadata is deliberately omitted.
 - Artwork is loaded asynchronously from LiveArea's plaintext `ur0:appmeta/<TITLE_ID>/icon0.png` copy. Visible rows pin their surfaces. Under surface-pool pressure, the cache releases only an unpinned, cache-owned least-recently-used surface and retries the load; evicted entries retain their source path and reload when revisited. Missing source files remain neutral placeholders without evicting valid artwork.
 - Results are ranked deterministically: exact title/title-ID, prefix, token prefix, substring, then metadata matches.
+- An empty query shows `Recent`: up to 20 unique applications most recently selected through LiveArea Search. Selecting an older entry moves it to the front, unavailable apps are omitted, and the bounded MRU order persists across reboot in `ur0:data/livearea-search/recent_apps.txt`.
+- Recency is recorded and saved before SceShell is asked to open the title, so a failed save is logged without blocking the open attempt and a failed title-open request does not lose the in-memory selection.
 - Launching uses `sceAppMgrLaunchAppByUri(0x20000, "psgm:open?titleid=...")`, so SceShell retains normal application lifecycle ownership.
 - The overlay fails closed and hides whenever an application owns the foreground or the required shell state cannot be read. The Home control additionally checks the verified topmenu Home page and horizontal-scroll focus/target, so it is absent from title LiveAreas, PlayStation Store, and other PAF surfaces.
 - The plugin waits until SceShell permits overlays and a visible topmenu page remains stable for 60 consecutive PAF frames before loading its own RCO.
+- Closing during kinetic scrolling uses a one-frame deferred teardown: input and focus are quiesced before rows, icon notifications, pins, page ownership, and model storage are released in verified order.
 - Before any PAF or worker initialization, startup requires one exact active `ur0:tai/livearea_search.suprx` or `ur0:/tai/livearea_search.suprx` line in `ur0:tai/config.txt`, replaces only that line's first byte with `#`, synchronizes the file, and verifies the complete file byte-for-byte. The current boot continues with the already-loaded module, while a reboot leaves the plugin disabled.
 - Startup returns `SCE_KERNEL_START_NO_RESIDENT` if the entry is missing or duplicated, or if the configuration cannot be read, changed, synchronized, and verified, rather than continuing without the reboot fail-safe.
 
@@ -29,7 +33,7 @@ cmake --build build-host --parallel 4
 ctest --test-dir build-host --output-on-failure
 ```
 
-The host suite covers query normalization, ranking, stable ordering, result limits, catalog-record policy, title-ID validation, LiveArea URI construction, startup self-disable matching, exact Home-surface recognition, IME transition/adoption policy, deterministic pin-aware icon eviction, and PAF resource composition contracts.
+The host suite covers query normalization, ranking, stable ordering, result limits, catalog-record policy, title-ID validation, LiveArea URI construction, startup self-disable matching, exact Home-surface recognition, IME transition/adoption policy, deterministic pin-aware icon eviction, Recent MRU ordering/filtering/serialization, persistence-source safety, deferred close ordering, and full-screen PAF resource composition contracts.
 
 ## Vita build
 
@@ -80,4 +84,4 @@ If a failure occurs before the module reaches `module_start`, hold **L** during 
 
 ## Current verification status
 
-The portable host tests pass, and the complete ARM target builds without warnings under the documented GCC 15 VitaSDK container, including SUPRX conversion and RCO generation. On Vita 146, the startup fail-safe, verified Home-only gate, native touch-only magnifier control, unobscured IME, progressive `Z` and `A` queries, keyboard re-entry, 128-row controller scrolling, full-height and compact result geometry, title-only rows, surface-pool eviction/reload in both scroll directions, missing-icon fallback, and `MAXP00000` LiveArea launch were exercised successfully. Screenshots also confirm that the control is absent from PlayStation Store and title LiveAreas. Firmware and hardware variants beyond that device still require validation.
+The portable host tests pass, and the complete ARM target builds without warnings under the documented GCC 15 VitaSDK container, including SUPRX conversion and RCO generation. On Vita 146, the startup fail-safe, verified Home-only gate, native touch-only magnifier control, unobscured IME, progressive search, keyboard re-entry, 128-row controller scrolling, title-only rows, surface-pool eviction/reload in both scroll directions, missing-icon fallback, title opening, and kinetic-flick immediate-Circle teardown were exercised successfully. The current full-screen composition and persistent Recent revision has completed offline verification and still requires the hardware validation sequence documented in its approved design. Firmware and hardware variants beyond Vita 146 also remain unverified.

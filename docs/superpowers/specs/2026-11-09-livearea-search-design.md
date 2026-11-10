@@ -1,5 +1,7 @@
 # LiveArea Search Design
 
+> Result-page geometry and empty-query behavior are superseded by [Full-Screen Search and Persistent Recents](2026-11-10-fullscreen-search-and-recents-design.md). The remaining architecture and lifecycle requirements continue to apply.
+
 ## Goal
 
 Add a SceShell user plugin which exposes a native ScePaf search control only on the bubble Home LiveArea. Pressing it opens the Vita IME; matching installed applications update progressively in a Vita-native vertical list as text changes. Selecting a row opens that title's LiveArea through the same URI route used by SceShell.
@@ -55,7 +57,7 @@ A resident worker waits until SceShell's PAF module is present, validates AppMgr
 
 - Missing RCO or magnifier texture: log the exact failure and decline residency. Unresolved mandatory exports unload the PAF resource plugin without installing a partial UI.
 - AppDB enumeration failure: show a native empty/error state and preserve the search button.
-- Empty query: close IME and show no result page.
+- Empty-query behavior is defined by the approved full-screen/Recent follow-up design.
 - No matches: show the result page with a localized empty-state message.
 - Launch failure: leave the list open and log the error code.
 - App icon source missing: retain the neutral placeholder without evicting another icon.
