@@ -2,9 +2,9 @@
 <resource version="0.1" type="normal" id="livearea_search_plugin">
     <pagetable>
         <page id="page_home_search">
-            <button sound="_common_sound_button_enter" style="_common_default_style_button" id="button_home_search">
-                <layout_hint align="2,1" anchor="2,1" size="180,56" pos="-20,20" />
-            </button>
+            <corner_button style="style_home_search_corner" id="button_home_search">
+                <focus_hint enable="0" />
+            </corner_button>
         </page>
 
         <page id="page_search_results">
@@ -13,7 +13,11 @@
             </plane>
 
             <plane style="style_results_surface" texture="_common_texture_dialog_fill_white" id="plane_results_surface">
-                <layout_hint size="920,512" />
+                <layout_hint size="960,544" />
+            </plane>
+
+            <plane style="style_results_ime_surface" texture="_common_texture_dialog_fill_white" id="plane_results_ime_surface">
+                <layout_hint size="920,208" pos="0,80" />
             </plane>
 
             <plane style="style_results_header" texture="_common_texture_dialog_fill_white" id="plane_results_header">
@@ -60,11 +64,7 @@
                     </plane>
 
                     <text style="style_result_title" id="text_result_title">
-                        <layout_hint align="1,2" anchor="1,2" adjust="2,2" pos="82,-16" />
-                    </text>
-
-                    <text style="style_result_metadata" id="text_result_metadata">
-                        <layout_hint align="1,1" anchor="1,1" adjust="2,2" pos="82,14" />
+                        <layout_hint align="1,0" anchor="1,0" adjust="2,2" pos="82,0" />
                     </text>
                 </image_button>
             </list_item>
@@ -73,7 +73,14 @@
 
     <styletable>
         <style_plane color="0,0,0,0.42" id="style_results_backdrop" />
+        <style_corner_button sound="_common_sound_corner_button_menu" key_focus="0" corner_obj="home_search_corner_obj" glow_obj="home_search_glow_obj" color="1,1,1,1" highlight_obj="home_search_highlight_obj" focus_in_group="0" direct_key="0" bg_obj="home_search_bg_obj" layout_type="3" id="style_home_search_corner">
+            <planeobj color="0.16,0.15,0.22,0.8" texture0="_common_texture_corner_button_base" id="home_search_bg_obj" />
+            <planeobj size="64,64,0" texture0="texture_home_search" id="home_search_corner_obj" pos="13,-11,0" />
+            <planeobj texture0="_common_texture_corner_button_highlight" id="home_search_highlight_obj" />
+            <planeobj texture0="_common_texture_corner_button_glow" blend="2" id="home_search_glow_obj" />
+        </style_corner_button>
         <style_plane color="0.075,0.09,0.12,0.96" id="style_results_surface" />
+        <style_plane color="0.075,0.09,0.12,0.96" id="style_results_ime_surface" />
         <style_plane color="0.11,0.13,0.17,0.98" id="style_results_header" />
         <style_plane color="0,0,0,0" id="style_result_icon_container" />
         <style_text_box bottom_margin="8" color="1,1,1,1" glowobj="glow_obj" sound="_common_sound_text_box" right_margin="8" top_margin="8" left_margin="8" textobj="text_obj" planeobj="plane_obj" id="style_search_box">
@@ -100,10 +107,11 @@
             <textobj font_size="24" bold="1" color="1,1,1,1" align_x="0" align_y="1" ellipsis="1" max_line_count="1" id="text_obj" />
         </style_text>
 
-        <style_text textobj="text_obj" id="style_result_metadata">
-            <textobj font_size="18" bold="0" color="0.78,0.81,0.86,1" align_x="0" align_y="1" ellipsis="1" max_line_count="1" id="text_obj" />
-        </style_text>
     </styletable>
 
     <stringtable />
+
+    <texturetable>
+        <texture src="texture/search.png" compress="on" id="texture_home_search" type="texture/png" />
+    </texturetable>
 </resource>

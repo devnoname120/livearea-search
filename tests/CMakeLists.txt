@@ -17,7 +17,18 @@ add_test(
     COMMAND ${CMAKE_COMMAND}
         -DRESOURCE_XML=${CMAKE_SOURCE_DIR}/resources/livearea_search_plugin.xml
         -DOVERLAY_HEADER=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.h
+        -DSEARCH_OVERLAY=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.cpp
         -P ${CMAKE_CURRENT_SOURCE_DIR}/check_home_search_control.cmake
+)
+
+add_test(
+    NAME livearea_search_experience_contract
+    COMMAND ${CMAKE_COMMAND}
+        -DRESOURCE_XML=${CMAKE_SOURCE_DIR}/resources/livearea_search_plugin.xml
+        -DSEARCH_OVERLAY=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.cpp
+        -DICON_CACHE_HEADER=${CMAKE_SOURCE_DIR}/src/vita/icon_cache.h
+        -DICON_CACHE_SOURCE=${CMAKE_SOURCE_DIR}/src/vita/icon_cache.cpp
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/check_search_experience.cmake
 )
 
 add_test(

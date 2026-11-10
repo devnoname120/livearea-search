@@ -141,8 +141,15 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/resources/livearea_search_plugin.xml"
         "${LIVEAREA_SEARCH_RCO_XML}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+        "${LIVEAREA_SEARCH_RCO_DIR}/texture"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/texture/search.png"
+        "${LIVEAREA_SEARCH_RCO_DIR}/texture/search.png"
     COMMAND "${PSP2CXML}" "${LIVEAREA_SEARCH_RCO_XML}"
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/resources/livearea_search_plugin.xml"
+    DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/livearea_search_plugin.xml"
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/texture/search.png"
     WORKING_DIRECTORY "${LIVEAREA_SEARCH_RCO_DIR}"
     VERBATIM
 )

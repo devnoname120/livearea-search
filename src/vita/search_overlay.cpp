@@ -34,16 +34,13 @@ paf::ui::ListItem* SearchOverlay::ResultItemFactory::Create(CreateParam& param) 
         param.parent->GetChild(param.parent->GetChildrenNum() - 1));
     paf::ui::Widget* button = item->FindChild("button_result");
     paf::ui::Widget* title = item->FindChild("text_result_title");
-    paf::ui::Widget* metadata = item->FindChild("text_result_metadata");
-    if (button == NULL || title == NULL || metadata == NULL) {
+    if (button == NULL || title == NULL) {
         return item;
     }
 
     const AppRecord& app = *result->app;
     button->SetName(app.title_id.c_str());
     SearchOverlay::SetText(title, app.display_title);
-
-    SearchOverlay::SetText(metadata, app.title_id);
 
     button->AddEventCallback(
         paf::ui::Button::CB_BTN_DECIDE,
@@ -59,12 +56,27 @@ paf::ui::ListItem* SearchOverlay::ResultItemFactory::Create(CreateParam& param) 
 
 void SearchOverlay::ResultItemFactory::Start(StartParam& param) {
     if (param.list_item != NULL) {
+        const SearchResult* result =
+            overlay_ == NULL || param.cell_index < 0 ? NULL :
+            overlay_->ResultAt(static_cast<std::size_t>(param.cell_index));
+        paf::ui::Widget* button = param.list_item->FindChild("button_result");
+        if (result != NULL && result->app != NULL && button != NULL &&
+            overlay_->icon_cache_ != NULL) {
+            overlay_->icon_cache_->Pin(result->app->title_id);
+            overlay_->ApplyIcon(button, result->app->title_id);
+        }
         param.list_item->Show(paf::common::transition::Type_FadeinFast);
     }
 }
 
 void SearchOverlay::ResultItemFactory::Stop(StopParam& param) {
     if (param.list_item != NULL) {
+        const SearchResult* result =
+            overlay_ == NULL || param.cell_index < 0 ? NULL :
+            overlay_->ResultAt(static_cast<std::size_t>(param.cell_index));
+        if (result != NULL && result->app != NULL && overlay_->icon_cache_ != NULL) {
+            overlay_->icon_cache_->Unpin(result->app->title_id);
+        }
         param.list_item->Hide(paf::common::transition::Type_FadeinFast);
     }
 }
@@ -77,6 +89,7 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       search_box_(NULL),
       results_backdrop_(NULL),
       results_surface_(NULL),
+      results_ime_surface_(NULL),
       result_list_(NULL),
       empty_text_(NULL),
       result_count_(NULL),
@@ -88,6 +101,7 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       ime_editing_seen_(false),
       results_pending_display_(false),
       ime_close_pending_(false),
+      results_editing_layout_(false),
       initialized_(false) {}
 
 SearchOverlay::~SearchOverlay() {
@@ -162,7 +176,7 @@ int SearchOverlay::OpenHomePage() {
         return -1;
     }
 
-    home_button_ = static_cast<paf::ui::Button*>(
+    home_button_ = static_cast<paf::ui::CornerButton*>(
         home_page_->FindChild("button_home_search"));
     if (home_button_ == NULL) {
         StartupLog("home page search button missing");
@@ -172,7 +186,10 @@ int SearchOverlay::OpenHomePage() {
         paf::ui::Button::CB_BTN_DECIDE,
         OnHomeSearch,
         this);
-    SetText(home_button_, "Search");
+    home_button_->DisableEvent(paf::ui::EV_FOCUS);
+    home_button_->DisableEvent(paf::ui::EV_KEYCODE);
+    home_button_->DisableEvent(paf::ui::EV_ANALOG);
+    home_button_->ReleaseFocus();
     StartupLogResult("home shell allows overlay", ShellAllowsOverlay() ? 1 : 0);
     paf::Plugin* top_menu = paf::Plugin::Find("topmenu_plugin");
     StartupLogResult("home topmenu plugin found", top_menu != NULL ? 1 : 0);
@@ -198,14 +215,15 @@ int SearchOverlay::OpenResultsPage() {
     search_box_ = static_cast<paf::ui::TextBox*>(results_page_->FindChild("text_box_search"));
     results_backdrop_ = results_page_->FindChild("plane_results_backdrop");
     results_surface_ = results_page_->FindChild("plane_results_surface");
+    results_ime_surface_ = results_page_->FindChild("plane_results_ime_surface");
     result_list_ = static_cast<paf::ui::ListView*>(results_page_->FindChild("list_results"));
     empty_text_ = static_cast<paf::ui::Text*>(results_page_->FindChild("text_empty"));
     result_count_ = static_cast<paf::ui::Text*>(results_page_->FindChild("text_results_count"));
     close_button_ = static_cast<paf::ui::CornerButton*>(
         results_page_->FindChild("button_results_close"));
     if (search_box_ == NULL || results_backdrop_ == NULL || results_surface_ == NULL ||
-        result_list_ == NULL || empty_text_ == NULL || result_count_ == NULL ||
-        close_button_ == NULL) {
+        results_ime_surface_ == NULL || result_list_ == NULL || empty_text_ == NULL ||
+        result_count_ == NULL || close_button_ == NULL) {
         CloseResultsPage();
         return -1;
     }
@@ -214,6 +232,10 @@ int SearchOverlay::OpenResultsPage() {
     search_box_->AddEventCallback(
         paf::ui::TextBox::CB_TEXT_BOX_ENTER_PRESSED,
         OnSearchSubmit,
+        this);
+    search_box_->AddEventCallback(
+        paf::ui::Handler::CB_GESTURE_TAP,
+        OnSearchBoxTap,
         this);
     close_button_->AddEventCallback(
         paf::ui::Button::CB_BTN_DECIDE,
@@ -234,9 +256,10 @@ int SearchOverlay::OpenResultsPage() {
     result_list_->SetScrollType(paf::ui::ListView::SCROLL_TYPE_VERTICAL);
 
     results_.clear();
+    normalized_query_.clear();
     empty_text_->Hide(paf::common::transition::Type_Reset);
     UpdateResultCount();
-    SetResultsChromeVisible(false);
+    SetResultsEditingLayout();
     UpdateVisibility();
     if (results_page_ == NULL || search_box_ == NULL) {
         return -1;
@@ -249,10 +272,10 @@ int SearchOverlay::BeginImeEdit() {
         return -1;
     }
 
-    SetResultsChromeVisible(false);
+    SetResultsEditingLayout();
     ime_transition_active_ = true;
     ime_editing_seen_ = false;
-    results_pending_display_ = false;
+    results_pending_display_ = !normalized_query_.empty();
     ime_close_pending_ = false;
     const int result = search_box_->BeginEdit();
     QueueInteractionLogResult("ime begin edit", result);
@@ -284,11 +307,14 @@ void SearchOverlay::CloseResultsPage() {
     search_box_ = NULL;
     results_backdrop_ = NULL;
     results_surface_ = NULL;
+    results_ime_surface_ = NULL;
     result_list_ = NULL;
     empty_text_ = NULL;
     result_count_ = NULL;
     close_button_ = NULL;
     results_.clear();
+    normalized_query_.clear();
+    results_editing_layout_ = false;
     UpdateVisibility();
 }
 
@@ -296,30 +322,45 @@ void SearchOverlay::SubmitSearch() {
     if (search_box_ == NULL) {
         return;
     }
+    RefreshSearchFromText(false);
+    ime_close_pending_ = normalized_query_.empty();
+    results_pending_display_ = !normalized_query_.empty();
+    QueueInteractionLog("search submit end edit");
+    search_box_->EndEdit();
+}
+
+void SearchOverlay::RefreshSearchFromText(bool force) {
+    if (search_box_ == NULL || result_list_ == NULL) {
+        return;
+    }
 
     paf::wstring query_wide;
     search_box_->GetString(query_wide);
-
     paf::string query_utf8;
     if (paf::common::Utf16ToUtf8(query_wide, &query_utf8) < 0) {
-        ime_close_pending_ = true;
-        search_box_->EndEdit();
-        return;
-    }
-    const String query(query_utf8.c_str());
-    if (NormalizeForSearch(query).empty()) {
-        ime_close_pending_ = true;
-        search_box_->EndEdit();
         return;
     }
 
-    if (result_list_ != NULL && result_list_->GetCellNum(0) != 0) {
-        result_list_->DeleteCell(0, 0, result_list_->GetCellNum(0));
+    const String query(query_utf8.c_str());
+    const String normalized = NormalizeForSearch(query);
+    if (!force && normalized == normalized_query_) {
+        return;
     }
-    index_.Search(query, results_, 128);
+
+    Vector<SearchResult> next_results;
+    if (!normalized.empty()) {
+        index_.Search(query, next_results, 128);
+    }
+    const std::size_t old_count = result_list_->GetCellNum(0);
+    if (old_count != 0) {
+        result_list_->DeleteCell(0, 0, old_count);
+    }
+    normalized_query_ = normalized;
+    results_.clear();
+    results_.swap(next_results);
+    results_pending_display_ = !normalized_query_.empty();
     QueueInteractionLogResult("search result count", static_cast<int>(results_.size()));
-    results_pending_display_ = true;
-    search_box_->EndEdit();
+    RebuildResultList();
 }
 
 void SearchOverlay::RebuildResultList() {
@@ -329,23 +370,56 @@ void SearchOverlay::RebuildResultList() {
 
     if (!results_.empty()) {
         result_list_->InsertCell(0, 0, results_.size());
-        result_list_->SetFocus(0, 0, paf::ui::ListView::FOCUS_ALIGN_TYPE_HEAD, 0);
+        if (!results_editing_layout_) {
+            result_list_->SetFocus(0, 0, paf::ui::ListView::FOCUS_ALIGN_TYPE_HEAD, 0);
+        }
+    }
+    UpdateResultCount();
+    UpdateResultPresentation();
+}
+
+void SearchOverlay::UpdateResultPresentation() {
+    if (result_list_ == NULL || empty_text_ == NULL) {
+        return;
+    }
+    if (normalized_query_.empty()) {
+        result_list_->Hide(paf::common::transition::Type_Reset);
+        empty_text_->Hide(paf::common::transition::Type_Reset);
+        return;
+    }
+    if (!results_.empty()) {
         result_list_->Show(paf::common::transition::Type_FadeinFast);
         empty_text_->Hide(paf::common::transition::Type_FadeinFast);
     } else {
         result_list_->Hide(paf::common::transition::Type_FadeinFast);
         empty_text_->Show(paf::common::transition::Type_FadeinFast);
     }
-    UpdateResultCount();
 }
 
 void SearchOverlay::UpdateImeTransition() {
-    if (!ime_transition_active_ || search_box_ == NULL) {
+    if (search_box_ == NULL) {
         return;
     }
 
+    const bool editing_before_update = search_box_->IsEditing();
+    if (ShouldAdoptExternalImeEdit(
+            results_page_ != NULL,
+            ime_transition_active_,
+            editing_before_update)) {
+        QueueInteractionLog("ime external edit adopted");
+        SetResultsEditingLayout();
+        ime_transition_active_ = true;
+        ime_editing_seen_ = true;
+        results_pending_display_ = !normalized_query_.empty();
+        ime_close_pending_ = false;
+    }
+    if (!ime_transition_active_) {
+        return;
+    }
+
+    RefreshSearchFromText(false);
     const bool is_editing = search_box_->IsEditing();
-    const bool shell_ready = IsTopMenuVisible();
+    const bool shell_ready = IsBubbleHomeVisible();
     const ImeFrameAction action = ComputeImeFrameAction(
         ime_transition_active_,
         ime_editing_seen_,
@@ -358,45 +432,84 @@ void SearchOverlay::UpdateImeTransition() {
         return;
     }
     if (action == ImeFrameAction::ShowResults) {
+        QueueInteractionLog("ime transition show results");
         ime_transition_active_ = false;
         ime_editing_seen_ = false;
         results_pending_display_ = false;
         ime_close_pending_ = false;
-        SetResultsChromeVisible(true);
-        RebuildResultList();
+        SetResultsDisplayLayout();
+        QueueInteractionLog("ime transition show results returned");
         return;
     }
     if (action == ImeFrameAction::CloseResults) {
+        QueueInteractionLog("ime transition close results");
         ime_transition_active_ = false;
         CloseResultsPage();
     }
 }
 
-void SearchOverlay::SetResultsChromeVisible(bool visible) {
-    paf::ui::Widget* widgets[] = {
-        results_backdrop_,
-        results_surface_,
-        result_count_,
-        close_button_,
-    };
-    for (std::size_t index = 0; index < sizeof(widgets) / sizeof(widgets[0]); ++index) {
-        if (widgets[index] == NULL) {
-            continue;
-        }
-        if (visible) {
-            widgets[index]->Show(paf::common::transition::Type_Reset);
-        } else {
-            widgets[index]->Hide(paf::common::transition::Type_Reset);
-        }
+void SearchOverlay::SetResultsEditingLayout() {
+    results_editing_layout_ = true;
+    if (results_backdrop_ != NULL) {
+        results_backdrop_->Hide(paf::common::transition::Type_Reset);
     }
-    if (!visible) {
-        if (result_list_ != NULL) {
-            result_list_->Hide(paf::common::transition::Type_Reset);
-        }
-        if (empty_text_ != NULL) {
-            empty_text_->Hide(paf::common::transition::Type_Reset);
-        }
+    if (results_surface_ != NULL) {
+        results_surface_->Hide(paf::common::transition::Type_Reset);
     }
+    if (results_ime_surface_ != NULL) {
+        results_ime_surface_->Show(paf::common::transition::Type_Reset);
+    }
+    if (result_count_ != NULL) {
+        result_count_->Show(paf::common::transition::Type_Reset);
+    }
+    if (close_button_ != NULL) {
+        close_button_->Hide(paf::common::transition::Type_Reset);
+    }
+    if (result_list_ != NULL) {
+        result_list_->SetSize(920.0f, 170.0f, 0.0f);
+        result_list_->SetPos(0.0f, 73.0f, 0.0f);
+        result_list_->DisableEvent(paf::ui::EV_FOCUS);
+        result_list_->ReleaseFocus();
+    }
+    if (empty_text_ != NULL) {
+        empty_text_->SetPos(0.0f, 73.0f, 0.0f);
+    }
+    UpdateResultPresentation();
+}
+
+void SearchOverlay::SetResultsDisplayLayout() {
+    QueueInteractionLog("results display layout begin");
+    results_editing_layout_ = false;
+    if (results_backdrop_ != NULL) {
+        results_backdrop_->Show(paf::common::transition::Type_Reset);
+    }
+    if (results_surface_ != NULL) {
+        results_surface_->Show(paf::common::transition::Type_Reset);
+    }
+    if (results_ime_surface_ != NULL) {
+        results_ime_surface_->Hide(paf::common::transition::Type_Reset);
+    }
+    if (result_count_ != NULL) {
+        result_count_->Show(paf::common::transition::Type_Reset);
+    }
+    if (close_button_ != NULL) {
+        close_button_->Show(paf::common::transition::Type_Reset);
+    }
+    if (result_list_ != NULL) {
+        result_list_->SetSize(920.0f, 440.0f, 0.0f);
+        result_list_->SetPos(0.0f, -36.0f, 0.0f);
+        result_list_->EnableEvent(paf::ui::EV_FOCUS);
+    }
+    if (empty_text_ != NULL) {
+        empty_text_->SetPos(0.0f, -10.0f, 0.0f);
+    }
+    UpdateResultPresentation();
+    if (result_list_ != NULL && !results_.empty()) {
+        QueueInteractionLog("results display focus begin");
+        result_list_->SetFocus(0, 0, paf::ui::ListView::FOCUS_ALIGN_TYPE_HEAD, 0);
+        QueueInteractionLog("results display focus returned");
+    }
+    QueueInteractionLog("results display layout returned");
 }
 
 void SearchOverlay::UpdateVisibility() {
@@ -405,10 +518,10 @@ void SearchOverlay::UpdateVisibility() {
     }
 
     const bool shell_allows_overlay = ShellAllowsOverlay();
-    const bool top_menu_visible = IsTopMenuVisible();
+    const bool home_surface_visible = IsBubbleHomeVisible();
     if (ShouldCloseResultsPage(
             shell_allows_overlay,
-            top_menu_visible,
+            home_surface_visible,
             results_page_ != NULL,
             ime_transition_active_)) {
         CloseResultsPage();
@@ -417,7 +530,7 @@ void SearchOverlay::UpdateVisibility() {
 
     const HomeVisibilityAction action = ComputeHomeVisibilityAction(
         home_visible_,
-        top_menu_visible,
+        home_surface_visible,
         results_page_ != NULL);
     if (action == HomeVisibilityAction::None) {
         return;
@@ -446,8 +559,31 @@ void SearchOverlay::UpdateResultCount() {
     SetText(result_count_, text);
 }
 
-bool SearchOverlay::IsTopMenuVisible() const {
-    return ShellAllowsOverlay() && IsPafPluginVisible(paf::Plugin::Find("topmenu_plugin"));
+bool SearchOverlay::IsBubbleHomeVisible() const {
+    if (!ShellAllowsOverlay()) {
+        return false;
+    }
+    paf::Plugin* topmenu = paf::Plugin::Find("topmenu_plugin");
+    if (topmenu == NULL) {
+        return false;
+    }
+    paf::ui::Scene* root = topmenu->PageRoot(kTopMenuHomePageHash);
+    if (root == NULL || !root->IsVisible()) {
+        return false;
+    }
+    paf::ui::Widget* scroll_widget = root->FindChild(kTopMenuHomeScrollHash);
+    if (scroll_widget == NULL) {
+        return false;
+    }
+    paf::ui::ScrollView* scroll = static_cast<paf::ui::ScrollView*>(scroll_widget);
+    const paf::math::v2 focus = scroll->GetViewFocus();
+    const paf::math::v2 target = scroll->GetViewFocusTarget();
+    return IsBubbleHomeSurface(
+        kTopMenuHomePageHash,
+        focus.extract_x(),
+        focus.extract_y(),
+        target.extract_x(),
+        target.extract_y());
 }
 
 int SearchOverlay::Launch(const String& title_id) {
@@ -542,6 +678,19 @@ void SearchOverlay::OnSearchSubmit(
     if (overlay != NULL) {
         QueueInteractionLog("search submit callback");
         overlay->SubmitSearch();
+    }
+}
+
+void SearchOverlay::OnSearchBoxTap(
+    int,
+    paf::ui::Handler*,
+    paf::ui::Event*,
+    void* user_data) {
+    SearchOverlay* overlay = static_cast<SearchOverlay*>(user_data);
+    if (overlay != NULL && overlay->search_box_ != NULL &&
+        !overlay->search_box_->IsEditing()) {
+        QueueInteractionLog("search box reopen callback");
+        QueueInteractionLogResult("ime reopen", overlay->BeginImeEdit());
     }
 }
 

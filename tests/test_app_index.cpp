@@ -2,6 +2,7 @@
 #include <livearea_search/catalog_record.h>
 #include <livearea_search/config_failsafe.h>
 #include <livearea_search/deferred_log_queue.h>
+#include <livearea_search/icon_cache_policy.h>
 #include <livearea_search/launch_uri.h>
 #include <livearea_search/module_readiness.h>
 #include <livearea_search/overlay_visibility.h>
@@ -361,7 +362,44 @@ void TestOverlayLoadGate() {
 void TestHomeVisibilityTransitions() {
     using livearea_search::ComputeHomeVisibilityAction;
     using livearea_search::HomeVisibilityAction;
+    using livearea_search::IsBubbleHomeSurface;
     using livearea_search::ShouldCloseResultsPage;
+
+    Check(
+        IsBubbleHomeSurface(
+            livearea_search::kTopMenuHomePageHash,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f),
+        "the bubble grid is recognized as the actual Home surface");
+    Check(
+        !IsBubbleHomeSurface(
+            livearea_search::kTopMenuHomePageHash,
+            0.0f,
+            0.0f,
+            960.0f,
+            0.0f),
+        "a transition toward a title LiveArea hides the Home control immediately");
+    Check(
+        !IsBubbleHomeSurface(
+            livearea_search::kTopMenuHomePageHash,
+            960.0f,
+            0.0f,
+            960.0f,
+            0.0f),
+        "a title LiveArea is not treated as the bubble Home surface");
+    Check(
+        !IsBubbleHomeSurface(0x9F7C030DU, 0.0f, 0.0f, 0.0f, 0.0f),
+        "the system-application topmenu page is not treated as Home");
+    Check(
+        !IsBubbleHomeSurface(
+            livearea_search::kTopMenuHomePageHash,
+            -1.0f,
+            0.0f,
+            0.0f,
+            0.0f),
+        "an unsettled Home transition does not expose the control");
 
     Check(
         ComputeHomeVisibilityAction(false, true, false) ==
@@ -397,6 +435,23 @@ void TestHomeVisibilityTransitions() {
 
 }
 
+void TestExternalImeEditAdoption() {
+    using livearea_search::ShouldAdoptExternalImeEdit;
+
+    Check(
+        ShouldAdoptExternalImeEdit(true, false, true),
+        "a native TextBox edit started from the result header is adopted");
+    Check(
+        !ShouldAdoptExternalImeEdit(false, false, true),
+        "editing outside an open results page is ignored");
+    Check(
+        !ShouldAdoptExternalImeEdit(true, true, true),
+        "an edit already owned by the transition state is not adopted twice");
+    Check(
+        !ShouldAdoptExternalImeEdit(true, false, false),
+        "an inactive TextBox does not start an IME transition");
+}
+
 void TestImeTransitionPolicy() {
     using livearea_search::ComputeImeFrameAction;
     using livearea_search::ImeFrameAction;
@@ -409,6 +464,10 @@ void TestImeTransitionPolicy() {
         ComputeImeFrameAction(true, false, false, false, false, true) ==
             ImeFrameAction::None,
         "IME opening waits until editing becomes observable");
+    Check(
+        ComputeImeFrameAction(true, false, false, true, false, true) ==
+            ImeFrameAction::None,
+        "reopening a populated query cannot restore full results before the IME opens");
     Check(
         ComputeImeFrameAction(true, false, true, false, false, false) ==
             ImeFrameAction::MarkEditing,
@@ -459,6 +518,48 @@ void TestDeferredLogQueue() {
           "deferred log queue drops the oldest entry on overflow");
 }
 
+void TestIconCacheEvictionPolicy() {
+    using livearea_search::IconCacheEvictionEntry;
+    using livearea_search::SelectIconCacheEvictionCandidate;
+
+    const IconCacheEvictionEntry entries[] = {
+        {true, false, true, 0, 40},
+        {true, false, true, 0, 10},
+        {true, false, true, 1, 1},
+        {true, true, true, 0, 0},
+        {true, false, false, 0, 2},
+        {false, false, true, 0, 0},
+    };
+    Check(
+        SelectIconCacheEvictionCandidate(entries, 6) == 1,
+        "icon eviction chooses the least-recently-used unpinned cache-owned surface");
+    Check(
+        SelectIconCacheEvictionCandidate(entries, 6, 1) == 0,
+        "icon eviction excludes the surface currently being installed");
+
+    const IconCacheEvictionEntry tied[] = {
+        {true, false, true, 0, 7},
+        {true, false, true, 0, 7},
+    };
+    Check(
+        SelectIconCacheEvictionCandidate(tied, 2) == 0,
+        "equal-age icon candidates retain deterministic traversal order");
+
+    const IconCacheEvictionEntry protected_entries[] = {
+        {true, false, true, 1, 0},
+        {true, true, true, 0, 0},
+        {true, false, false, 0, 0},
+    };
+    Check(
+        SelectIconCacheEvictionCandidate(protected_entries, 3) ==
+            livearea_search::kNoIconCacheEvictionCandidate,
+        "pinned, loading, and externally retained surfaces are not evicted");
+    Check(
+        SelectIconCacheEvictionCandidate(nullptr, 0) ==
+            livearea_search::kNoIconCacheEvictionCandidate,
+        "an empty cache has no eviction candidate");
+}
+
 } // namespace
 
 int main() {
@@ -473,8 +574,10 @@ int main() {
     TestSafeRecordDeduplication();
     TestOverlayLoadGate();
     TestHomeVisibilityTransitions();
+    TestExternalImeEditAdoption();
     TestImeTransitionPolicy();
     TestDeferredLogQueue();
+    TestIconCacheEvictionPolicy();
 
     if (failures != 0) {
         std::cerr << failures << " test(s) failed\n";

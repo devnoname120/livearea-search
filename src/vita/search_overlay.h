@@ -41,6 +41,11 @@ private:
         paf::ui::Handler* handler,
         paf::ui::Event* event,
         void* user_data);
+    static void OnSearchBoxTap(
+        int id,
+        paf::ui::Handler* handler,
+        paf::ui::Event* event,
+        void* user_data);
     static void OnClose(
         int id,
         paf::ui::Handler* handler,
@@ -63,12 +68,15 @@ private:
     int BeginImeEdit();
     void CloseResultsPage();
     void SubmitSearch();
+    void RefreshSearchFromText(bool force);
     void RebuildResultList();
+    void UpdateResultPresentation();
     void UpdateImeTransition();
-    void SetResultsChromeVisible(bool visible);
+    void SetResultsEditingLayout();
+    void SetResultsDisplayLayout();
     void UpdateVisibility();
     void UpdateResultCount();
-    bool IsTopMenuVisible() const;
+    bool IsBubbleHomeVisible() const;
     int Launch(const String& title_id);
 
     const SearchResult* ResultAt(std::size_t index) const;
@@ -79,10 +87,11 @@ private:
     paf::Plugin* plugin_;
     paf::ui::Scene* home_page_;
     paf::ui::Scene* results_page_;
-    paf::ui::Button* home_button_;
+    paf::ui::CornerButton* home_button_;
     paf::ui::TextBox* search_box_;
     paf::ui::Widget* results_backdrop_;
     paf::ui::Widget* results_surface_;
+    paf::ui::Widget* results_ime_surface_;
     paf::ui::ListView* result_list_;
     paf::ui::Text* empty_text_;
     paf::ui::Text* result_count_;
@@ -91,6 +100,7 @@ private:
     AppIndex index_;
     LsdbIndexSource index_source_;
     Vector<SearchResult> results_;
+    String normalized_query_;
     IconCache* icon_cache_;
     bool visibility_registered_;
     bool home_visible_;
@@ -98,6 +108,7 @@ private:
     bool ime_editing_seen_;
     bool results_pending_display_;
     bool ime_close_pending_;
+    bool results_editing_layout_;
     bool initialized_;
 };
 

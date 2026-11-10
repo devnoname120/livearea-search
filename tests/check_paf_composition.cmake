@@ -31,9 +31,9 @@ if(NOT private_layout_probe_index EQUAL -1)
     message(FATAL_ERROR "Private PAF object-layout probes must not ship")
 endif()
 
-string(FIND "${search_overlay}" "SetResultsChromeVisible(false);" hide_chrome_index)
-if(hide_chrome_index EQUAL -1)
-    message(FATAL_ERROR "Full-screen results chrome must hide before IME editing")
+string(FIND "${search_overlay}" "SetResultsEditingLayout();" editing_layout_index)
+if(editing_layout_index EQUAL -1)
+    message(FATAL_ERROR "IME editing must switch to the compact non-overlapping result layout")
 endif()
 
 string(FIND "${search_overlay}" "ComputeImeFrameAction(" transition_policy_index)

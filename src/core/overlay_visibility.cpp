@@ -30,6 +30,27 @@ bool ShouldCloseResultsPage(
     return !topmenu_visible;
 }
 
+bool IsBubbleHomeSurface(
+    std::uint32_t visible_page_hash,
+    float focus_x,
+    float focus_y,
+    float target_x,
+    float target_y) noexcept {
+    const float tolerance = 0.5f;
+    return visible_page_hash == kTopMenuHomePageHash &&
+           focus_x >= -tolerance && focus_x <= tolerance &&
+           focus_y >= -tolerance && focus_y <= tolerance &&
+           target_x >= -tolerance && target_x <= tolerance &&
+           target_y >= -tolerance && target_y <= tolerance;
+}
+
+bool ShouldAdoptExternalImeEdit(
+    bool results_open,
+    bool transition_active,
+    bool is_editing) noexcept {
+    return results_open && !transition_active && is_editing;
+}
+
 ImeFrameAction ComputeImeFrameAction(
     bool transition_active,
     bool editing_seen,
@@ -42,6 +63,9 @@ ImeFrameAction ComputeImeFrameAction(
     }
     if (is_editing) {
         return editing_seen ? ImeFrameAction::None : ImeFrameAction::MarkEditing;
+    }
+    if (!editing_seen) {
+        return ImeFrameAction::None;
     }
     if (close_results_pending) {
         return ImeFrameAction::CloseResults;
