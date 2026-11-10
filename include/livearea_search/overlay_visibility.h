@@ -20,6 +20,12 @@ enum class ImeFrameAction {
     CloseResults,
 };
 
+enum class DeferredResultCloseAction {
+    None,
+    Wait,
+    Close,
+};
+
 HomeVisibilityAction ComputeHomeVisibilityAction(
     bool currently_visible,
     bool topmenu_visible,
@@ -46,5 +52,8 @@ ImeFrameAction ComputeImeFrameAction(
     bool show_results_pending,
     bool close_results_pending,
     bool shell_ready) noexcept;
+DeferredResultCloseAction AdvanceDeferredResultClose(
+    bool close_requested,
+    std::uint32_t& frames_remaining) noexcept;
 
 } // namespace livearea_search

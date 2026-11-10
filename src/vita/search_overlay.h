@@ -66,6 +66,8 @@ private:
     int OpenHomePage();
     int OpenResultsPage();
     int BeginImeEdit();
+    void RequestCloseResultsPage();
+    void ProcessCloseRequest();
     void CloseResultsPage();
     void SubmitSearch();
     void RefreshSearchFromText(bool force);
@@ -109,6 +111,8 @@ private:
     bool results_pending_display_;
     bool ime_close_pending_;
     bool results_editing_layout_;
+    bool close_requested_;
+    std::uint32_t close_defer_frames_;
     bool initialized_;
 };
 

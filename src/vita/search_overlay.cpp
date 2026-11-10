@@ -102,6 +102,8 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       results_pending_display_(false),
       ime_close_pending_(false),
       results_editing_layout_(false),
+      close_requested_(false),
+      close_defer_frames_(0),
       initialized_(false) {}
 
 SearchOverlay::~SearchOverlay() {
@@ -204,6 +206,9 @@ int SearchOverlay::OpenResultsPage() {
         return BeginImeEdit();
     }
 
+    close_requested_ = false;
+    close_defer_frames_ = 0;
+
     paf::Plugin::PageOpenParam open_param;
     open_param.fade = true;
     open_param.fade_time_ms = 120.0f;
@@ -264,6 +269,7 @@ int SearchOverlay::OpenResultsPage() {
     if (results_page_ == NULL || search_box_ == NULL) {
         return -1;
     }
+    icon_cache_->SetNotificationsEnabled(true);
     return BeginImeEdit();
 }
 
@@ -281,14 +287,47 @@ int SearchOverlay::BeginImeEdit() {
     QueueInteractionLogResult("ime begin edit", result);
     if (result < 0) {
         ime_transition_active_ = false;
-        CloseResultsPage();
+        RequestCloseResultsPage();
     }
     return result;
+}
+
+void SearchOverlay::RequestCloseResultsPage() {
+    if (results_page_ == NULL || close_requested_) {
+        return;
+    }
+    close_requested_ = true;
+    close_defer_frames_ = 1;
+    if (result_list_ != NULL) {
+        result_list_->DisableEvent(
+            paf::ui::EV_TOUCH |
+            paf::ui::EV_GESTURE_ALL |
+            paf::ui::EV_KEYCODE |
+            paf::ui::EV_ANALOG |
+            paf::ui::EV_FOCUS);
+        result_list_->ReleaseFocus();
+    }
+}
+
+void SearchOverlay::ProcessCloseRequest() {
+    const DeferredResultCloseAction action = AdvanceDeferredResultClose(
+        close_requested_,
+        close_defer_frames_);
+    if (action != DeferredResultCloseAction::Close) {
+        return;
+    }
+    close_requested_ = false;
+    CloseResultsPage();
 }
 
 void SearchOverlay::CloseResultsPage() {
     if (plugin_ == NULL || results_page_ == NULL) {
         return;
+    }
+    close_requested_ = false;
+    close_defer_frames_ = 0;
+    if (icon_cache_ != NULL) {
+        icon_cache_->SetNotificationsEnabled(false);
     }
     if (search_box_ != NULL && search_box_->IsEditing()) {
         search_box_->EndEdit();
@@ -298,9 +337,22 @@ void SearchOverlay::CloseResultsPage() {
     results_pending_display_ = false;
     ime_close_pending_ = false;
 
+    if (result_list_ != NULL) {
+        result_list_->DisableEvent(
+            paf::ui::EV_TOUCH |
+            paf::ui::EV_GESTURE_ALL |
+            paf::ui::EV_KEYCODE |
+            paf::ui::EV_ANALOG |
+            paf::ui::EV_FOCUS);
+        result_list_->ReleaseFocus();
+        result_list_->Clear();
+    }
+    if (icon_cache_ != NULL) {
+        icon_cache_->ResetPins();
+    }
+
     paf::Plugin::PageCloseParam close_param;
-    close_param.fade = true;
-    close_param.fade_time_ms = 120.0f;
+    close_param.fade = false;
     plugin_->PageClose("page_search_results", close_param);
 
     results_page_ = NULL;
@@ -444,7 +496,7 @@ void SearchOverlay::UpdateImeTransition() {
     if (action == ImeFrameAction::CloseResults) {
         QueueInteractionLog("ime transition close results");
         ime_transition_active_ = false;
-        CloseResultsPage();
+        RequestCloseResultsPage();
     }
 }
 
@@ -524,7 +576,7 @@ void SearchOverlay::UpdateVisibility() {
             home_surface_visible,
             results_page_ != NULL,
             ime_transition_active_)) {
-        CloseResultsPage();
+        RequestCloseResultsPage();
         return;
     }
 
@@ -590,7 +642,7 @@ int SearchOverlay::Launch(const String& title_id) {
     const int result = OpenTitleLiveArea(title_id);
     QueueInteractionLogResult("result launch", result);
     if (result >= 0) {
-        CloseResultsPage();
+        RequestCloseResultsPage();
     }
     return result;
 }
@@ -702,7 +754,7 @@ void SearchOverlay::OnClose(
     SearchOverlay* overlay = static_cast<SearchOverlay*>(user_data);
     if (overlay != NULL) {
         QueueInteractionLog("close results callback");
-        overlay->CloseResultsPage();
+        overlay->RequestCloseResultsPage();
     }
 }
 
@@ -749,6 +801,9 @@ void SearchOverlay::VisibilityTick(void* user_data) {
     overlay->UpdateImeTransition();
     if (overlay->visibility_registered_) {
         overlay->UpdateVisibility();
+    }
+    if (overlay->visibility_registered_) {
+        overlay->ProcessCloseRequest();
     }
 }
 

@@ -54,6 +54,7 @@ IconCache::IconCache(paf::Plugin* plugin)
       mutex_(PafNew<paf::thread::RMutex>("LiveAreaSearch::IconCache")),
       queue_(NULL),
       use_clock_(0),
+      notifications_enabled_(false),
       alive_(false) {
     if (mutex_ != NULL) {
         queue_ = PafNew<paf::job::JobQueue>("LiveAreaSearch::IconQueue");
@@ -168,6 +169,28 @@ void IconCache::Unpin(const String& key) {
     mutex_->Unlock();
 }
 
+void IconCache::SetNotificationsEnabled(bool enabled) {
+    if (mutex_ == NULL) {
+        return;
+    }
+    paf::thread::RMutex::main_thread_mutex.Lock();
+    mutex_->Lock();
+    notifications_enabled_ = enabled;
+    mutex_->Unlock();
+    paf::thread::RMutex::main_thread_mutex.Unlock();
+}
+
+void IconCache::ResetPins() {
+    if (mutex_ == NULL) {
+        return;
+    }
+    mutex_->Lock();
+    for (std::size_t index = 0; index < entries_.size(); ++index) {
+        entries_[index].pin_count = 0;
+    }
+    mutex_->Unlock();
+}
+
 void IconCache::Clear() {
     mutex_->Lock();
     entries_.clear();
@@ -218,7 +241,12 @@ bool IconCache::Load(const String& key, const String& path) {
     if (accepted) {
         const std::uint32_t hash = paf::IDParam(key.c_str()).GetIDHash();
         paf::thread::RMutex::main_thread_mutex.Lock();
-        BroadcastWidgetEvent(plugin_, kReadyEvent, static_cast<std::int32_t>(hash));
+        mutex_->Lock();
+        const bool notifications_enabled = alive_ && notifications_enabled_;
+        mutex_->Unlock();
+        if (accepted && notifications_enabled) {
+            BroadcastWidgetEvent(plugin_, kReadyEvent, static_cast<std::int32_t>(hash));
+        }
         paf::thread::RMutex::main_thread_mutex.Unlock();
     }
     return accepted;

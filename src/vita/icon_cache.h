@@ -20,6 +20,8 @@ public:
     paf::intrusive_ptr<paf::graph::Surface> Get(const String& key);
     void Pin(const String& key);
     void Unpin(const String& key);
+    void SetNotificationsEnabled(bool enabled);
+    void ResetPins();
     void Clear();
 
 private:
@@ -66,6 +68,7 @@ private:
     paf::job::JobQueue* queue_;
     Vector<SurfaceEntry> entries_;
     std::uint64_t use_clock_;
+    bool notifications_enabled_;
     bool alive_;
 };
 

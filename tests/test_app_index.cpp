@@ -494,6 +494,35 @@ void TestImeTransitionPolicy() {
         "IME cancellation closes the hidden results page");
 }
 
+void TestDeferredResultClosePolicy() {
+    using livearea_search::AdvanceDeferredResultClose;
+    using livearea_search::DeferredResultCloseAction;
+
+    std::uint32_t idle_frames = 2;
+    Check(
+        AdvanceDeferredResultClose(false, idle_frames) ==
+                DeferredResultCloseAction::None &&
+            idle_frames == 2,
+        "an absent close request leaves the deferral counter untouched");
+
+    std::uint32_t deferred_frames = 1;
+    Check(
+        AdvanceDeferredResultClose(true, deferred_frames) ==
+                DeferredResultCloseAction::Wait &&
+            deferred_frames == 0,
+        "a close request waits one full PAF frame before teardown");
+    Check(
+        AdvanceDeferredResultClose(true, deferred_frames) ==
+                DeferredResultCloseAction::Close,
+        "a deferred close executes after the input callback has unwound");
+
+    std::uint32_t immediate_frames = 0;
+    Check(
+        AdvanceDeferredResultClose(true, immediate_frames) ==
+                DeferredResultCloseAction::Close,
+        "a zero-frame request is ready for synchronous teardown");
+}
+
 void TestDeferredLogQueue() {
     livearea_search::DeferredLogQueue queue;
     char line[livearea_search::DeferredLogQueue::kLineCapacity];
@@ -576,6 +605,7 @@ int main() {
     TestHomeVisibilityTransitions();
     TestExternalImeEditAdoption();
     TestImeTransitionPolicy();
+    TestDeferredResultClosePolicy();
     TestDeferredLogQueue();
     TestIconCacheEvictionPolicy();
 
