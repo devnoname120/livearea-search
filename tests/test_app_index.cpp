@@ -6,6 +6,7 @@
 #include <livearea_search/launch_uri.h>
 #include <livearea_search/module_readiness.h>
 #include <livearea_search/overlay_visibility.h>
+#include <livearea_search/recent_apps.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -286,8 +287,12 @@ void TestCatalogRecordPolicy() {
 
 void TestModuleLookupReadiness() {
     using livearea_search::AdvanceShellReadyFrames;
+    using livearea_search::ClassifyPreparedDataLoadResult;
     using livearea_search::HasStableShellReadiness;
     using livearea_search::IsModuleLookupReady;
+    using livearea_search::IsShellLoadingSceneDismissed;
+    using livearea_search::PreparedDataLoadAction;
+    using livearea_search::kShellLoadingSceneMissingError;
 
     Check(!IsModuleLookupReady(static_cast<int>(0x8002D082U), -1),
           "module-not-found remains a waiting state");
@@ -311,6 +316,29 @@ void TestModuleLookupReadiness() {
           "overlay loading begins at the stability threshold");
     Check(!HasStableShellReadiness(0, 0),
           "a zero-length stability policy never reports ready");
+
+    Check(!IsShellLoadingSceneDismissed(false, -1),
+          "overlay loading waits until the PAF environment exists");
+    Check(!IsShellLoadingSceneDismissed(true, 1),
+          "overlay loading remains blocked while SceShell's cover scene exists");
+    Check(IsShellLoadingSceneDismissed(true, 0),
+          "an empty loading-scene entry is ready");
+    Check(IsShellLoadingSceneDismissed(true, kShellLoadingSceneMissingError),
+          "the PAF no-scene error after destruction is ready");
+    Check(!IsShellLoadingSceneDismissed(true, -1),
+          "an unrelated PAF error does not expose Search early");
+
+    Check(
+        ClassifyPreparedDataLoadResult(0) == PreparedDataLoadAction::Publish,
+        "a successful LSDB load publishes the prepared catalogue");
+    Check(
+        ClassifyPreparedDataLoadResult(static_cast<int>(0x80101003U)) ==
+            PreparedDataLoadAction::WaitForDatabase,
+        "an unopened process AppDB remains a readiness wait state");
+    Check(
+        ClassifyPreparedDataLoadResult(static_cast<int>(0x80101002U)) ==
+            PreparedDataLoadAction::Fail,
+        "a non-readiness LSDB failure is not retried indefinitely");
 }
 
 void TestSafeVectorOwnership() {
@@ -330,6 +358,36 @@ void TestSafeVectorOwnership() {
           "search replaces an existing output vector");
     index.Search("no such title", results);
     Check(results.empty(), "search clears reusable output when no records match");
+}
+
+void TestPreparedSearchDataTransfer() {
+    livearea_search::Vector<livearea_search::AppRecord> apps{
+        {"NPXS10015", "Settings", "settings", "gda", "", true},
+        {"PCSE00120", "Persona 4 Golden", "persona4g", "gd", "", true},
+    };
+    livearea_search::AppIndex prepared_index;
+    prepared_index.Assign(apps);
+    livearea_search::AppIndex ui_index;
+    ui_index.Swap(prepared_index);
+
+    Check(prepared_index.apps().empty(),
+          "prepared AppIndex ownership is emptied after handoff");
+    auto results = Search(ui_index, "settings");
+    Check(TitleIds(results) == std::vector<std::string>{"NPXS10015"},
+          "the handed-off AppIndex retains its searchable records");
+
+    livearea_search::RecentApps prepared_recent;
+    prepared_recent.RecordSelection("NPXS10015");
+    prepared_recent.RecordSelection("PCSE00120");
+    livearea_search::RecentApps ui_recent;
+    ui_recent.Swap(prepared_recent);
+
+    Check(prepared_recent.title_ids().empty(),
+          "prepared RecentApps ownership is emptied after handoff");
+    Check(
+        ui_recent.title_ids() ==
+            livearea_search::Vector<livearea_search::String>{"PCSE00120", "NPXS10015"},
+        "the handed-off RecentApps preserves MRU ordering");
 }
 
 void TestSafeRecordDeduplication() {
@@ -393,13 +451,21 @@ void TestHomeVisibilityTransitions() {
         !IsBubbleHomeSurface(0x9F7C030DU, 0.0f, 0.0f, 0.0f, 0.0f),
         "the system-application topmenu page is not treated as Home");
     Check(
-        !IsBubbleHomeSurface(
+        IsBubbleHomeSurface(
             livearea_search::kTopMenuHomePageHash,
-            -1.0f,
+            -30.0f,
             0.0f,
             0.0f,
             0.0f),
-        "an unsettled Home transition does not expose the control");
+        "a return transition exposes the Home control as soon as its target is Home");
+    Check(
+        !IsBubbleHomeSurface(
+            livearea_search::kTopMenuHomePageHash,
+            0.0f,
+            0.0f,
+            960.0f,
+            0.0f),
+        "an outbound transition hides the Home control as soon as its target leaves Home");
 
     Check(
         ComputeHomeVisibilityAction(false, true, false) ==
@@ -626,6 +692,7 @@ int main() {
     TestCatalogRecordPolicy();
     TestModuleLookupReadiness();
     TestSafeVectorOwnership();
+    TestPreparedSearchDataTransfer();
     TestSafeRecordDeduplication();
     TestOverlayLoadGate();
     TestHomeVisibilityTransitions();

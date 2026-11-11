@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 namespace livearea_search {
@@ -47,6 +48,15 @@ bool IsBubbleHomeSurface(
     float focus_y,
     float target_x,
     float target_y) noexcept;
+bool ObserveHomePadPress(
+    bool results_open,
+    std::uint32_t ps_button_mask,
+    std::uint32_t current_buttons,
+    bool& ps_owned) noexcept;
+bool ShouldReleaseHomePadLock(
+    bool lock_held,
+    bool results_open,
+    bool ps_owned) noexcept;
 bool ShouldAdoptExternalImeEdit(
     bool results_open,
     bool transition_active,

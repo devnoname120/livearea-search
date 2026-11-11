@@ -32,16 +32,40 @@ bool ShouldCloseResultsPage(
 
 bool IsBubbleHomeSurface(
     std::uint32_t visible_page_hash,
-    float focus_x,
-    float focus_y,
+    float,
+    float,
     float target_x,
     float target_y) noexcept {
     const float tolerance = 0.5f;
     return visible_page_hash == kTopMenuHomePageHash &&
-           focus_x >= -tolerance && focus_x <= tolerance &&
-           focus_y >= -tolerance && focus_y <= tolerance &&
            target_x >= -tolerance && target_x <= tolerance &&
            target_y >= -tolerance && target_y <= tolerance;
+}
+
+bool ObserveHomePadPress(
+    bool results_open,
+    std::uint32_t ps_button_mask,
+    std::uint32_t current_buttons,
+    bool& ps_owned) noexcept {
+    const bool pressed = (current_buttons & ps_button_mask) != 0U;
+    if (ps_owned) {
+        if (!pressed) {
+            ps_owned = false;
+        }
+        return false;
+    }
+    if (!results_open || !pressed) {
+        return false;
+    }
+    ps_owned = true;
+    return true;
+}
+
+bool ShouldReleaseHomePadLock(
+    bool lock_held,
+    bool results_open,
+    bool ps_owned) noexcept {
+    return lock_held && !results_open && !ps_owned;
 }
 
 bool ShouldAdoptExternalImeEdit(

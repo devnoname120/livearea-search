@@ -12,6 +12,8 @@
 
 #include "paf_memory.h"
 #include "config_file_failsafe.h"
+#include "lsdb_index_source.h"
+#include "recent_apps_file.h"
 #include "search_overlay.h"
 #include "shell_state.h"
 #include "startup_log.h"
@@ -20,7 +22,13 @@ namespace {
 
 const char kPluginName[] = "livearea_search_plugin";
 const char kResourcePath[] = "ur0:data/livearea-search/livearea_search_plugin.rco";
-const std::uint32_t kShellReadyFrameThreshold = 60;
+const std::uint32_t kShellReadyFrameThreshold = 1;
+const unsigned int kLsdbReadyPollDelayUs = 100000U;
+
+struct PreparedSearchData {
+    livearea_search::AppIndex index;
+    livearea_search::RecentApps recent_apps;
+};
 
 SceKernelLwMutexWork g_state_mutex;
 bool g_running = false;
@@ -56,6 +64,7 @@ extern "C" int _sceAppMgrGetStatusByAppId(int app_id, AppStatus* app_status);
 SceUID g_worker = -1;
 paf::Plugin* g_plugin = NULL;
 livearea_search::SearchOverlay* g_overlay = NULL;
+PreparedSearchData* g_prepared_search_data = NULL;
 
 void LockState() {
     sceKernelLockLwMutex(&g_state_mutex, 1, NULL);
@@ -77,6 +86,17 @@ void SetShellState(bool valid, bool allows_overlay) {
     g_shell_state_valid = valid;
     g_shell_allows_overlay = allows_overlay;
     UnlockState();
+}
+
+bool IsShellLoadingCoverDismissed() {
+    paf::Framework* framework = paf::Framework::Instance();
+    paf::ui::Environment* environment =
+        framework == NULL ? NULL : framework->GetEnvironmentInstance();
+    const int scene_count = environment == NULL ? 0 :
+        environment->GetSceneNum(livearea_search::kShellLoadingSceneEntry);
+    return livearea_search::IsShellLoadingSceneDismissed(
+        environment != NULL,
+        scene_count);
 }
 
 bool PathExists(const char* path) {
@@ -139,7 +159,21 @@ void OnPluginStarted(paf::Plugin* plugin) {
         return;
     }
 
-    const int result = g_overlay->Initialize();
+    LockState();
+    PreparedSearchData* prepared = g_prepared_search_data;
+    g_prepared_search_data = NULL;
+    UnlockState();
+    if (prepared == NULL) {
+        livearea_search::StartupLog("prepared search data missing");
+        delete g_overlay;
+        g_overlay = NULL;
+        g_plugin = NULL;
+        paf::Plugin::UnloadAsync(plugin);
+        return;
+    }
+
+    const int result = g_overlay->Initialize(prepared->index, prepared->recent_apps);
+    delete prepared;
     livearea_search::StartupLogResult("overlay initialize", result);
     if (result < 0) {
         sceClibPrintf("[LiveAreaSearch] overlay init failed: 0x%08X\n", result);
@@ -158,9 +192,14 @@ void OnPluginStarted(paf::Plugin* plugin) {
 
 void UiFrame(void*) {
     paf::Plugin* top_menu = paf::Plugin::Find("topmenu_plugin");
-    const bool shell_ready =
-        livearea_search::ShellAllowsOverlay() &&
-        livearea_search::IsPafPluginVisible(top_menu);
+    LockState();
+    const bool data_ready = g_prepared_search_data != NULL;
+    UnlockState();
+    const bool shell_loading_scene_ready = IsShellLoadingCoverDismissed();
+    const bool shell_ready = livearea_search::ShellAllowsOverlay() &&
+        data_ready &&
+        shell_loading_scene_ready &&
+        livearea_search::IsTopMenuHomeRenderReady(top_menu);
     bool log_waiting = false;
     LockState();
     g_shell_ready_frames = livearea_search::AdvanceShellReadyFrames(
@@ -259,6 +298,58 @@ int WorkerMain(SceSize, void*) {
     livearea_search::StartupLogResult(
         "worker tai SceLsdb nid",
         static_cast<int>(tai_lsdb.module_nid));
+
+    livearea_search::StartupLog("worker prepare search data begin");
+    PreparedSearchData* prepared = livearea_search::PafNew<PreparedSearchData>();
+    if (prepared == NULL) {
+        livearea_search::StartupLog("worker prepared data allocation failed");
+        return 0;
+    }
+    livearea_search::LsdbIndexSource index_source;
+    int prepare_result = index_source.Resolve();
+    livearea_search::StartupLogResult("worker lsdb resolve", prepare_result);
+    if (prepare_result < 0) {
+        delete prepared;
+        return 0;
+    }
+    while (IsRunning()) {
+        prepare_result = index_source.Load(prepared->index);
+        livearea_search::StartupLogResult("worker lsdb load", prepare_result);
+        const livearea_search::PreparedDataLoadAction action =
+            livearea_search::ClassifyPreparedDataLoadResult(prepare_result);
+        if (action == livearea_search::PreparedDataLoadAction::Publish) {
+            break;
+        }
+        if (action == livearea_search::PreparedDataLoadAction::Fail) {
+            delete prepared;
+            return 0;
+        }
+        if (action == livearea_search::PreparedDataLoadAction::WaitForDatabase) {
+            sceKernelDelayThread(kLsdbReadyPollDelayUs);
+        }
+    }
+    if (!IsRunning()) {
+        delete prepared;
+        return 0;
+    }
+    livearea_search::RecentAppsFile recent_apps_file;
+    const int recent_result = recent_apps_file.Load(prepared->recent_apps);
+    livearea_search::StartupLogResult("worker recent apps load", recent_result);
+    if (recent_result < 0) {
+        prepared->recent_apps.Clear();
+    }
+    LockState();
+    const bool publish_prepared = g_running && g_prepared_search_data == NULL;
+    if (publish_prepared) {
+        g_prepared_search_data = prepared;
+        prepared = NULL;
+    }
+    UnlockState();
+    delete prepared;
+    if (!publish_prepared) {
+        return 0;
+    }
+    livearea_search::StartupLog("worker prepare search data complete");
 
     int failures = 0;
     int visibility_result = PollShellVisibility();
@@ -385,6 +476,7 @@ extern "C" int module_start(SceSize, const void*) {
     g_waiting_for_shell_logged = false;
     g_shell_ready_frames = 0;
     g_interaction_logs.Clear();
+    g_prepared_search_data = NULL;
     UnlockState();
     g_plugin = NULL;
     g_overlay = NULL;
@@ -426,6 +518,12 @@ extern "C" int module_stop(SceSize, const void*) {
         sceKernelDeleteThread(g_worker);
         g_worker = -1;
     }
+
+    LockState();
+    PreparedSearchData* prepared = g_prepared_search_data;
+    g_prepared_search_data = NULL;
+    UnlockState();
+    delete prepared;
 
     LockState();
     const bool callback_registered = g_ui_callback_registered;

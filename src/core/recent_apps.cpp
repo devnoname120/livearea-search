@@ -93,6 +93,10 @@ void RecentApps::Clear() {
     title_ids_.clear();
 }
 
+void RecentApps::Swap(RecentApps& other) noexcept {
+    title_ids_.swap(other.title_ids_);
+}
+
 void RecentApps::RecordSelection(const String& title_id) {
     if (!IsValidTitleId(title_id)) {
         return;

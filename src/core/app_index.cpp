@@ -309,6 +309,11 @@ void AppIndex::Assign(Vector<AppRecord>& apps) {
     }
 }
 
+void AppIndex::Swap(AppIndex& other) noexcept {
+    apps_.swap(other.apps_);
+    indexed_apps_.swap(other.indexed_apps_);
+}
+
 const Vector<AppRecord>& AppIndex::apps() const {
     return apps_;
 }

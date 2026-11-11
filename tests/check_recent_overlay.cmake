@@ -1,11 +1,11 @@
-if(NOT DEFINED SEARCH_OVERLAY)
-    message(FATAL_ERROR "SEARCH_OVERLAY is required")
+if(NOT DEFINED SEARCH_OVERLAY OR NOT DEFINED PLUGIN_MAIN)
+    message(FATAL_ERROR "SEARCH_OVERLAY and PLUGIN_MAIN are required")
 endif()
 
 file(READ "${SEARCH_OVERLAY}" source)
+file(READ "${PLUGIN_MAIN}" plugin_main)
 
 foreach(required IN ITEMS
-    "recent_apps_file_.Load(recent_apps_)"
     "recent_apps_.Resolve(index_.apps(), next_results);"
     "SetText(result_count_, \"Recent\");"
     "SetText(empty_text_, \"No recent apps\");"
@@ -17,6 +17,11 @@ foreach(required IN ITEMS
         message(FATAL_ERROR "Missing Recent overlay behavior: ${required}")
     endif()
 endforeach()
+
+string(FIND "${plugin_main}" "recent_apps_file.Load(prepared->recent_apps)" recent_load)
+if(recent_load EQUAL -1)
+    message(FATAL_ERROR "Recent history must be loaded before the PAF-thread handoff")
+endif()
 
 string(FIND "${source}" "recent_apps_.RecordSelection(title_id);" record_index)
 string(FIND "${source}" "recent_apps_file_.Save(recent_apps_);" save_index)

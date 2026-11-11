@@ -15,6 +15,7 @@ public:
 
     bool Parse(const char* data, std::size_t size);
     void Clear();
+    void Swap(RecentApps& other) noexcept;
     void RecordSelection(const String& title_id);
     void RetainAvailable(const Vector<AppRecord>& apps);
     void Resolve(

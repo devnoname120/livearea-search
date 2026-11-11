@@ -1,12 +1,15 @@
 #include "search_overlay.h"
 
 #include <psp2/kernel/clib.h>
+#include <taihen.h>
 
 #include <livearea_search/overlay_visibility.h>
 
 #include "launcher.h"
 #include "paf_memory.h"
+#include "paf_pad_device_handler.h"
 #include "paf_page_order.h"
+#include "paf_text_box_ime.h"
 #include "shell_state.h"
 #include "startup_log.h"
 
@@ -15,8 +18,36 @@ namespace {
 
 const int kResultsDisplayDrawPriority = 6;
 const int kResultsEditingDrawPriority = 36;
+const int kImeOptionNoAssistance = 0x04;
+const int kShellUtilAlreadyInitialized = static_cast<int>(0x80101802U);
+const char* kShellSvcModuleName = "SceShellSvc";
+const std::uint32_t kShellUtilLibraryNid = 0xD2B1C8AEU;
+const std::uint32_t kShellUtilInitEventsNid = 0xE8AD11ECU;
+const std::uint32_t kShellUtilLockNid = 0xA9537233U;
+const std::uint32_t kShellUtilUnlockNid = 0x21A6CF54U;
+
+template <typename Function>
+int ResolveShellUtilFunction(std::uint32_t nid, Function& function) {
+    std::uintptr_t address = 0;
+    const int result = taiGetModuleExportFunc(
+        kShellSvcModuleName,
+        kShellUtilLibraryNid,
+        nid,
+        &address);
+    if (result < 0) {
+        return result;
+    }
+    if (address == 0) {
+        return -1;
+    }
+    function = reinterpret_cast<Function>(address);
+    return 0;
+}
 
 } // namespace
+
+SearchOverlay* SearchOverlay::home_pad_overlay_ = NULL;
+paf_pad_device_handler::DeviceHandler SearchOverlay::previous_home_pad_handler_ = NULL;
 
 SearchOverlay::ResultItemFactory::ResultItemFactory(SearchOverlay* overlay)
     : overlay_(overlay) {}
@@ -113,12 +144,30 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       results_draw_priority_(kResultsDisplayDrawPriority),
       close_requested_(false),
       close_defer_frames_(0),
+      home_close_pending_(false),
+      home_pad_press_pending_(false),
+      home_ps_owned_(false),
+      shell_util_ready_(false),
+      home_ps_lock_held_(false),
+      shell_util_init_events_(NULL),
+      shell_util_lock_(NULL),
+      shell_util_unlock_(NULL),
       initialized_(false) {}
 
 SearchOverlay::~SearchOverlay() {
     visibility_registered_ = false;
     paf::common::MainThreadCallList::Unregister(VisibilityTick, this);
+    if (home_pad_overlay_ == this) {
+        home_pad_overlay_ = NULL;
+        const paf_pad_device_handler::DeviceHandler displaced =
+            paf_pad_device_handler::SetDeviceHandler(previous_home_pad_handler_);
+        if (displaced != HomePadDeviceHandler) {
+            paf_pad_device_handler::SetDeviceHandler(displaced);
+        }
+        previous_home_pad_handler_ = NULL;
+    }
     CloseResultsPage();
+    ReleaseHomePadLock();
 
     if (plugin_ != NULL && home_page_ != NULL) {
         paf::Plugin::PageCloseParam close_param;
@@ -133,7 +182,7 @@ SearchOverlay::~SearchOverlay() {
     icon_cache_ = NULL;
 }
 
-int SearchOverlay::Initialize() {
+int SearchOverlay::Initialize(AppIndex& prepared_index, RecentApps& prepared_recent_apps) {
     StartupLog("overlay initialize begin");
     if (initialized_) {
         return 0;
@@ -142,22 +191,20 @@ int SearchOverlay::Initialize() {
         return -1;
     }
 
-    int result = index_source_.Resolve();
-    StartupLogResult("overlay lsdb resolve", result);
-    if (result < 0) {
-        return result;
-    }
-    result = index_source_.Load(index_);
-    StartupLogResult("overlay lsdb load", result);
+    int result = ResolveShellUtil();
+    StartupLogResult("shell util resolve", result);
     if (result < 0) {
         return result;
     }
 
-    const int recent_result = recent_apps_file_.Load(recent_apps_);
-    StartupLogResult("recent apps load", recent_result);
-    if (recent_result < 0) {
-        recent_apps_.Clear();
+    result = shell_util_init_events_(0);
+    StartupLogResult("shell util init events", result);
+    shell_util_ready_ = result >= 0 || result == kShellUtilAlreadyInitialized;
+    if (!shell_util_ready_) {
+        return result;
     }
+    index_.Swap(prepared_index);
+    recent_apps_.Swap(prepared_recent_apps);
 
     icon_cache_ = PafNew<IconCache>(plugin_);
     StartupLogResult(
@@ -175,6 +222,14 @@ int SearchOverlay::Initialize() {
         icon_cache_ = NULL;
         return result;
     }
+    if (home_pad_overlay_ != NULL) {
+        return -1;
+    }
+    home_pad_overlay_ = this;
+    previous_home_pad_handler_ = paf_pad_device_handler::SetDeviceHandler(HomePadDeviceHandler);
+    StartupLogResult(
+        "overlay previous home pad handler",
+        previous_home_pad_handler_ != NULL ? 1 : 0);
 
     initialized_ = true;
     visibility_registered_ = true;
@@ -223,11 +278,17 @@ int SearchOverlay::OpenResultsPage() {
 
     close_requested_ = false;
     close_defer_frames_ = 0;
+    home_close_pending_ = false;
+    home_pad_press_pending_ = false;
+    if (!AcquireHomePadLock()) {
+        return -1;
+    }
 
     paf::Plugin::PageOpenParam open_param;
     open_param.fade = false;
     results_page_ = plugin_->PageOpen("page_search_results", open_param);
     if (results_page_ == NULL) {
+        ReleaseHomePadLock();
         return -1;
     }
     QueueInteractionLogResult(
@@ -251,10 +312,15 @@ int SearchOverlay::OpenResultsPage() {
     }
 
     results_page_->SetKeycode(
-        paf::inputdevice::pad::Data::Keycode::PAD_ESCAPE);
+        paf::inputdevice::pad::Data::Keycode::PAD_ESCAPE |
+        paf::inputdevice::pad::Data::Keycode::PAD_PS);
     results_page_->AddEventCallback(
         paf::ui::Handler::CB_KEYCODE_PRESS,
         OnBackKey,
+        this);
+    results_page_->AddEventCallback(
+        paf::ui::Handler::CB_KEYCODE_PRESS,
+        OnResultsKeyPress,
         this);
 
     search_box_->SetMaxLength(64);
@@ -308,6 +374,15 @@ int SearchOverlay::BeginImeEdit() {
     ime_editing_seen_ = false;
     results_pending_display_ = true;
     ime_close_pending_ = false;
+    paf::ui::ImeParam ime_param;
+    const int get_ime_result = paf_text_box_ime::GetImeParam(search_box_, ime_param);
+    QueueInteractionLogResult("ime get param", get_ime_result);
+    if (get_ime_result >= 0) {
+        ime_param.option |= kImeOptionNoAssistance;
+        QueueInteractionLogResult(
+            "ime set param",
+            paf_text_box_ime::SetImeParam(search_box_, ime_param));
+    }
     const int result = search_box_->BeginEdit();
     QueueInteractionLogResult("ime begin edit", result);
     if (result < 0) {
@@ -315,6 +390,26 @@ int SearchOverlay::BeginImeEdit() {
         RequestCloseResultsPage();
     }
     return result;
+}
+
+int SearchOverlay::ResolveShellUtil() {
+    shell_util_init_events_ = NULL;
+    shell_util_lock_ = NULL;
+    shell_util_unlock_ = NULL;
+
+    int result = ResolveShellUtilFunction(kShellUtilInitEventsNid, shell_util_init_events_);
+    if (result < 0) {
+        return result;
+    }
+    result = ResolveShellUtilFunction(kShellUtilLockNid, shell_util_lock_);
+    if (result < 0) {
+        return result;
+    }
+    result = ResolveShellUtilFunction(kShellUtilUnlockNid, shell_util_unlock_);
+    if (result < 0) {
+        return result;
+    }
+    return 0;
 }
 
 void SearchOverlay::HandleBack() {
@@ -334,6 +429,57 @@ void SearchOverlay::HandleBack() {
     if (action == ResultsBackAction::CloseResults) {
         QueueInteractionLog("back close results");
         RequestCloseResultsPage();
+    }
+}
+
+void SearchOverlay::HandleHome() {
+    if (results_page_ == NULL || home_close_pending_) {
+        return;
+    }
+    home_close_pending_ = true;
+    results_pending_display_ = false;
+    ime_close_pending_ = true;
+    ime_transition_active_ = false;
+    ime_editing_seen_ = false;
+    if (search_box_ != NULL) {
+        QueueInteractionLogResult("home end edit", search_box_->EndEdit());
+    }
+    RequestCloseResultsPage();
+}
+
+bool SearchOverlay::AcquireHomePadLock() {
+    if (home_ps_lock_held_) {
+        return true;
+    }
+    if (!shell_util_ready_ || shell_util_lock_ == NULL) {
+        return false;
+    }
+    const int result = shell_util_lock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
+    QueueInteractionLogResult("home PS lock", result);
+    if (result < 0) {
+        return false;
+    }
+    home_ps_lock_held_ = true;
+    return true;
+}
+
+void SearchOverlay::ReleaseHomePadLock() {
+    if (!home_ps_lock_held_ || shell_util_unlock_ == NULL) {
+        return;
+    }
+    const int result = shell_util_unlock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
+    QueueInteractionLogResult("home PS unlock", result);
+    if (result >= 0) {
+        home_ps_lock_held_ = false;
+    }
+}
+
+void SearchOverlay::UpdateHomePadLock() {
+    if (ShouldReleaseHomePadLock(
+            home_ps_lock_held_,
+            results_page_ != NULL,
+            home_ps_owned_)) {
+        ReleaseHomePadLock();
     }
 }
 
@@ -368,10 +514,13 @@ void SearchOverlay::ProcessCloseRequest() {
 void SearchOverlay::CloseResultsPage() {
     if (plugin_ == NULL || results_page_ == NULL) {
         notification_corner_.Restore();
+        UpdateHomePadLock();
         return;
     }
     close_requested_ = false;
     close_defer_frames_ = 0;
+    home_close_pending_ = false;
+    home_pad_press_pending_ = false;
     if (icon_cache_ != NULL) {
         icon_cache_->SetNotificationsEnabled(false);
     }
@@ -419,6 +568,7 @@ void SearchOverlay::CloseResultsPage() {
     results_editing_layout_ = false;
     results_draw_priority_ = kResultsDisplayDrawPriority;
     UpdateVisibility();
+    UpdateHomePadLock();
 }
 
 void SearchOverlay::SubmitSearch() {
@@ -667,7 +817,7 @@ void SearchOverlay::UpdateVisibility() {
     home_visible_ = action == HomeVisibilityAction::Show;
     if (home_visible_) {
         plugin_->PageActivate("page_home_search");
-        home_page_->Show(paf::common::transition::Type_Reset);
+        home_page_->Show(paf::common::transition::Type_FadeinFast);
     } else {
         home_page_->Hide(paf::common::transition::Type_Reset);
         plugin_->PageInactivate("page_home_search");
@@ -804,6 +954,30 @@ bool IsPafPluginVisible(paf::Plugin* plugin) {
     return false;
 }
 
+bool IsTopMenuHomeRenderReady(paf::Plugin* plugin) {
+    if (plugin == NULL) {
+        return false;
+    }
+    paf::ui::Scene* root = plugin->PageRoot(kTopMenuHomePageHash);
+    if (root == NULL || !root->IsVisible()) {
+        return false;
+    }
+    paf::ui::Widget* scroll_widget = root->FindChild(kTopMenuHomeScrollHash);
+    if (scroll_widget == NULL) {
+        return false;
+    }
+    paf::ui::ScrollView* scroll = static_cast<paf::ui::ScrollView*>(scroll_widget);
+    const paf::math::v2 focus = scroll->GetViewFocus();
+    const paf::math::v2 target = scroll->GetViewFocusTarget();
+    const bool bubble_home = IsBubbleHomeSurface(
+        kTopMenuHomePageHash,
+        focus.extract_x(),
+        focus.extract_y(),
+        target.extract_x(),
+        target.extract_y());
+    return bubble_home;
+}
+
 void SearchOverlay::OnHomeSearch(
     int,
     paf::ui::Handler*,
@@ -856,12 +1030,33 @@ void SearchOverlay::OnClose(
 void SearchOverlay::OnBackKey(
     int,
     paf::ui::Handler*,
-    paf::ui::Event*,
+    paf::ui::Event* event,
     void* user_data) {
+    if (event == NULL ||
+        event->GetDetail() != paf::inputdevice::pad::Data::Keycode::PAD_ESCAPE) {
+        return;
+    }
     SearchOverlay* overlay = static_cast<SearchOverlay*>(user_data);
     if (overlay != NULL) {
         QueueInteractionLog("back key callback");
         overlay->HandleBack();
+    }
+}
+
+void SearchOverlay::OnResultsKeyPress(
+    int,
+    paf::ui::Handler*,
+    paf::ui::Event* event,
+    void* user_data) {
+    if (event == NULL ||
+        event->GetDetail() != paf::inputdevice::pad::Data::Keycode::PAD_PS) {
+        return;
+    }
+    event->Consume();
+    SearchOverlay* overlay = static_cast<SearchOverlay*>(user_data);
+    if (overlay != NULL) {
+        QueueInteractionLog("home key callback");
+        overlay->HandleHome();
     }
 }
 
@@ -900,10 +1095,32 @@ void SearchOverlay::OnIconReady(
     overlay->ApplyIcon(widget, String(title_id.c_str()));
 }
 
+void SearchOverlay::HomePadDeviceHandler(paf::inputdevice::pad::Data* data) {
+    SearchOverlay* overlay = home_pad_overlay_;
+    if (overlay != NULL && data != NULL) {
+        if (ObserveHomePadPress(
+                overlay->results_page_ != NULL,
+                paf::inputdevice::pad::Data::Keycode::PAD_PS,
+                data->paddata,
+                overlay->home_ps_owned_)) {
+            overlay->home_pad_press_pending_ = true;
+        }
+    }
+    if (previous_home_pad_handler_ != NULL &&
+        previous_home_pad_handler_ != HomePadDeviceHandler) {
+        previous_home_pad_handler_(data);
+    }
+}
+
 void SearchOverlay::VisibilityTick(void* user_data) {
     SearchOverlay* overlay = static_cast<SearchOverlay*>(user_data);
     if (overlay == NULL || !overlay->visibility_registered_) {
         return;
+    }
+    if (overlay->home_pad_press_pending_) {
+        overlay->home_pad_press_pending_ = false;
+        QueueInteractionLog("home pad device callback");
+        overlay->HandleHome();
     }
     overlay->UpdateImeTransition();
     if (overlay->visibility_registered_) {
@@ -911,6 +1128,9 @@ void SearchOverlay::VisibilityTick(void* user_data) {
     }
     if (overlay->visibility_registered_) {
         overlay->ProcessCloseRequest();
+    }
+    if (overlay->visibility_registered_) {
+        overlay->UpdateHomePadLock();
     }
 }
 

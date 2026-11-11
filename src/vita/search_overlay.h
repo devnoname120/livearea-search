@@ -1,27 +1,34 @@
 #pragma once
 
+#include <psp2/shellutil.h>
+
 #include "paf_compat.h"
 
 #include <livearea_search/app_index.h>
 #include <livearea_search/recent_apps.h>
 
 #include "icon_cache.h"
-#include "lsdb_index_source.h"
 #include "notification_corner.h"
+#include "paf_pad_device_handler.h"
 #include "recent_apps_file.h"
 
 namespace livearea_search {
 
 bool IsPafPluginVisible(paf::Plugin* plugin);
+bool IsTopMenuHomeRenderReady(paf::Plugin* plugin);
 
 class SearchOverlay {
 public:
     explicit SearchOverlay(paf::Plugin* plugin);
     ~SearchOverlay();
 
-    int Initialize();
+    int Initialize(AppIndex& prepared_index, RecentApps& prepared_recent_apps);
 
 private:
+    typedef int (*ShellUtilInitEventsFunction)(int);
+    typedef int (*ShellUtilLockFunction)(SceShellUtilLockType);
+    typedef int (*ShellUtilUnlockFunction)(SceShellUtilLockType);
+
     class ResultItemFactory : public paf::ui::listview::ItemFactory {
     public:
         explicit ResultItemFactory(SearchOverlay* overlay);
@@ -59,6 +66,11 @@ private:
         paf::ui::Handler* handler,
         paf::ui::Event* event,
         void* user_data);
+    static void OnResultsKeyPress(
+        int id,
+        paf::ui::Handler* handler,
+        paf::ui::Event* event,
+        void* user_data);
     static void OnResultDecide(
         int id,
         paf::ui::Handler* handler,
@@ -69,12 +81,18 @@ private:
         paf::ui::Handler* handler,
         paf::ui::Event* event,
         void* user_data);
+    static void HomePadDeviceHandler(paf::inputdevice::pad::Data* data);
     static void VisibilityTick(void* user_data);
 
     int OpenHomePage();
     int OpenResultsPage();
     int BeginImeEdit();
+    int ResolveShellUtil();
     void HandleBack();
+    void HandleHome();
+    bool AcquireHomePadLock();
+    void ReleaseHomePadLock();
+    void UpdateHomePadLock();
     void RequestCloseResultsPage();
     void ProcessCloseRequest();
     void CloseResultsPage();
@@ -110,7 +128,6 @@ private:
     paf::ui::CornerButton* close_button_;
 
     AppIndex index_;
-    LsdbIndexSource index_source_;
     NotificationCornerGuard notification_corner_;
     RecentApps recent_apps_;
     RecentAppsFile recent_apps_file_;
@@ -127,7 +144,18 @@ private:
     int results_draw_priority_;
     bool close_requested_;
     std::uint32_t close_defer_frames_;
+    bool home_close_pending_;
+    bool home_pad_press_pending_;
+    bool home_ps_owned_;
+    bool shell_util_ready_;
+    bool home_ps_lock_held_;
+    ShellUtilInitEventsFunction shell_util_init_events_;
+    ShellUtilLockFunction shell_util_lock_;
+    ShellUtilUnlockFunction shell_util_unlock_;
     bool initialized_;
+
+    static SearchOverlay* home_pad_overlay_;
+    static paf_pad_device_handler::DeviceHandler previous_home_pad_handler_;
 };
 
 } // namespace livearea_search

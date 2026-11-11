@@ -51,6 +51,7 @@ struct SearchResult {
 class AppIndex {
 public:
     void Assign(Vector<AppRecord>& apps);
+    void Swap(AppIndex& other) noexcept;
 
     const Vector<AppRecord>& apps() const;
     void Search(

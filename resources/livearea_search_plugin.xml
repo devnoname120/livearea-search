@@ -37,7 +37,7 @@
                 </text_box>
 
                 <text style="style_results_count" id="text_results_count">
-                    <layout_hint align="2,1" anchor="2,1" size="150,58" pos="-18,0" />
+                    <layout_hint align="2,1" anchor="2,1" size="150,64" pos="-18,0" />
                 </text>
 
                 <plane style="_common_default_style_plane" texture="_common_texture_ruled_line" id="plane_header_rule">
@@ -113,7 +113,7 @@
         </style_text_box>
 
         <style_text textobj="text_obj" id="style_results_count">
-            <textobj font_size="22" bold="0" color="0.82,0.84,0.88,1" align_x="2" align_y="1" ellipsis="1" id="text_obj" />
+            <textobj font_size="22" line_pitch="32" bold="0" color="0.82,0.84,0.88,1" align_x="2" align_y="1" ellipsis="1" id="text_obj" />
         </style_text>
 
         <style_text textobj="text_obj" id="style_empty_text">
