@@ -34,9 +34,6 @@ if(sync_call_count LESS 2)
 endif()
 
 foreach(required_geometry IN ITEMS
-    "result_list_->SetSize(960.0f, 224.0f, 0.0f);"
-    "result_list_->SetPos(0.0f, 64.0f, 0.0f);"
-    "result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));"
     "result_list_->SetSize(960.0f, 448.0f, 0.0f);"
     "result_list_->SetPos(0.0f, -48.0f, 0.0f);"
     "result_list_->SetViewBox(paf::math::v4(-480.0f, 224.0f, 480.0f, -224.0f));")
@@ -48,22 +45,25 @@ foreach(required_geometry IN ITEMS
 endforeach()
 
 string(REGEX MATCHALL
-    "result_list_->SetViewBox\\(paf::math::v4\\(-480\\.0f, 112\\.0f, 480\\.0f, -96\\.0f\\)\\)"
-    compact_viewbox_calls
+    "result_list_->SetViewBox\\(paf::math::v4\\(-480\\.0f, 224\\.0f, 480\\.0f, -224\\.0f\\)\\)"
+    full_viewbox_calls
     "${source}")
-list(LENGTH compact_viewbox_calls compact_viewbox_call_count)
-if(NOT compact_viewbox_call_count EQUAL 1)
+list(LENGTH full_viewbox_calls full_viewbox_call_count)
+if(NOT full_viewbox_call_count EQUAL 2)
     message(FATAL_ERROR
-        "The exact IME view box must be established once without resetting kinetic scrolling")
+        "Editing and display layouts must share the same full ListView camera box")
 endif()
 
 foreach(forbidden_geometry IN ITEMS
     "result_list_->SetSize(960.0f, 192.0f, 0.0f);"
-    "result_list_->SetSize(960.0f, 208.0f, 0.0f);")
+    "result_list_->SetSize(960.0f, 208.0f, 0.0f);"
+    "result_list_->SetSize(960.0f, 224.0f, 0.0f);"
+    "result_list_->SetPos(0.0f, 64.0f, 0.0f);"
+    "result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));")
     string(FIND "${source}" "${forbidden_geometry}" found)
     if(NOT found EQUAL -1)
         message(FATAL_ERROR
-            "The compact ListView must use aligned internal geometry with an exact camera view box: ${forbidden_geometry}")
+            "IME editing must not switch to compact ListView geometry: ${forbidden_geometry}")
     endif()
 endforeach()
 

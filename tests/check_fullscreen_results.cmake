@@ -48,9 +48,6 @@ endforeach()
 
 foreach(required_source IN ITEMS
     "SetCellSizeDefault(0, paf::math::v4(960.0f, 70.0f))"
-    "result_list_->SetSize(960.0f, 224.0f, 0.0f);"
-    "result_list_->SetPos(0.0f, 64.0f, 0.0f);"
-    "result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));"
     "result_list_->SetSize(960.0f, 448.0f, 0.0f);"
     "result_list_->SetPos(0.0f, -48.0f, 0.0f);"
     "result_list_->SetViewBox(paf::math::v4(-480.0f, 224.0f, 480.0f, -224.0f));")
@@ -60,12 +57,15 @@ foreach(required_source IN ITEMS
     endif()
 endforeach()
 
-foreach(forbidden_height IN ITEMS
+foreach(forbidden_geometry IN ITEMS
     "result_list_->SetSize(960.0f, 192.0f, 0.0f);"
-    "result_list_->SetSize(960.0f, 208.0f, 0.0f);")
-    string(FIND "${overlay}" "${forbidden_height}" found)
+    "result_list_->SetSize(960.0f, 208.0f, 0.0f);"
+    "result_list_->SetSize(960.0f, 224.0f, 0.0f);"
+    "result_list_->SetPos(0.0f, 64.0f, 0.0f);"
+    "result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));")
+    string(FIND "${overlay}" "${forbidden_geometry}" found)
     if(NOT found EQUAL -1)
         message(FATAL_ERROR
-            "The compact viewport must be 32-pixel aligned and camera-clipped exactly at the IME boundary: ${forbidden_height}")
+            "The compact IME viewport must not replace the full result composition: ${forbidden_geometry}")
     endif()
 endforeach()

@@ -5,9 +5,9 @@ endif()
 file(READ "${PLUGIN_MAIN}" plugin_main)
 file(READ "${SEARCH_OVERLAY}" search_overlay)
 
-string(FIND "${plugin_main}" "init_param.draw_priority = 6;" plugin_priority_index)
+string(FIND "${plugin_main}" "init_param.draw_priority = 36;" plugin_priority_index)
 if(plugin_priority_index EQUAL -1)
-    message(FATAL_ERROR "The overlay plugin must retain the proven shell draw priority")
+    message(FATAL_ERROR "The overlay plugin view must remain behind the IME and in front of Home")
 endif()
 
 string(REGEX MATCHALL "open_param\\.overwrite_draw_priority = 6" priority_six_pages "${search_overlay}")
@@ -33,7 +33,7 @@ endif()
 
 string(FIND "${search_overlay}" "SetResultsEditingLayout();" editing_layout_index)
 if(editing_layout_index EQUAL -1)
-    message(FATAL_ERROR "IME editing must switch to the compact non-overlapping result layout")
+    message(FATAL_ERROR "IME editing must establish the full behind-IME result composition")
 endif()
 
 string(FIND "${search_overlay}" "ComputeImeFrameAction(" transition_policy_index)

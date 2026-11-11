@@ -27,16 +27,17 @@ The Vita logical display is `960 × 544`. The upper 32 px are reserved for the e
 
 ### Results mode with IME
 
-PAF sorts pages by the owning plugin/view priority and then by page priority. Vita 146 runtime evidence measured Search at `6`, the IME at `35`, and Home at `50`, with lower numbers rendered in front. Search therefore moves to page priority `36` while editing: immediately behind the IME so key-preview popovers remain visible, but still in front of Home. The page remains logically full-screen, while its ListView camera is clipped exactly to the region above the keyboard:
+PAF sorts by the owning plugin/view priority before page priority. Vita 146 runtime evidence measured the system IME view at `35` and Home at `50`, with lower numbers rendered in front. Changing only the Search page priority does not move the ListView camera across plugin-view boundaries. The complete Search plugin therefore loads at view priority `36`: immediately behind the IME, but still in front of Home.
 
 - The same full-width header is aligned immediately below the information bar.
-- A `960 × 208` opaque results surface begins below the header.
-- The ListView keeps a 32-pixel-aligned internal size of `960 × 224` at y=`64`. When Search enters the editing layout, `SyncViewSize()` is followed by one camera view box assignment of `[-480, 112, 480, -96]`, exposing exactly `960 × 208` and ending at logical screen row `304`, the measured keyboard boundary.
-- The frame update never reapplies the compact view box. PAF uses the same camera state for touch tracking and kinetic motion, so an unconditional per-frame assignment pins the list to its initial camera and suppresses IME-open scrolling.
-- Progressive results remain visible in the available area above the keyboard.
+- The opaque `960 × 512` result surface and `960 × 448` ListView remain unchanged while editing. Search does not switch to a compact viewport.
+- The result page opens without a page fade and establishes the complete full-list composition before `BeginEdit`, so there is no half-height intermediate frame while the IME starts.
+- The IME view covers the lower part of the full list. Its key rows, suggestion strip, and held-key previews render above every Search draw path, including the ListView camera and recycled row children.
+- Editing changes focus and control visibility only. It does not resize, reposition, or replace the ListView camera box, and the frame update never resets camera state during touch or kinetic motion.
+- Progressive results remain visible above the keyboard while lower rows continue naturally beneath the IME.
 - No `920` px inset surface is used; there are no blue side margins.
-- Rows, focus glows, recycled cells, and kinetic overscroll are clipped by the ListView camera at the keyboard boundary; they never rely on a sibling mask plane or an ordinary parent Widget clip.
-- When editing ends, the ListView expands to the full `960 × 448` viewport without changing its model or query.
+- No sibling mask, separate mask page, ordinary Widget clip, or non-aligned camera box is used to imitate IME occlusion.
+- When editing ends, the IME disappears over the already-full list without a geometry transition or model rebuild.
 
 ### Information bar and notification corner
 
@@ -133,7 +134,7 @@ The overlay:
 
 - switches between `Recent` and ranked-search models based on normalized TextBox content;
 - records recency immediately before calling `OpenTitleLiveArea`, independent of that call's result;
-- changes between IME and full-list geometry without rebuilding unrelated shell state;
+- retains one full-list geometry while changing only IME, focus, and control state;
 - owns notification-corner occlusion/restoration for exactly the page lifetime;
 - preserves the deferred safe close state machine.
 
@@ -143,7 +144,7 @@ The overlay:
 - Recent save failure: retain the in-memory MRU for the current session, log the error, and still attempt to open the selected title.
 - No valid recent apps: show `No recent apps`.
 - App removed after being recorded: omit it from the displayed list; compact it out on the next successful save.
-- IME composition constraint: restore Search page priority `6` after editing, use priority `36` only while the IME page at `35` is active, and never render rows or plugin chrome below the exact camera boundary.
+- IME composition constraint: load the Search plugin view at priority `36`, keep the full result composition stable, and rely on the system IME view at `35` to own the keyboard region and key-preview draw order.
 - Notification-corner occluder open failure: log the failure and do not fall back to private shell mutation; the information bar and unrelated shell widgets must remain untouched.
 - Page close during active scrolling: use the already verified deferred/quiescent teardown path.
 
@@ -157,7 +158,7 @@ The overlay:
 - Missing, malformed, oversized, duplicate, and embedded-NUL persistence input.
 - Resource contract for a `960 × 512` search-owned area below the information bar.
 - Header width and position, zero gap before the first row, `960 × 448` expanded viewport, and fully opaque untextured backgrounds.
-- Editing layout uses a `960 × 208` full-width backing surface, a 32-pixel-aligned `960 × 224` ListView, and an exact `960 × 208` camera view box established once on layout entry. Contracts require priority `36` during editing, priority `6` afterward, prohibit camera resets from the per-frame IME transition, and prohibit the rejected sibling-mask, separate-mask-page, and private Widget-clip approaches.
+- Editing and display layouts share the same opaque `960 × 512` surface, `960 × 448` ListView, and full camera box. Contracts require plugin view priority `36`, a fade-free full-page open before `BeginEdit`, no compact geometry, no per-frame camera reset, and none of the rejected sibling-mask, separate-mask-page, or private Widget-clip approaches.
 - Existing deferred-close lifecycle contract remains passing.
 
 ### Vita 146 validation
@@ -165,10 +166,10 @@ The overlay:
 Capture native screenshots and interaction evidence for:
 
 1. Opening Search with no history: information bar visible, notification corner absent, `No recent apps`, no blue border.
-2. IME open with an empty query: full-width header and dark area to the keyboard boundary, no hidden header, no side bleed, and no black strip above the keyboard.
+2. Opening Search with an empty query: the first Search frame is a complete opaque full-height list; the IME then covers its lower portion without a half-height or Home-visible intermediate frame.
 3. Hold an IME key whose preview extends upward: the preview renders above every Search row and surface.
-4. Progressive typed results and aggressive kinetic flicks: the first row remains flush below the divider, while rows, glows, recycled cells, and overscroll stop exactly at the keyboard boundary in immediate and settled frames.
-5. Return key: keyboard closes and the full-height list expands correctly.
+4. Progressive typed results and aggressive kinetic flicks: the first row remains flush below the divider, while the IME key rows stay above rows, glows, recycled cells, and overscroll in immediate and settled frames.
+5. Return key: the keyboard closes over the already-full list with no geometry jump.
 6. Select a row whose title-open request succeeds, then reopen Search: the selected title appears first under Recent.
 7. Select a row while forcing or observing a title-open failure, then reopen Search: the selected title still appears first under Recent.
 8. Selecting more than 20 unique titles: only the newest 20 remain.

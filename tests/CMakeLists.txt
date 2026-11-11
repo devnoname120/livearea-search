@@ -122,3 +122,24 @@ add_test(
         -DSEARCH_OVERLAY=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.cpp
         -P ${CMAKE_CURRENT_SOURCE_DIR}/check_ime_viewbox_lifecycle.cmake
 )
+
+add_test(
+    NAME livearea_search_plugin_view_order
+    COMMAND ${CMAKE_COMMAND}
+        -DPLUGIN_MAIN=${CMAKE_SOURCE_DIR}/src/vita/plugin_main.cpp
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/check_plugin_view_order.cmake
+)
+
+add_test(
+    NAME livearea_search_ime_full_layout
+    COMMAND ${CMAKE_COMMAND}
+        -DSEARCH_OVERLAY=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.cpp
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/check_ime_full_layout.cmake
+)
+
+add_test(
+    NAME livearea_search_results_open_transition
+    COMMAND ${CMAKE_COMMAND}
+        -DSEARCH_OVERLAY=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.cpp
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/check_results_open_transition.cmake
+)

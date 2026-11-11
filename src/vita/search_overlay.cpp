@@ -225,8 +225,7 @@ int SearchOverlay::OpenResultsPage() {
     close_defer_frames_ = 0;
 
     paf::Plugin::PageOpenParam open_param;
-    open_param.fade = true;
-    open_param.fade_time_ms = 120.0f;
+    open_param.fade = false;
     results_page_ = plugin_->PageOpen("page_search_results", open_param);
     if (results_page_ == NULL) {
         return -1;
@@ -571,13 +570,13 @@ void SearchOverlay::SetResultsDrawPriority(int priority) {
 void SearchOverlay::SetResultsEditingLayout() {
     results_editing_layout_ = true;
     if (results_backdrop_ != NULL) {
-        results_backdrop_->Hide(paf::common::transition::Type_Reset);
+        results_backdrop_->Show(paf::common::transition::Type_Reset);
     }
     if (results_surface_ != NULL) {
-        results_surface_->Hide(paf::common::transition::Type_Reset);
+        results_surface_->Show(paf::common::transition::Type_Reset);
     }
     if (results_ime_surface_ != NULL) {
-        results_ime_surface_->Show(paf::common::transition::Type_Reset);
+        results_ime_surface_->Hide(paf::common::transition::Type_Reset);
     }
     if (result_count_ != NULL) {
         result_count_->Show(paf::common::transition::Type_Reset);
@@ -586,15 +585,15 @@ void SearchOverlay::SetResultsEditingLayout() {
         close_button_->Hide(paf::common::transition::Type_Reset);
     }
     if (result_list_ != NULL) {
-        result_list_->SetSize(960.0f, 224.0f, 0.0f);
-        result_list_->SetPos(0.0f, 64.0f, 0.0f);
+        result_list_->SetSize(960.0f, 448.0f, 0.0f);
+        result_list_->SetPos(0.0f, -48.0f, 0.0f);
         result_list_->SyncViewSize();
-        result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));
+        result_list_->SetViewBox(paf::math::v4(-480.0f, 224.0f, 480.0f, -224.0f));
         result_list_->DisableEvent(paf::ui::EV_FOCUS);
         result_list_->ReleaseFocus();
     }
     if (empty_text_ != NULL) {
-        empty_text_->SetPos(0.0f, 72.0f, 0.0f);
+        empty_text_->SetPos(0.0f, -48.0f, 0.0f);
     }
     UpdateResultPresentation();
 }

@@ -200,7 +200,7 @@ void UiFrame(void*) {
     init_param.resource_file = kResourcePath;
     init_param.start_func = OnPluginStarted;
     init_param.option = paf::Plugin::Option_None;
-    init_param.draw_priority = 6;
+    init_param.draw_priority = 36;
     livearea_search::StartupLog("paf load sync begin");
     paf::Plugin::LoadSync(init_param);
     livearea_search::StartupLog("paf load sync returned");

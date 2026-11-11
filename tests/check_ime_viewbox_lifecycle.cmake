@@ -23,16 +23,23 @@ if(NOT frame_viewbox EQUAL -1)
         "UpdateImeTransition must not reset the ListView camera every frame")
 endif()
 
-set(compact_viewbox
-    "result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));")
+set(full_viewbox
+    "result_list_->SetViewBox(paf::math::v4(-480.0f, 224.0f, 480.0f, -224.0f));")
 string(REGEX MATCHALL
-    "result_list_->SetViewBox\\(paf::math::v4\\(-480\\.0f, 112\\.0f, 480\\.0f, -96\\.0f\\)\\)"
-    compact_viewbox_calls
+    "result_list_->SetViewBox\\(paf::math::v4\\(-480\\.0f, 224\\.0f, 480\\.0f, -224\\.0f\\)\\)"
+    full_viewbox_calls
     "${source}")
-list(LENGTH compact_viewbox_calls compact_viewbox_call_count)
-if(NOT compact_viewbox_call_count EQUAL 1)
+list(LENGTH full_viewbox_calls full_viewbox_call_count)
+if(NOT full_viewbox_call_count EQUAL 2)
     message(FATAL_ERROR
-        "The compact camera box must be established exactly once by the editing layout")
+        "Editing and display layouts must establish the same full camera box")
+endif()
+
+string(FIND "${source}"
+    "result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));"
+    compact_viewbox)
+if(NOT compact_viewbox EQUAL -1)
+    message(FATAL_ERROR "The compact IME camera box must not remain")
 endif()
 
 string(FIND "${source}"
@@ -48,8 +55,8 @@ endif()
 
 math(EXPR editing_length "${editing_end} - ${editing_start}")
 string(SUBSTRING "${source}" ${editing_start} ${editing_length} editing_body)
-string(FIND "${editing_body}" "${compact_viewbox}" editing_viewbox)
+string(FIND "${editing_body}" "${full_viewbox}" editing_viewbox)
 if(editing_viewbox EQUAL -1)
     message(FATAL_ERROR
-        "SetResultsEditingLayout must establish the exact IME camera box")
+        "SetResultsEditingLayout must retain the full result camera box")
 endif()
