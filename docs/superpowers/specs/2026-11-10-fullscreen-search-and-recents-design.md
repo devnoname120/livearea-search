@@ -31,8 +31,8 @@ PAF sorts pages by the owning plugin/view priority and then by page priority. Vi
 
 - The same full-width header is aligned immediately below the information bar.
 - A `960 × 208` opaque results surface begins below the header.
-- The ListView keeps a 32-pixel-aligned internal size of `960 × 224` at y=`64`. After `SyncViewSize()`, Search sets its camera view box to `[-480, 112, 480, -96]`, exposing exactly `960 × 208` and ending at logical screen row `304`, the measured keyboard boundary.
-- The exact view box is reasserted after progressive result updates because ListView model changes can rebuild or resynchronize its internal camera.
+- The ListView keeps a 32-pixel-aligned internal size of `960 × 224` at y=`64`. When Search enters the editing layout, `SyncViewSize()` is followed by one camera view box assignment of `[-480, 112, 480, -96]`, exposing exactly `960 × 208` and ending at logical screen row `304`, the measured keyboard boundary.
+- The frame update never reapplies the compact view box. PAF uses the same camera state for touch tracking and kinetic motion, so an unconditional per-frame assignment pins the list to its initial camera and suppresses IME-open scrolling.
 - Progressive results remain visible in the available area above the keyboard.
 - No `920` px inset surface is used; there are no blue side margins.
 - Rows, focus glows, recycled cells, and kinetic overscroll are clipped by the ListView camera at the keyboard boundary; they never rely on a sibling mask plane or an ordinary parent Widget clip.
@@ -157,7 +157,7 @@ The overlay:
 - Missing, malformed, oversized, duplicate, and embedded-NUL persistence input.
 - Resource contract for a `960 × 512` search-owned area below the information bar.
 - Header width and position, zero gap before the first row, `960 × 448` expanded viewport, and fully opaque untextured backgrounds.
-- Editing layout uses a `960 × 208` full-width backing surface, a 32-pixel-aligned `960 × 224` ListView, and an exact `960 × 208` camera view box. Contracts require priority `36` during editing, priority `6` afterward, view-box reassertion after progressive updates, and prohibit the rejected sibling-mask, separate-mask-page, and private Widget-clip approaches.
+- Editing layout uses a `960 × 208` full-width backing surface, a 32-pixel-aligned `960 × 224` ListView, and an exact `960 × 208` camera view box established once on layout entry. Contracts require priority `36` during editing, priority `6` afterward, prohibit camera resets from the per-frame IME transition, and prohibit the rejected sibling-mask, separate-mask-page, and private Widget-clip approaches.
 - Existing deferred-close lifecycle contract remains passing.
 
 ### Vita 146 validation

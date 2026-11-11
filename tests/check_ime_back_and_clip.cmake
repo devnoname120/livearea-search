@@ -52,9 +52,9 @@ string(REGEX MATCHALL
     compact_viewbox_calls
     "${source}")
 list(LENGTH compact_viewbox_calls compact_viewbox_call_count)
-if(compact_viewbox_call_count LESS 2)
+if(NOT compact_viewbox_call_count EQUAL 1)
     message(FATAL_ERROR
-        "The exact IME view box must be set during layout and reasserted after progressive list updates")
+        "The exact IME view box must be established once without resetting kinetic scrolling")
 endif()
 
 foreach(forbidden_geometry IN ITEMS

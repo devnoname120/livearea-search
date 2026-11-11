@@ -525,9 +525,6 @@ void SearchOverlay::UpdateImeTransition() {
     }
 
     RefreshSearchFromText(false);
-    if (results_editing_layout_ && result_list_ != NULL) {
-        result_list_->SetViewBox(paf::math::v4(-480.0f, 112.0f, 480.0f, -96.0f));
-    }
     const bool is_editing = search_box_->IsEditing();
     const bool shell_ready = IsBubbleHomeVisible();
     const ImeFrameAction action = ComputeImeFrameAction(
