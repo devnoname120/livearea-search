@@ -33,11 +33,11 @@
                 <layout_hint align="0,2" anchor="0,2" size="960,64" pos="0,-32" />
 
                 <text_box style="style_search_box" id="text_box_search" auto_scroll="1" ime_type="0" edit_mode="1" paste_mode="1" edit_auto_transition_mode="0">
-                    <layout_hint align="1,1" anchor="1,1" size="770,58" pos="18,0" />
+                    <layout_hint align="1,1" anchor="1,1" size="750,58" pos="18,0" />
                 </text_box>
 
                 <text style="style_results_count" id="text_results_count">
-                    <layout_hint align="2,1" anchor="2,1" size="150,64" pos="-18,0" />
+                    <layout_hint align="2,1" anchor="2,1" size="150,64" pos="-80,0" />
                 </text>
 
                 <plane style="_common_default_style_plane" texture="_common_texture_ruled_line" id="plane_header_rule">
@@ -91,8 +91,8 @@
             <planeobj id="notification_header_occluder_obj" />
         </style_plane>
         <style_corner_button sound="_common_sound_corner_button_menu" key_focus="0" corner_obj="home_search_corner_obj" glow_obj="home_search_glow_obj" color="1,1,1,1" highlight_obj="home_search_highlight_obj" focus_in_group="0" direct_key="0" bg_obj="home_search_bg_obj" layout_type="3" id="style_home_search_corner">
-            <planeobj color="0.16,0.15,0.22,0.8" texture0="_common_texture_corner_button_base" id="home_search_bg_obj" />
-            <planeobj size="64,64,0" texture0="texture_home_search" id="home_search_corner_obj" pos="13,-11,0" />
+            <planeobj color="0.21,0.43,0.73,0.9" texture0="_common_texture_corner_button_base" id="home_search_bg_obj" />
+            <planeobj size="48,48,0" texture0="texture_home_search" id="home_search_corner_obj" pos="14,-17,0" />
             <planeobj texture0="_common_texture_corner_button_highlight" id="home_search_highlight_obj" />
             <planeobj texture0="_common_texture_corner_button_glow" blend="2" id="home_search_glow_obj" />
         </style_corner_button>

@@ -1,0 +1,726 @@
+{
+  "schema": 1,
+  "checks": [
+    {
+      "id": "lsdb-export-contract",
+      "source": "include/livearea_search/lsdb_abi.h",
+      "source_needles": [
+        "kModuleName[] = \"SceLsdb\";",
+        "kLibraryNid = 0x6BC25E17U;",
+        "kAppDatabaseInitNid = 0xD322A870U;",
+        "kAppDatabaseEndNid = 0x56D8DCF0U;",
+        "kGetAllAppInfoNid = 0xA6CEEAB3U;",
+        "kGetTitleIdNid = 0x1F569CFCU;",
+        "kGetTitleNid = 0x4141EBCDU;",
+        "kGetShortTitleNid = 0x3B064DF5U;",
+        "kGetNameNid = 0xD02A8B85U;",
+        "kGetCategoryNid = 0x6469796FU;",
+        "kGetBootableNid = 0x46BF2766U;",
+        "kGetFilteredTitleIdsNid = 0xDD7D68C0U;"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/compatibility_manifest.json",
+          "needles": [
+            "\"expected_name\": \"SceLsdb\"",
+            "\"nid\": \"0x6BC25E17\"",
+            "\"0xD322A870\"",
+            "\"0x56D8DCF0\"",
+            "\"0xA6CEEAB3\"",
+            "\"0x1F569CFC\"",
+            "\"0x4141EBCD\"",
+            "\"0x3B064DF5\"",
+            "\"0xD02A8B85\"",
+            "\"0x6469796F\"",
+            "\"0x46BF2766\"",
+            "\"0xDD7D68C0\""
+          ]
+        },
+        {
+          "path": "docs/firmware/compatibility-report.json",
+          "needles": [
+            "\"module_key\": \"lsdb\"",
+            "\"failed\": 0"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lsdb-abi-layout",
+      "source": "include/livearea_search/lsdb_abi.h",
+      "source_needles": [
+        "sizeof(AppDatabase) == 0x4",
+        "sizeof(AppInfo) == 0x8",
+        "sizeof(String) == 0xC",
+        "sizeof(StringArray) == 0xC",
+        "sizeof(ValueArray) == 0xC",
+        "sizeof(AppInfoFilter) == 0x24"
+      ],
+      "evidence": [
+        {
+          "path": "tests/check_lsdb_home_bubble.cmake",
+          "needles": [
+            "sizeof(String) == 0xC",
+            "sizeof(StringArray) == 0xC",
+            "sizeof(AppInfoFilter) == 0x24"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "paf-page-order-exports",
+      "source": "src/vita/paf_page_order.h",
+      "source_needles": [
+        "_ZN3paf6Plugin19SetDrawOrder_RemoveEPNS_2ui5SceneE",
+        "_ZN3paf6Plugin19AdjustPageDrawOrderEPNS_2ui5SceneERKNS_7IDParamEi"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/compatibility_manifest.json",
+          "needles": [
+            "\"name\": \"ScePafToplevel\"",
+            "\"nid\": \"0x4D9A9DD0\"",
+            "\"0xE80B3F65\"",
+            "\"0x9C7F70FD\""
+          ]
+        },
+        {
+          "path": "docs/firmware/release-binary-audit.json",
+          "needles": [
+            "\"0xE80B3F65\"",
+            "\"0x9C7F70FD\"",
+            "\"passed\": true"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "paf-ime-exports-and-layout",
+      "source": "src/vita/paf_text_box_ime.h",
+      "source_needles": [
+        "sizeof(paf::ui::ImeParam) == 24",
+        "_ZN3paf2ui7TextBox11GetImeParamERNS1_8ImeParamE",
+        "_ZN3paf2ui7TextBox11SetImeParamERKNS1_8ImeParamE"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/compatibility_manifest.json",
+          "needles": [
+            "\"name\": \"ScePafWidget\"",
+            "\"nid\": \"0x073F8C68\"",
+            "\"0xFFC580E3\"",
+            "\"0xD2BF4CC7\""
+          ]
+        },
+        {
+          "path": "docs/firmware/release-binary-audit.json",
+          "needles": [
+            "\"0xFFC580E3\"",
+            "\"0xD2BF4CC7\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "paf-pad-export-and-layout",
+      "source": "src/vita/paf_pad_device_handler.h",
+      "source_needles": [
+        "sizeof(paf::inputdevice::pad::Data) == 20",
+        "offsetof(paf::inputdevice::pad::Data, paddata) == 8",
+        "_ZN3paf11inputdevice3pad16SetDeviceHandlerEPFvPNS1_4DataEE"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/compatibility_manifest.json",
+          "needles": [
+            "\"name\": \"ScePafMisc\"",
+            "\"nid\": \"0x3D643CE8\"",
+            "\"0x7F98B644\""
+          ]
+        },
+        {
+          "path": "docs/firmware/release-binary-audit.json",
+          "needles": [
+            "\"0x7F98B644\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "topmenu-resource-hashes",
+      "source": "include/livearea_search/overlay_visibility.h",
+      "source_needles": [
+        "kTopMenuHomePageHash = 0x5E9535B3U;",
+        "kTopMenuHomeScrollHash = 0x9CC405A3U;"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/resource_compatibility_manifest.json",
+          "needles": [
+            "\"home_page\": \"0x5E9535B3\"",
+            "\"home_scroll\": \"0x9CC405A3\""
+          ]
+        },
+        {
+          "path": "docs/firmware/resource-compatibility-report.json",
+          "needles": [
+            "\"resources\": 84",
+            "\"failed\": 0"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "indicator-notification-corner-resource-hashes",
+      "source": "include/livearea_search/overlay_visibility.h",
+      "source_needles": [
+        "kIndicatorPageHash = 0xFFD7E3F0U;",
+        "kIndicatorNotificationCornerHash = 0x8BF9D3C5U;"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/resource_compatibility_manifest.json",
+          "needles": [
+            "\"indicator_page\": \"0xFFD7E3F0\"",
+            "\"notification_corner\": \"0x8BF9D3C5\""
+          ]
+        },
+        {
+          "path": "docs/firmware/resource-compatibility-report.json",
+          "needles": [
+            "\"resources\": 84",
+            "\"failed\": 0"
+          ]
+        },
+        {
+          "path": "docs/firmware/paf-touchscreen-device-handler.md",
+          "needles": [
+            "0xFFD7E3F0",
+            "0x8BF9D3C5",
+            "all 42 audited indicator resources"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "system-overlay-identifiers",
+      "source": "src/vita/search_overlay.cpp",
+      "source_needles": [
+        "paf::Plugin::Find(\"topmenu_plugin\")",
+        "paf::Plugin::Find(\"indicator_plugin\")",
+        "paf::IDParam(\"page_event_notification\")",
+        "paf::Plugin::Find(\"livearea_plugin\")"
+      ],
+      "source_forbidden_needles": [
+        "paf::Plugin::Find(\"impose_plugin\")",
+        "paf::Plugin::Find(\"impose_net_plugin\")"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/compatibility_manifest.json",
+          "needles": [
+            "\"topmenu_plugin\"",
+            "\"impose_plugin\"",
+            "\"impose_net_plugin\"",
+            "\"indicator_plugin\"",
+            "\"page_event_notification\"",
+            "\"livearea_plugin\""
+          ]
+        },
+        {
+          "path": "docs/firmware/compatibility-report.json",
+          "needles": [
+            "\"module_key\": \"shell\"",
+            "\"failed\": 0"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "appmgr-shell-state-interface",
+      "source": "src/vita/plugin_main.cpp",
+      "source_needles": [
+        "#include <livearea_search/appmgr_state.h>",
+        "sizeof(AppStatus) == 0x80",
+        "sizeof(SceAppMgrAppState) == sizeof(livearea_search::AppMgrAppStateLayout)",
+        "kAppMgrErrorNotFound = static_cast<int>(0x80802012U)",
+        "_sceAppMgrGetAppState(&state, sizeof(state), 0x03600011)",
+        "_sceAppMgrGetStatusByAppId(",
+        "static_cast<int>(0xFFFFFFFDU)",
+        "state_layout.is_system_ui_overlaid != 0U",
+        "ShouldAllowShellOverlay("
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/compatibility_manifest.json",
+          "needles": [
+            "\"expected_name\": \"SceAppMgr\"",
+            "\"0x210C0046\"",
+            "\"0xBF4213A3\"",
+            "\"expected_name\": \"SceDriverUser\"",
+            "\"0x5E86319A\""
+          ]
+        },
+        {
+          "path": "docs/firmware/release-binary-audit.json",
+          "needles": [
+            "\"0x5E86319A\"",
+            "\"0xBF4213A3\""
+          ]
+        },
+        {
+          "path": "include/livearea_search/appmgr_state.h",
+          "needles": [
+            "struct AppMgrAppStateLayout",
+            "is_system_ui_overlaid",
+            "offsetof(AppMgrAppStateLayout, is_system_ui_overlaid) == 0x08",
+            "ShouldAllowShellOverlay("
+          ]
+        },
+        {
+          "path": "docs/firmware/appmgr-system-ui-overlay-state.md",
+          "needles": [
+            "0x210C0046",
+            "0x024F2EE0",
+            "0x810477A4",
+            "0x81032EC8",
+            "offset `0x08`",
+            "0x80 bytes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shell-ps-button-ownership",
+      "source": "src/vita/search_overlay.cpp",
+      "source_needles": [
+        "kShellSvcModuleName = \"SceShellSvc\"",
+        "kShellUtilLibraryNid = 0xD2B1C8AEU",
+        "kShellUtilInitEventsNid = 0xE8AD11ECU",
+        "kShellUtilLockNid = 0xA9537233U",
+        "kShellUtilUnlockNid = 0x21A6CF54U",
+        "taiGetModuleExportFunc(",
+        "shell_util_init_events_(0)",
+        "shell_util_lock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2)",
+        "shell_util_unlock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2)",
+        "ComputeHomePadCloseAction(",
+        "ReleaseHomePadLock();\n    RequestCloseResultsPage();"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/compatibility_manifest.json",
+          "needles": [
+            "\"expected_name\": \"SceShellSvc\"",
+            "\"name\": \"SceShellUtil\"",
+            "\"nid\": \"0xD2B1C8AE\"",
+            "\"0xE8AD11EC\"",
+            "\"0xA9537233\"",
+            "\"0x21A6CF54\""
+          ]
+        },
+        {
+          "path": "docs/firmware/compatibility-report.json",
+          "needles": [
+            "\"module_key\": \"shellsvc\"",
+            "\"failed\": 0"
+          ]
+        },
+        {
+          "path": "docs/firmware/shell-ps-button-ownership.md",
+          "needles": [
+            "0xD2B1C8AE",
+            "0xE8AD11EC",
+            "0xA9537233",
+            "0x21A6CF54",
+            "SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2",
+            "without the stop symbol",
+            "unlock before Search teardown",
+            "45 audited SceShellSvc images"
+          ]
+        },
+        {
+          "path": "tests/test_home_pad_filter.cpp",
+          "needles": [
+            "HomePadCloseAction::WaitForRelease",
+            "HomePadCloseAction::ReleaseLockAndClose",
+            "button-up must unlock SceShell before Search exposes Home"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "appmgr-livearea-launch-interface",
+      "source": "src/vita/launcher.cpp",
+      "source_needles": [
+        "sceAppMgrLaunchAppByUri(0x20000, uri.c_str())"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/compatibility_manifest.json",
+          "needles": [
+            "\"name\": \"SceAppMgrUser\"",
+            "\"0x003C634F\""
+          ]
+        },
+        {
+          "path": "docs/firmware/release-binary-audit.json",
+          "needles": [
+            "\"0x003C634F\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "paf-touchscreen-handler-abi",
+      "source": "src/vita/paf_touchscreen_device_handler.h",
+      "source_needles": [
+        "struct DataRecord",
+        "DataRecord records[8];",
+        "offsetof(DataRecord, x) == 0x08",
+        "offsetof(DataRecord, y) == 0x0C",
+        "offsetof(DataRecord, state) == 0x14",
+        "sizeof(DataList) == 0x100",
+        "_ZN3paf11inputdevice11touchscreen16SetDeviceHandlerEjPFvPNS1_8DataListEE"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/compatibility_manifest.json",
+          "needles": [
+            "\"name\": \"ScePafMisc\"",
+            "\"0xCBAF777C\""
+          ]
+        },
+        {
+          "path": "docs/firmware/compatibility-report.json",
+          "needles": [
+            "\"module_key\": \"paf\"",
+            "\"failed\": 0"
+          ]
+        },
+        {
+          "path": "docs/firmware/paf-touchscreen-device-handler.md",
+          "needles": [
+            "0xCBAF777C",
+            "0x83246B60",
+            "0x810447DC",
+            "0x81045CD0",
+            "`8 * 0x20 = 0x100`",
+            "same pointer, unchanged",
+            "Release binaries import both required PAF functions"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "indicator-popup-return-classification",
+      "source": "src/core/overlay_visibility.cpp",
+      "source_needles": [
+        "IndicatorPopupVisibility ClassifyIndicatorPopupVisibility(",
+        "opened_page_count != 0U",
+        "query_result >= 0 || query_result == -1"
+      ],
+      "evidence": [
+        {
+          "path": "tests/test_notification_panel_gate.cpp",
+          "needles": [
+            "ClassifyIndicatorPopupVisibility(true, -1, 1)",
+            "ClassifyIndicatorPopupVisibility(true, -1, 0)",
+            "ClassifyIndicatorPopupVisibility(true, -2, 0)"
+          ]
+        },
+        {
+          "path": "docs/firmware/paf-touchscreen-device-handler.md",
+          "needles": [
+            "0x8325F8B0",
+            "0x8105DFC8",
+            "0x8105F510",
+            "return is not an output-validity flag",
+            "firmware-proven `-1` sentinel"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "notification-panel-preemption",
+      "source": "src/vita/search_overlay.cpp",
+      "source_needles": [
+        "const int result = indicator->GetOpenedPages(&page_ids);",
+        "ClassifyIndicatorPopupVisibility(",
+        "static_root->FindChild(kIndicatorNotificationCornerHash)",
+        "ClassifyIndicatorPopupOwnership(",
+        "AdvanceNotificationPanelSuppression(",
+        "ObserveNotificationCornerPress(",
+        "overlay->SetHomeVisible(false);",
+        "previous_touchscreen_handler_(data);"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/compatibility_manifest.json",
+          "needles": [
+            "\"name\": \"ScePafToplevel\"",
+            "\"0x3E9B4F77\"",
+            "\"name\": \"ScePafMisc\"",
+            "\"0xCBAF777C\""
+          ]
+        },
+        {
+          "path": "docs/firmware/compatibility-report.json",
+          "needles": [
+            "\"images\": 213",
+            "\"failed\": 0"
+          ]
+        },
+        {
+          "path": "docs/firmware/paf-touchscreen-device-handler.md",
+          "needles": [
+            "ScePafMisc_C0B69287",
+            "MainThreadCallList",
+            "page_popup_list_view0",
+            "monotonic opening",
+            "500 ms",
+            "bounded recovery"
+          ]
+        },
+        {
+          "path": "tests/check_touchscreen_diagnostic_probe.cmake",
+          "needles": [
+            "The firmware-proven touchscreen adapter must be available in the release profile",
+            "Home Search must be hidden before Sony's touchscreen handler receives the notification press"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shell-loading-scene-contract",
+      "source": "include/livearea_search/module_readiness.h",
+      "source_needles": [
+        "kShellLoadingSceneEntry = 25;",
+        "kShellLoadingSceneMissingError = -2135998193;"
+      ],
+      "evidence": [
+        {
+          "path": "tests/check_shell_loading_scene.cmake",
+          "needles": [
+            "GetSceneNum(livearea_search::kShellLoadingSceneEntry)",
+            "kShellLoadingSceneMissingError"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "paf-draw-order-contract",
+      "source": "src/vita/search_overlay.cpp",
+      "source_needles": [
+        "kResultsDisplayDrawPriority = 6;",
+        "kResultsEditingDrawPriority = 36;",
+        "open_param.overwrite_draw_priority = 6;"
+      ],
+      "evidence": [
+        {
+          "path": "tests/check_ime_page_order.cmake",
+          "needles": [
+            "kResultsEditingDrawPriority = 36;",
+            "open_param.overwrite_draw_priority = 36;"
+          ]
+        },
+        {
+          "path": "tests/check_paf_composition.cmake",
+          "needles": [
+            "init_param.draw_priority = 36;",
+            "priority_six_pages"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "results-layout-contract",
+      "source": "resources/livearea_search_plugin.xml",
+      "source_needles": [
+        "size=\"960,512\" pos=\"0,-16\"",
+        "size=\"960,64\" pos=\"0,-32\"",
+        "size=\"960,448\" pos=\"0,-48\"",
+        "size=\"960,70\""
+      ],
+      "evidence": [
+        {
+          "path": "tests/check_fullscreen_results.cmake",
+          "needles": [
+            "960,512",
+            "960,448",
+            "SetCellSizeDefault(0, paf::math::v4(960.0f, 70.0f))"
+          ]
+        },
+        {
+          "path": "tests/check_ime_full_layout.cmake",
+          "needles": [
+            "960.0f, 448.0f"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "release-binary-cleanliness",
+      "source": "CMakeLists.txt",
+      "source_needles": [
+        "LIVEAREA_SEARCH_DIAGNOSTICS",
+        "LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE",
+        "Vita diagnostics require the experimental self-disable fail-safe"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/release_binary_contract.json",
+          "needles": [
+            "\"release\"",
+            "\"experimental\"",
+            "\"0xFA26BC62\"",
+            "\"ur0:tai/config.txt\"",
+            "\"ur0:data/livearea-search/startup.log\""
+          ]
+        },
+        {
+          "path": "docs/firmware/release-binary-audit.json",
+          "needles": [
+            "\"profile\": \"release\"",
+            "\"passed\": true"
+          ]
+        },
+        {
+          "path": "docs/firmware/experimental-binary-audit.json",
+          "needles": [
+            "\"profile\": \"experimental\"",
+            "\"passed\": true"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rejected-lsdb-icon-info-abi",
+      "source": "include/livearea_search/lsdb_abi.h",
+      "source_needles": [
+        "kGetFilteredTitleIdsNid = 0xDD7D68C0U;",
+        "using GetFilteredTitleIds = int (*)"
+      ],
+      "source_forbidden_needles": [
+        "0xDE0DA538",
+        "GetIconInfoByTitleId",
+        "IconInfoRef",
+        "SceLsdbIconInfo"
+      ],
+      "evidence": [
+        {
+          "path": "docs/firmware/rejected-lsdb-icon-info-root-cause.md",
+          "needles": [
+            "SUPRX SHA-256: `6ec4b939a2a710a3725e3d50baad65d28cae46bd294b7e148375098277974727`",
+            "`sceLsdbGetIconInfoByTitleId` NID: `0xDE0DA538`",
+            "The rejected caller passed `iconInfoRef.object == NULL`",
+            "`sub_811850E4`",
+            "It is not a factory"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rejected-lsdb-icon-info-caller",
+      "source": "src/vita/lsdb_index_source.cpp",
+      "source_needles": [
+        "api_.get_all_app_info(&database, OnAppInfo, &context);",
+        "QueryHomeBubbleTitleIds(",
+        "ReleaseStringArray(output);"
+      ],
+      "source_forbidden_needles": [
+        "0xDE0DA538",
+        "GetIconInfoByTitleId",
+        "get_icon_info_by_title_id",
+        "IconInfoRef",
+        "SceLsdbIconInfo"
+      ],
+      "evidence": [
+        {
+          "path": "docs/firmware/rejected-lsdb-icon-info-root-cause.md",
+          "needles": [
+            "The failure occurs earlier because no reference was constructed by the callee.",
+            "The nested call therefore does not establish a simple self-deadlock.",
+            "The rejected `0xDE0DA538` design must not return."
+          ]
+        },
+        {
+          "path": "tests/check_lsdb_home_bubble.cmake",
+          "needles": [
+            "GetIconInfoByTitleId",
+            "Home-bubble query must be a post-enumeration operation, never a callback query"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "filtered-title-output-ownership",
+      "source": "src/vita/lsdb_index_source.cpp",
+      "source_needles": [
+        "void ReleaseStringArray(lsdb::StringArray& strings)",
+        "strings.data[index].data != NULL && strings.data[index].length != 0U",
+        "sce_paf_free(strings.data[index].data);",
+        "sce_paf_free(strings.data);",
+        "strings.data = NULL;",
+        "strings.count = 0U;",
+        "strings.capacity = 0U;"
+      ],
+      "source_forbidden_needles": [
+        "sce_paf_private_free"
+      ],
+      "evidence": [
+        {
+          "path": "docs/firmware/filtered-title-array-ownership.md",
+          "needles": [
+            "Contract ID: `filtered-title-array-ownership-v1`",
+            "`fun_QueryFilteredTitleIds` at `0x81189FC6`",
+            "NID `0x1B77082E`",
+            "`sce_paf_private_malloc` NID `0xFC5CD359`",
+            "public `sce_paf_free`",
+            "empty-string sentinel"
+          ]
+        },
+        {
+          "path": "tests/check_lsdb_output_ownership.cmake",
+          "needles": [
+            "Filtered-title output ownership invariant is missing",
+            "Rejected icon-query ownership pattern returned"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "filtered-title-query-semantics",
+      "source": "include/livearea_search/lsdb_abi.h",
+      "source_needles": [
+        "kGetFilteredTitleIdsNid = 0xDD7D68C0U;",
+        "kCategoryKey = 0x21CA76B1U;",
+        "kFilterOperatorEqual = 0;",
+        "kIconRowFilterFlags = 0U;"
+      ],
+      "source_forbidden_needles": [
+        "0x10C1A2E0",
+        "0xDE0DA538"
+      ],
+      "evidence": [
+        {
+          "path": "docs/firmware/filtered-title-query-semantics.md",
+          "needles": [
+            "Contract ID: `filtered-title-query-semantics-v1`",
+            "`sceLsdbGetCategory`",
+            "`fun_BuildIconFilteredTitleQuery` at `0x8118924A`",
+            "`i.type = 0`",
+            "`sub_832CD9C8` at `0x832CD9C8`",
+            "`NpCommIdSearchJob::Run`"
+          ]
+        },
+        {
+          "path": "tests/check_lsdb_query_semantics.cmake",
+          "needles": [
+            "Filtered-title query ABI invariant is missing",
+            "Unrelated/rejected LSDB query key returned"
+          ]
+        }
+      ]
+    }
+  ]
+}

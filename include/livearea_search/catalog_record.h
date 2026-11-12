@@ -13,6 +13,7 @@ struct CatalogMetadataView {
     const char* app_name;
     const char* category;
     const char* icon_path;
+    bool has_home_bubble;
     std::int64_t bootable;
 };
 

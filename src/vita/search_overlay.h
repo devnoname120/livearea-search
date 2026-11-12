@@ -5,11 +5,13 @@
 #include "paf_compat.h"
 
 #include <livearea_search/app_index.h>
+#include <livearea_search/overlay_visibility.h>
 #include <livearea_search/recent_apps.h>
 
 #include "icon_cache.h"
 #include "notification_corner.h"
 #include "paf_pad_device_handler.h"
+#include "paf_touchscreen_device_handler.h"
 #include "recent_apps_file.h"
 
 namespace livearea_search {
@@ -66,11 +68,6 @@ private:
         paf::ui::Handler* handler,
         paf::ui::Event* event,
         void* user_data);
-    static void OnResultsKeyPress(
-        int id,
-        paf::ui::Handler* handler,
-        paf::ui::Event* event,
-        void* user_data);
     static void OnResultDecide(
         int id,
         paf::ui::Handler* handler,
@@ -82,6 +79,8 @@ private:
         paf::ui::Event* event,
         void* user_data);
     static void HomePadDeviceHandler(paf::inputdevice::pad::Data* data);
+    static void TouchscreenDeviceHandler(
+        paf_touchscreen_device_handler::DataList* data);
     static void VisibilityTick(void* user_data);
 
     int OpenHomePage();
@@ -92,7 +91,7 @@ private:
     void HandleHome();
     bool AcquireHomePadLock();
     void ReleaseHomePadLock();
-    void UpdateHomePadLock();
+    void UpdateHomePadClose();
     void RequestCloseResultsPage();
     void ProcessCloseRequest();
     void CloseResultsPage();
@@ -105,8 +104,9 @@ private:
     void SetResultsEditingLayout();
     void SetResultsDisplayLayout();
     void UpdateVisibility();
+    void SetHomeVisible(bool visible);
     void UpdateResultCount();
-    bool IsBubbleHomeVisible() const;
+    bool IsBubbleHomeVisible();
     int Launch(const String& title_id);
 
     const SearchResult* ResultAt(std::size_t index) const;
@@ -136,6 +136,8 @@ private:
     IconCache* icon_cache_;
     bool visibility_registered_;
     bool home_visible_;
+    NotificationPanelSuppression notification_panel_suppression_;
+    std::uint64_t notification_panel_opening_deadline_us_;
     bool ime_transition_active_;
     bool ime_editing_seen_;
     bool results_pending_display_;
@@ -156,6 +158,7 @@ private:
 
     static SearchOverlay* home_pad_overlay_;
     static paf_pad_device_handler::DeviceHandler previous_home_pad_handler_;
+    static paf_touchscreen_device_handler::DeviceHandler previous_touchscreen_handler_;
 };
 
 } // namespace livearea_search

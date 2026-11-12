@@ -7,6 +7,10 @@ PAF_ROOT=${LIVEAREA_SEARCH_PAF_ROOT:-"$ROOT/../VitaXMB/build/livearea-deps/vitas
 PSP2CXML=${PSP2CXML:-"$ROOT/../VitaXMB/build/livearea-deps/psp2cxml-tool/build-linux/psp2cxml-tool"}
 BUILD_DIR=${LIVEAREA_SEARCH_BUILD_DIR:-build-vita}
 JOBS=${LIVEAREA_SEARCH_JOBS:-4}
+DIAGNOSTICS=${LIVEAREA_SEARCH_DIAGNOSTICS:-OFF}
+EXPERIMENTAL_SELF_DISABLE=${LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE:-OFF}
+BINARY_AUDIT="$ROOT/tools/firmware/release_binary_audit.py"
+BINARY_AUDIT_CONTRACT="$ROOT/tools/firmware/release_binary_contract.json"
 
 case "$BUILD_DIR" in
     /*|../*|*/../*|*/..)
@@ -24,6 +28,38 @@ esac
 
 if [ "$JOBS" -eq 0 ]; then
     printf 'LIVEAREA_SEARCH_JOBS must be greater than zero\n' >&2
+    exit 2
+fi
+
+case "$DIAGNOSTICS" in
+    ON|OFF) ;;
+    *)
+        printf 'LIVEAREA_SEARCH_DIAGNOSTICS must be ON or OFF: %s\n' "$DIAGNOSTICS" >&2
+        exit 2
+        ;;
+esac
+
+case "$EXPERIMENTAL_SELF_DISABLE" in
+    ON|OFF) ;;
+    *)
+        printf 'LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE must be ON or OFF: %s\n' "$EXPERIMENTAL_SELF_DISABLE" >&2
+        exit 2
+        ;;
+esac
+
+if [ "$DIAGNOSTICS" != "$EXPERIMENTAL_SELF_DISABLE" ]; then
+    printf 'LIVEAREA_SEARCH_DIAGNOSTICS and LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE must both be ON or both be OFF\n' >&2
+    exit 2
+fi
+
+if [ "$DIAGNOSTICS" = ON ]; then
+    BINARY_AUDIT_PROFILE=experimental
+else
+    BINARY_AUDIT_PROFILE=release
+fi
+
+if [ ! -f "$BINARY_AUDIT" ] || [ ! -f "$BINARY_AUDIT_CONTRACT" ]; then
+    printf 'Binary audit tooling is unavailable\n' >&2
     exit 2
 fi
 
@@ -55,6 +91,9 @@ docker run --rm \
     -v "$PSP2CXML:/deps/psp2cxml-tool:ro" \
     -e LIVEAREA_BUILD_DIR="$BUILD_DIR" \
     -e LIVEAREA_BUILD_JOBS="$JOBS" \
+    -e LIVEAREA_SEARCH_DIAGNOSTICS="$DIAGNOSTICS" \
+    -e LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE="$EXPERIMENTAL_SELF_DISABLE" \
+    -e BINARY_AUDIT_PROFILE="$BINARY_AUDIT_PROFILE" \
     -w /src \
     "$IMAGE" \
     sh -lc '
@@ -64,9 +103,16 @@ docker run --rm \
             -DCMAKE_TOOLCHAIN_FILE=/usr/local/vitasdk/share/vita.toolchain.cmake \
             -DLIVEAREA_SEARCH_BUILD_TESTS=OFF \
             -DLIVEAREA_SEARCH_BUILD_VITA=ON \
+            -DLIVEAREA_SEARCH_DIAGNOSTICS="$LIVEAREA_SEARCH_DIAGNOSTICS" \
+            -DLIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE="$LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE" \
             -DLIVEAREA_SEARCH_PAF_ROOT=/deps/paf \
             -DPSP2CXML=/deps/psp2cxml-tool
         cmake --build "$LIVEAREA_BUILD_DIR" --parallel "$LIVEAREA_BUILD_JOBS"
+        python3 /src/tools/firmware/release_binary_audit.py \
+            --contract /src/tools/firmware/release_binary_contract.json \
+            --profile "$BINARY_AUDIT_PROFILE" \
+            --binary "$LIVEAREA_BUILD_DIR/livearea_search_vita.velf" \
+            --json-out "$LIVEAREA_BUILD_DIR/binary-audit.json"
     '
 
 printf 'SUPRX: %s/%s/dist/livearea_search.suprx\n' "$ROOT" "$BUILD_DIR"

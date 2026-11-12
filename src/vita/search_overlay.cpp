@@ -1,9 +1,13 @@
 #include "search_overlay.h"
 
 #include <psp2/kernel/clib.h>
+#include <psp2/kernel/threadmgr.h>
 #include <taihen.h>
 
 #include <livearea_search/overlay_visibility.h>
+#if LIVEAREA_SEARCH_DIAGNOSTICS
+#include <livearea_search/deferred_log_queue.h>
+#endif
 
 #include "launcher.h"
 #include "paf_memory.h"
@@ -44,10 +48,187 @@ int ResolveShellUtilFunction(std::uint32_t nid, Function& function) {
     return 0;
 }
 
+IndicatorPopupVisibility QueryIndicatorPopupVisibility(paf::Plugin* indicator) {
+    if (indicator == NULL) {
+        return ClassifyIndicatorPopupOwnership(
+            false,
+            false,
+            ClassifyIndicatorPopupVisibility(false, 0, 0U));
+    }
+    paf::vector<paf::string> page_ids;
+    const int result = indicator->GetOpenedPages(&page_ids);
+    const IndicatorPopupVisibility opened_pages =
+        ClassifyIndicatorPopupVisibility(
+        true,
+        result,
+        page_ids.size());
+    paf::ui::Scene* static_root = indicator->PageRoot(kIndicatorPageHash);
+    paf::ui::Widget* notification_corner = static_root == NULL ? NULL :
+        static_root->FindChild(kIndicatorNotificationCornerHash);
+    return ClassifyIndicatorPopupOwnership(
+        static_root != NULL,
+        notification_corner != NULL,
+        opened_pages);
+}
+
+#if LIVEAREA_SEARCH_DIAGNOSTICS
+unsigned int HashPluginPageState(
+    unsigned int hash,
+    const char* page_id,
+    bool root_found,
+    bool visible) {
+    const unsigned char* cursor =
+        reinterpret_cast<const unsigned char*>(page_id == NULL ? "" : page_id);
+    while (*cursor != 0U) {
+        hash ^= *cursor++;
+        hash *= 16777619U;
+    }
+    hash ^= root_found ? 1U : 0U;
+    hash *= 16777619U;
+    hash ^= visible ? 1U : 0U;
+    return hash * 16777619U;
+}
+
+void LogPluginPages(
+    const char* label,
+    paf::Plugin* plugin,
+    unsigned int& last_state) {
+    paf::vector<paf::string> page_ids;
+    const int opened_result =
+        plugin == NULL ? -1 : plugin->GetOpenedPages(&page_ids);
+    unsigned int state = 2166136261U;
+    state ^= static_cast<unsigned int>(opened_result);
+    state *= 16777619U;
+    state ^= static_cast<unsigned int>(page_ids.size());
+    state *= 16777619U;
+    unsigned int resource_count = 0U;
+    if (plugin != NULL && plugin->GetResource() != NULL) {
+        paf::cxml::Element page =
+            plugin->GetResource()->GetTableElement(
+                paf::resource::TableType_Page).GetFirstChild();
+        while (page == true) {
+            std::uint32_t page_id = 0U;
+            paf::cxml::util::GetIDHash(page, "id", &page_id);
+            paf::ui::Scene* root = plugin->PageRoot(page_id);
+            state ^= page_id;
+            state *= 16777619U;
+            state ^= root != NULL ? 1U : 0U;
+            state *= 16777619U;
+            state ^= root != NULL && root->IsVisible() ? 1U : 0U;
+            state *= 16777619U;
+            ++resource_count;
+            page = page.GetNextSibling();
+        }
+    }
+    for (std::size_t index = 0; index < page_ids.size(); ++index) {
+        paf::ui::Scene* root = plugin->PageRoot(paf::IDParam(page_ids[index]));
+        state = HashPluginPageState(
+            state,
+            page_ids[index].c_str(),
+            root != NULL,
+            root != NULL && root->IsVisible());
+    }
+    if (state == last_state) {
+        return;
+    }
+    char line[DeferredLogQueue::kLineCapacity];
+    sceClibSnprintf(
+        line,
+        sizeof(line),
+        "%s pages resource=%u opened=0x%08X/%u",
+        label,
+        resource_count,
+        static_cast<unsigned int>(opened_result),
+        static_cast<unsigned int>(page_ids.size()));
+    QueueInteractionLog(line);
+    if (plugin != NULL && plugin->GetResource() != NULL) {
+        paf::cxml::Element page =
+            plugin->GetResource()->GetTableElement(
+                paf::resource::TableType_Page).GetFirstChild();
+        unsigned int index = 0U;
+        while (page == true) {
+            std::uint32_t page_id = 0U;
+            paf::cxml::util::GetIDHash(page, "id", &page_id);
+            paf::ui::Scene* root = plugin->PageRoot(page_id);
+            if (root != NULL && root->IsVisible()) {
+                sceClibSnprintf(
+                    line,
+                    sizeof(line),
+                    "%s resource[%u]=0x%08X visible=1",
+                    label,
+                    index,
+                    static_cast<unsigned int>(page_id));
+                QueueInteractionLog(line);
+            }
+            ++index;
+            page = page.GetNextSibling();
+        }
+    }
+    for (std::size_t index = 0; index < page_ids.size(); ++index) {
+        paf::ui::Scene* root = plugin->PageRoot(paf::IDParam(page_ids[index]));
+        sceClibSnprintf(
+            line,
+            sizeof(line),
+            "%s opened[%u]=%s root=%d visible=%d",
+            label,
+            static_cast<unsigned int>(index),
+            page_ids[index].c_str(),
+            root != NULL ? 1 : 0,
+            root != NULL && root->IsVisible() ? 1 : 0);
+        QueueInteractionLog(line);
+    }
+    last_state = state;
+}
+
+void LogHomeGate(
+    bool shell_allows_overlay,
+    bool event_notification_visible,
+    bool livearea_visible,
+    bool topmenu_found,
+    bool root_found,
+    bool root_visible,
+    bool scroll_found,
+    bool bubble_home_visible,
+    bool exposed) {
+    const unsigned int state =
+        (shell_allows_overlay ? 1U : 0U) |
+        (event_notification_visible ? 1U << 1U : 0U) |
+        (livearea_visible ? 1U << 2U : 0U) |
+        (topmenu_found ? 1U << 3U : 0U) |
+        (root_found ? 1U << 4U : 0U) |
+        (root_visible ? 1U << 5U : 0U) |
+        (scroll_found ? 1U << 6U : 0U) |
+        (bubble_home_visible ? 1U << 7U : 0U) |
+        (exposed ? 1U << 8U : 0U);
+    static unsigned int last_state = ~0U;
+    if (state == last_state) {
+        return;
+    }
+    char line[192];
+    sceClibSnprintf(
+        line,
+        sizeof(line),
+        "home gate shell=%d notification=%d livearea=%d topmenu=%d root=%d root_visible=%d scroll=%d bubble=%d exposed=%d",
+        shell_allows_overlay ? 1 : 0,
+        event_notification_visible ? 1 : 0,
+        livearea_visible ? 1 : 0,
+        topmenu_found ? 1 : 0,
+        root_found ? 1 : 0,
+        root_visible ? 1 : 0,
+        scroll_found ? 1 : 0,
+        bubble_home_visible ? 1 : 0,
+        exposed ? 1 : 0);
+    QueueInteractionLog(line);
+    last_state = state;
+}
+
+#endif
+
 } // namespace
 
 SearchOverlay* SearchOverlay::home_pad_overlay_ = NULL;
 paf_pad_device_handler::DeviceHandler SearchOverlay::previous_home_pad_handler_ = NULL;
+paf_touchscreen_device_handler::DeviceHandler SearchOverlay::previous_touchscreen_handler_ = NULL;
 
 SearchOverlay::ResultItemFactory::ResultItemFactory(SearchOverlay* overlay)
     : overlay_(overlay) {}
@@ -136,6 +317,8 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       icon_cache_(NULL),
       visibility_registered_(false),
       home_visible_(false),
+      notification_panel_suppression_(NotificationPanelSuppression::Inactive),
+      notification_panel_opening_deadline_us_(0),
       ime_transition_active_(false),
       ime_editing_seen_(false),
       results_pending_display_(false),
@@ -157,6 +340,18 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
 SearchOverlay::~SearchOverlay() {
     visibility_registered_ = false;
     paf::common::MainThreadCallList::Unregister(VisibilityTick, this);
+    if (previous_touchscreen_handler_ != NULL) {
+        const paf_touchscreen_device_handler::DeviceHandler displaced_touchscreen =
+            paf_touchscreen_device_handler::SetDeviceHandler(
+                0U,
+                previous_touchscreen_handler_);
+        if (displaced_touchscreen != TouchscreenDeviceHandler) {
+            paf_touchscreen_device_handler::SetDeviceHandler(
+                0U,
+                displaced_touchscreen);
+        }
+        previous_touchscreen_handler_ = NULL;
+    }
     if (home_pad_overlay_ == this) {
         home_pad_overlay_ = NULL;
         const paf_pad_device_handler::DeviceHandler displaced =
@@ -203,6 +398,7 @@ int SearchOverlay::Initialize(AppIndex& prepared_index, RecentApps& prepared_rec
     if (!shell_util_ready_) {
         return result;
     }
+
     index_.Swap(prepared_index);
     recent_apps_.Swap(prepared_recent_apps);
 
@@ -230,6 +426,21 @@ int SearchOverlay::Initialize(AppIndex& prepared_index, RecentApps& prepared_rec
     StartupLogResult(
         "overlay previous home pad handler",
         previous_home_pad_handler_ != NULL ? 1 : 0);
+    previous_touchscreen_handler_ =
+        paf_touchscreen_device_handler::SetDeviceHandler(0U, TouchscreenDeviceHandler);
+#if LIVEAREA_SEARCH_DIAGNOSTICS
+    StartupLogResult(
+        "overlay previous touchscreen handler",
+        previous_touchscreen_handler_ != NULL ? 1 : 0);
+#endif
+    if (previous_touchscreen_handler_ == NULL ||
+        previous_touchscreen_handler_ == TouchscreenDeviceHandler) {
+        paf_touchscreen_device_handler::SetDeviceHandler(
+            0U,
+            previous_touchscreen_handler_);
+        previous_touchscreen_handler_ = NULL;
+        return -1;
+    }
 
     initialized_ = true;
     visibility_registered_ = true;
@@ -261,7 +472,10 @@ int SearchOverlay::OpenHomePage() {
     home_button_->DisableEvent(paf::ui::EV_FOCUS);
     home_button_->DisableEvent(paf::ui::EV_KEYCODE);
     home_button_->DisableEvent(paf::ui::EV_ANALOG);
+    home_button_->DisableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);
     home_button_->ReleaseFocus();
+    home_page_->Hide(paf::common::transition::Type_Reset);
+    plugin_->PageInactivate("page_home_search");
     StartupLogResult("home shell allows overlay", ShellAllowsOverlay() ? 1 : 0);
     paf::Plugin* top_menu = paf::Plugin::Find("topmenu_plugin");
     StartupLogResult("home topmenu plugin found", top_menu != NULL ? 1 : 0);
@@ -312,17 +526,11 @@ int SearchOverlay::OpenResultsPage() {
     }
 
     results_page_->SetKeycode(
-        paf::inputdevice::pad::Data::Keycode::PAD_ESCAPE |
-        paf::inputdevice::pad::Data::Keycode::PAD_PS);
+        paf::inputdevice::pad::Data::Keycode::PAD_ESCAPE);
     results_page_->AddEventCallback(
         paf::ui::Handler::CB_KEYCODE_PRESS,
         OnBackKey,
         this);
-    results_page_->AddEventCallback(
-        paf::ui::Handler::CB_KEYCODE_PRESS,
-        OnResultsKeyPress,
-        this);
-
     search_box_->SetMaxLength(64);
     search_box_->AddEventCallback(
         paf::ui::TextBox::CB_TEXT_BOX_ENTER_PRESSED,
@@ -405,11 +613,7 @@ int SearchOverlay::ResolveShellUtil() {
     if (result < 0) {
         return result;
     }
-    result = ResolveShellUtilFunction(kShellUtilUnlockNid, shell_util_unlock_);
-    if (result < 0) {
-        return result;
-    }
-    return 0;
+    return ResolveShellUtilFunction(kShellUtilUnlockNid, shell_util_unlock_);
 }
 
 void SearchOverlay::HandleBack() {
@@ -444,7 +648,6 @@ void SearchOverlay::HandleHome() {
     if (search_box_ != NULL) {
         QueueInteractionLogResult("home end edit", search_box_->EndEdit());
     }
-    RequestCloseResultsPage();
 }
 
 bool SearchOverlay::AcquireHomePadLock() {
@@ -454,7 +657,7 @@ bool SearchOverlay::AcquireHomePadLock() {
     if (!shell_util_ready_ || shell_util_lock_ == NULL) {
         return false;
     }
-    const int result = shell_util_lock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
+    const int result = shell_util_lock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2);
     QueueInteractionLogResult("home PS lock", result);
     if (result < 0) {
         return false;
@@ -467,20 +670,22 @@ void SearchOverlay::ReleaseHomePadLock() {
     if (!home_ps_lock_held_ || shell_util_unlock_ == NULL) {
         return;
     }
-    const int result = shell_util_unlock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
+    const int result = shell_util_unlock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2);
     QueueInteractionLogResult("home PS unlock", result);
     if (result >= 0) {
         home_ps_lock_held_ = false;
     }
 }
 
-void SearchOverlay::UpdateHomePadLock() {
-    if (ShouldReleaseHomePadLock(
-            home_ps_lock_held_,
-            results_page_ != NULL,
-            home_ps_owned_)) {
-        ReleaseHomePadLock();
+void SearchOverlay::UpdateHomePadClose() {
+    const HomePadCloseAction action = ComputeHomePadCloseAction(
+        home_close_pending_,
+        home_ps_owned_);
+    if (action != HomePadCloseAction::ReleaseLockAndClose) {
+        return;
     }
+    ReleaseHomePadLock();
+    RequestCloseResultsPage();
 }
 
 void SearchOverlay::RequestCloseResultsPage() {
@@ -513,8 +718,8 @@ void SearchOverlay::ProcessCloseRequest() {
 
 void SearchOverlay::CloseResultsPage() {
     if (plugin_ == NULL || results_page_ == NULL) {
+        ReleaseHomePadLock();
         notification_corner_.Restore();
-        UpdateHomePadLock();
         return;
     }
     close_requested_ = false;
@@ -548,6 +753,7 @@ void SearchOverlay::CloseResultsPage() {
 
     paf::Plugin::PageCloseParam close_param;
     close_param.fade = false;
+    ReleaseHomePadLock();
     plugin_->PageClose("page_search_results", close_param);
     const bool notification_restored = notification_corner_.Restore();
     QueueInteractionLogResult(
@@ -568,7 +774,6 @@ void SearchOverlay::CloseResultsPage() {
     results_editing_layout_ = false;
     results_draw_priority_ = kResultsDisplayDrawPriority;
     UpdateVisibility();
-    UpdateHomePadLock();
 }
 
 void SearchOverlay::SubmitSearch() {
@@ -814,11 +1019,21 @@ void SearchOverlay::UpdateVisibility() {
         return;
     }
 
-    home_visible_ = action == HomeVisibilityAction::Show;
+    SetHomeVisible(action == HomeVisibilityAction::Show);
+}
+
+void SearchOverlay::SetHomeVisible(bool visible) {
+    if (home_visible_ == visible || home_button_ == NULL ||
+        home_page_ == NULL || plugin_ == NULL) {
+        return;
+    }
+    home_visible_ = visible;
     if (home_visible_) {
+        home_button_->EnableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);
         plugin_->PageActivate("page_home_search");
         home_page_->Show(paf::common::transition::Type_FadeinFast);
     } else {
+        home_button_->DisableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);
         home_page_->Hide(paf::common::transition::Type_Reset);
         plugin_->PageInactivate("page_home_search");
     }
@@ -841,31 +1056,70 @@ void SearchOverlay::UpdateResultCount() {
     SetText(result_count_, text);
 }
 
-bool SearchOverlay::IsBubbleHomeVisible() const {
-    if (!ShellAllowsOverlay()) {
-        return false;
+bool SearchOverlay::IsBubbleHomeVisible() {
+    const bool shell_allows_overlay = ShellAllowsOverlay();
+    paf::Plugin* indicator = shell_allows_overlay ?
+        paf::Plugin::Find("indicator_plugin") : NULL;
+    const IndicatorPopupVisibility popup_visibility =
+        QueryIndicatorPopupVisibility(indicator);
+    const bool notification_touch_suppressed =
+        AdvanceNotificationPanelSuppression(
+            popup_visibility,
+            static_cast<std::uint64_t>(sceKernelGetSystemTimeWide()),
+            notification_panel_opening_deadline_us_,
+            notification_panel_suppression_);
+    paf::ui::Scene* event_notification = indicator == NULL ? NULL :
+        indicator->PageRoot(paf::IDParam("page_event_notification"));
+    const bool event_notification_visible =
+        (event_notification != NULL && event_notification->IsVisible()) ||
+        popup_visibility == IndicatorPopupVisibility::Visible ||
+        notification_touch_suppressed;
+    paf::Plugin* livearea = shell_allows_overlay ?
+        paf::Plugin::Find("livearea_plugin") : NULL;
+#if LIVEAREA_SEARCH_DIAGNOSTICS
+    static unsigned int last_indicator_pages = ~0U;
+    static unsigned int last_livearea_pages = ~0U;
+    LogPluginPages("indicator", indicator, last_indicator_pages);
+    LogPluginPages("livearea", livearea, last_livearea_pages);
+#endif
+    const bool livearea_visible = IsPafPluginVisible(livearea);
+    paf::Plugin* topmenu = shell_allows_overlay ?
+        paf::Plugin::Find("topmenu_plugin") : NULL;
+    paf::ui::Scene* root = topmenu == NULL ? NULL :
+        topmenu->PageRoot(kTopMenuHomePageHash);
+    const bool root_visible = root != NULL && root->IsVisible();
+    paf::ui::Widget* scroll_widget = root_visible ?
+        root->FindChild(kTopMenuHomeScrollHash) : NULL;
+    bool bubble_home_visible = false;
+    if (scroll_widget != NULL) {
+        paf::ui::ScrollView* scroll = static_cast<paf::ui::ScrollView*>(scroll_widget);
+        const paf::math::v2 focus = scroll->GetViewFocus();
+        const paf::math::v2 target = scroll->GetViewFocusTarget();
+        bubble_home_visible = IsBubbleHomeSurface(
+            kTopMenuHomePageHash,
+            focus.extract_x(),
+            focus.extract_y(),
+            target.extract_x(),
+            target.extract_y());
     }
-    paf::Plugin* topmenu = paf::Plugin::Find("topmenu_plugin");
-    if (topmenu == NULL) {
-        return false;
-    }
-    paf::ui::Scene* root = topmenu->PageRoot(kTopMenuHomePageHash);
-    if (root == NULL || !root->IsVisible()) {
-        return false;
-    }
-    paf::ui::Widget* scroll_widget = root->FindChild(kTopMenuHomeScrollHash);
-    if (scroll_widget == NULL) {
-        return false;
-    }
-    paf::ui::ScrollView* scroll = static_cast<paf::ui::ScrollView*>(scroll_widget);
-    const paf::math::v2 focus = scroll->GetViewFocus();
-    const paf::math::v2 target = scroll->GetViewFocusTarget();
-    return IsBubbleHomeSurface(
-        kTopMenuHomePageHash,
-        focus.extract_x(),
-        focus.extract_y(),
-        target.extract_x(),
-        target.extract_y());
+    const bool exposed = ShouldExposeHomeSearch(
+        shell_allows_overlay,
+        bubble_home_visible,
+        event_notification_visible,
+        livearea_visible);
+#if LIVEAREA_SEARCH_DIAGNOSTICS
+    LogHomeGate(
+        shell_allows_overlay,
+        event_notification_visible,
+        livearea_visible,
+        topmenu != NULL,
+        root != NULL,
+        root_visible,
+        scroll_widget != NULL,
+        bubble_home_visible,
+        exposed);
+#endif
+    return exposed;
 }
 
 int SearchOverlay::Launch(const String& title_id) {
@@ -984,7 +1238,7 @@ void SearchOverlay::OnHomeSearch(
     paf::ui::Event*,
     void* user_data) {
     SearchOverlay* overlay = static_cast<SearchOverlay*>(user_data);
-    if (overlay != NULL) {
+    if (overlay != NULL && overlay->IsBubbleHomeVisible()) {
         QueueInteractionLog("home search callback");
         QueueInteractionLogResult("open results page", overlay->OpenResultsPage());
     }
@@ -1043,23 +1297,6 @@ void SearchOverlay::OnBackKey(
     }
 }
 
-void SearchOverlay::OnResultsKeyPress(
-    int,
-    paf::ui::Handler*,
-    paf::ui::Event* event,
-    void* user_data) {
-    if (event == NULL ||
-        event->GetDetail() != paf::inputdevice::pad::Data::Keycode::PAD_PS) {
-        return;
-    }
-    event->Consume();
-    SearchOverlay* overlay = static_cast<SearchOverlay*>(user_data);
-    if (overlay != NULL) {
-        QueueInteractionLog("home key callback");
-        overlay->HandleHome();
-    }
-}
-
 void SearchOverlay::OnResultDecide(
     int,
     paf::ui::Handler* handler,
@@ -1072,9 +1309,11 @@ void SearchOverlay::OnResultDecide(
         return;
     }
     const paf::string title_id = widget->GetName().GetID();
+#if LIVEAREA_SEARCH_DIAGNOSTICS
     char line[96];
     sceClibSnprintf(line, sizeof(line), "result decide callback: %s", title_id.c_str());
     QueueInteractionLog(line);
+#endif
     overlay->Launch(String(title_id.c_str()));
 }
 
@@ -1097,18 +1336,62 @@ void SearchOverlay::OnIconReady(
 
 void SearchOverlay::HomePadDeviceHandler(paf::inputdevice::pad::Data* data) {
     SearchOverlay* overlay = home_pad_overlay_;
+    paf::inputdevice::pad::Data forwarded;
+    paf::inputdevice::pad::Data* forwarded_data = data;
     if (overlay != NULL && data != NULL) {
+        forwarded = *data;
+        forwarded_data = &forwarded;
         if (ObserveHomePadPress(
                 overlay->results_page_ != NULL,
                 paf::inputdevice::pad::Data::Keycode::PAD_PS,
-                data->paddata,
+                forwarded.paddata,
                 overlay->home_ps_owned_)) {
             overlay->home_pad_press_pending_ = true;
         }
     }
     if (previous_home_pad_handler_ != NULL &&
         previous_home_pad_handler_ != HomePadDeviceHandler) {
-        previous_home_pad_handler_(data);
+        previous_home_pad_handler_(forwarded_data);
+    }
+}
+
+void SearchOverlay::TouchscreenDeviceHandler(
+    paf_touchscreen_device_handler::DataList* data) {
+    SearchOverlay* overlay = home_pad_overlay_;
+    if (data != NULL) {
+        for (std::size_t slot = 0; slot < 8U; ++slot) {
+            const paf_touchscreen_device_handler::DataRecord& record =
+                data->records[slot];
+#if LIVEAREA_SEARCH_DIAGNOSTICS
+            if (record.state != 1 && record.state != 2) {
+                continue;
+            }
+            char line[DeferredLogQueue::kLineCapacity];
+            sceClibSnprintf(
+                line,
+                sizeof(line),
+                "touch front slot=%u state=%d x=%d y=%d",
+                static_cast<unsigned int>(slot),
+                record.state,
+                record.x,
+                record.y);
+            QueueInteractionLog(line);
+#endif
+            if (overlay != NULL && ObserveNotificationCornerPress(
+                    overlay->results_page_ != NULL,
+                    record.state == 1,
+                    record.x,
+                    record.y,
+                    static_cast<std::uint64_t>(sceKernelGetSystemTimeWide()),
+                    overlay->notification_panel_suppression_,
+                    overlay->notification_panel_opening_deadline_us_)) {
+                overlay->SetHomeVisible(false);
+            }
+        }
+    }
+    if (previous_touchscreen_handler_ != NULL &&
+        previous_touchscreen_handler_ != TouchscreenDeviceHandler) {
+        previous_touchscreen_handler_(data);
     }
 }
 
@@ -1127,10 +1410,10 @@ void SearchOverlay::VisibilityTick(void* user_data) {
         overlay->UpdateVisibility();
     }
     if (overlay->visibility_registered_) {
-        overlay->ProcessCloseRequest();
+        overlay->UpdateHomePadClose();
     }
     if (overlay->visibility_registered_) {
-        overlay->UpdateHomePadLock();
+        overlay->ProcessCloseRequest();
     }
 }
 

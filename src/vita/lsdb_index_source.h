@@ -23,14 +23,27 @@ private:
         lsdb::GetString get_name{};
         lsdb::GetString get_category{};
         lsdb::GetInt64 get_bootable{};
+        lsdb::GetFilteredTitleIds get_filtered_title_ids{};
+    };
+
+    struct CatalogCandidate {
+        String title_id;
+        String title;
+        String short_title;
+        String app_name;
+        String category;
+        String icon_path;
+        std::int64_t bootable;
     };
 
     struct EnumerationContext {
-        EnumerationContext(const Api* api_value, Vector<AppRecord>* records_value)
-            : api(api_value), records(records_value) {}
+        EnumerationContext(
+            const Api* api_value,
+            Vector<CatalogCandidate>* candidates_value)
+            : api(api_value), candidates(candidates_value) {}
 
         const Api* api;
-        Vector<AppRecord>* records;
+        Vector<CatalogCandidate>* candidates;
     };
 
     static void OnAppInfo(const lsdb::AppInfo* app_info, void* user_data);

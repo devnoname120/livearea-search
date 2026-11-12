@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "profiles": {
+    "release": {
+      "expected_module_name": "livearea_search",
+      "required_imports": [
+        {
+          "name": "SceAppMgrUser",
+          "nid": "0xA6605D6F",
+          "function_nids": [
+            "0x003C634F",
+            "0x5E86319A"
+          ]
+        },
+        {
+          "name": "SceAppMgr",
+          "nid": "0x8AF17416",
+          "function_nids": [
+            "0xBF4213A3"
+          ]
+        },
+        {
+          "name": "ScePafToplevel",
+          "nid": "0x4D9A9DD0",
+          "function_nids": [
+            "0x3E9B4F77",
+            "0xE80B3F65",
+            "0x9C7F70FD"
+          ]
+        },
+        {
+          "name": "ScePafWidget",
+          "nid": "0x073F8C68",
+          "function_nids": [
+            "0xFFC580E3",
+            "0xD2BF4CC7"
+          ]
+        },
+        {
+          "name": "ScePafMisc",
+          "nid": "0x3D643CE8",
+          "function_nids": [
+            "0x7F98B644",
+            "0xCBAF777C"
+          ]
+        }
+      ],
+      "forbidden_imports": [
+        {
+          "name": "SceLibKernel",
+          "nid": "0xCAE9ACE6",
+          "function_nids": [
+            "0xFA26BC62"
+          ]
+        }
+      ],
+      "required_strings": [
+        "ur0:data/livearea-search/livearea_search_plugin.rco",
+        "topmenu_plugin",
+        "indicator_plugin",
+        "page_event_notification",
+        "psgm:open?titleid="
+      ],
+      "forbidden_strings": [
+        "ur0:tai/config.txt",
+        "LiveAreaSearchConfig",
+        "ur0:data/livearea-search/startup.log",
+        "[LiveAreaSearch]",
+        "module_start config entries disabled",
+        "overlay active",
+        "lsdb resolve begin",
+        "ui frame waiting for stable LiveArea"
+      ]
+    },
+    "experimental": {
+      "expected_module_name": "livearea_search",
+      "required_imports": [
+        {
+          "name": "SceAppMgrUser",
+          "nid": "0xA6605D6F",
+          "function_nids": [
+            "0x003C634F",
+            "0x5E86319A"
+          ]
+        },
+        {
+          "name": "SceAppMgr",
+          "nid": "0x8AF17416",
+          "function_nids": [
+            "0xBF4213A3"
+          ]
+        },
+        {
+          "name": "ScePafToplevel",
+          "nid": "0x4D9A9DD0",
+          "function_nids": [
+            "0x3E9B4F77",
+            "0xE80B3F65",
+            "0x9C7F70FD"
+          ]
+        },
+        {
+          "name": "ScePafWidget",
+          "nid": "0x073F8C68",
+          "function_nids": [
+            "0xFFC580E3",
+            "0xD2BF4CC7"
+          ]
+        },
+        {
+          "name": "ScePafMisc",
+          "nid": "0x3D643CE8",
+          "function_nids": [
+            "0x7F98B644",
+            "0xCBAF777C"
+          ]
+        },
+        {
+          "name": "SceLibKernel",
+          "nid": "0xCAE9ACE6",
+          "function_nids": [
+            "0xFA26BC62"
+          ]
+        }
+      ],
+      "forbidden_imports": [],
+      "required_strings": [
+        "ur0:data/livearea-search/livearea_search_plugin.rco",
+        "ur0:tai/config.txt",
+        "LiveAreaSearchConfig",
+        "ur0:data/livearea-search/startup.log",
+        "module_start config entries disabled",
+        "overlay active"
+      ],
+      "forbidden_strings": []
+    }
+  }
+}

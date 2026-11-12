@@ -6,12 +6,17 @@
 #include <psp2/kernel/threadmgr.h>
 #include <taihen.h>
 
-#include <livearea_search/deferred_log_queue.h>
+#include <livearea_search/appmgr_state.h>
 #include <livearea_search/lsdb_abi.h>
 #include <livearea_search/module_readiness.h>
+#if LIVEAREA_SEARCH_DIAGNOSTICS
+#include <livearea_search/deferred_log_queue.h>
+#endif
 
 #include "paf_memory.h"
+#if LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE
 #include "config_file_failsafe.h"
+#endif
 #include "lsdb_index_source.h"
 #include "recent_apps_file.h"
 #include "search_overlay.h"
@@ -38,9 +43,13 @@ std::uint64_t g_suppress_until = 0;
 bool g_ui_callback_registered = false;
 bool g_ui_load_in_progress = false;
 bool g_ui_active = false;
+#if LIVEAREA_SEARCH_DIAGNOSTICS
 bool g_waiting_for_shell_logged = false;
+#endif
 std::uint32_t g_shell_ready_frames = 0;
+#if LIVEAREA_SEARCH_DIAGNOSTICS
 livearea_search::DeferredLogQueue g_interaction_logs;
+#endif
 
 struct AppStatus {
     std::int32_t parent_process_id;
@@ -56,6 +65,9 @@ struct AppStatus {
 };
 
 static_assert(sizeof(AppStatus) == 0x80, "SceAppMgr status ABI mismatch");
+static_assert(
+    sizeof(SceAppMgrAppState) == sizeof(livearea_search::AppMgrAppStateLayout),
+    "SceAppMgr app-state ABI mismatch");
 
 const int kAppMgrErrorNotFound = static_cast<int>(0x80802012U);
 
@@ -104,6 +116,7 @@ bool PathExists(const char* path) {
     return sceIoGetstat(path, &stat) >= 0;
 }
 
+#if LIVEAREA_SEARCH_DIAGNOSTICS
 void FlushInteractionLogs() {
     char line[livearea_search::DeferredLogQueue::kLineCapacity];
     for (;;) {
@@ -116,9 +129,11 @@ void FlushInteractionLogs() {
         livearea_search::StartupLog(line);
     }
 }
+#endif
 
 int PollShellVisibility() {
     SceAppMgrAppState state;
+    livearea_search::AppMgrAppStateLayout state_layout;
     AppStatus foreground;
     sceClibMemset(&state, 0, sizeof(state));
     const int state_result = _sceAppMgrGetAppState(&state, sizeof(state), 0x03600011);
@@ -126,6 +141,7 @@ int PollShellVisibility() {
         SetShellState(false, false);
         return state_result;
     }
+    sceClibMemcpy(&state_layout, &state, sizeof(state_layout));
 
     sceClibMemset(&foreground, 0, sizeof(foreground));
     const int foreground_result = _sceAppMgrGetStatusByAppId(
@@ -136,14 +152,69 @@ int PollShellVisibility() {
         return foreground_result;
     }
 
-    bool visible = foreground_result == kAppMgrErrorNotFound || !foreground.is_active;
+    const bool foreground_clear =
+        foreground_result == kAppMgrErrorNotFound || !foreground.is_active;
     LockState();
-    if (static_cast<std::uint64_t>(sceKernelGetSystemTimeWide()) < g_suppress_until) {
-        visible = false;
-    }
+    const bool explicitly_suppressed =
+        static_cast<std::uint64_t>(sceKernelGetSystemTimeWide()) < g_suppress_until;
+    const bool visible = livearea_search::ShouldAllowShellOverlay(
+        foreground_clear,
+        state_layout.is_system_ui_overlaid != 0U,
+        explicitly_suppressed);
     g_shell_allows_overlay = visible;
     g_shell_state_valid = true;
     UnlockState();
+#if LIVEAREA_SEARCH_DIAGNOSTICS
+    unsigned int state_hash = 2166136261U;
+    const unsigned char* state_bytes =
+        reinterpret_cast<const unsigned char*>(&state);
+    for (std::size_t index = 0; index < sizeof(state); ++index) {
+        state_hash ^= state_bytes[index];
+        state_hash *= 16777619U;
+    }
+    state_hash ^= static_cast<unsigned int>(foreground_result);
+    state_hash *= 16777619U;
+    state_hash ^= static_cast<unsigned int>(foreground.app_id);
+    state_hash *= 16777619U;
+    state_hash ^= static_cast<unsigned int>(foreground.process_id);
+    state_hash *= 16777619U;
+    state_hash ^= foreground.is_active ? 1U : 0U;
+    state_hash *= 16777619U;
+    state_hash ^= foreground.is_running ? 1U : 0U;
+    state_hash *= 16777619U;
+    state_hash ^= visible ? 1U : 0U;
+    static unsigned int last_state_hash = ~0U;
+    if (state_hash != last_state_hash) {
+        char line[livearea_search::DeferredLogQueue::kLineCapacity];
+        sceClibSnprintf(
+            line,
+            sizeof(line),
+            "visibility fg=0x%08X app=%d pid=%d active=%d running=%d allow=%d state_size=%u",
+            static_cast<unsigned int>(foreground_result),
+            foreground.app_id,
+            foreground.process_id,
+            foreground.is_active ? 1 : 0,
+            foreground.is_running ? 1 : 0,
+            visible ? 1 : 0,
+            static_cast<unsigned int>(sizeof(state)));
+        livearea_search::StartupLog(line);
+        const unsigned int* words =
+            reinterpret_cast<const unsigned int*>(&state);
+        for (std::size_t offset = 0; offset < sizeof(state) / sizeof(*words); offset += 4U) {
+            sceClibSnprintf(
+                line,
+                sizeof(line),
+                "visibility state[%u]=%08X %08X %08X %08X",
+                static_cast<unsigned int>(offset),
+                words[offset],
+                offset + 1U < sizeof(state) / sizeof(*words) ? words[offset + 1U] : 0U,
+                offset + 2U < sizeof(state) / sizeof(*words) ? words[offset + 2U] : 0U,
+                offset + 3U < sizeof(state) / sizeof(*words) ? words[offset + 3U] : 0U);
+            livearea_search::StartupLog(line);
+        }
+        last_state_hash = state_hash;
+    }
+#endif
     return 0;
 }
 
@@ -153,7 +224,9 @@ void OnPluginStarted(paf::Plugin* plugin) {
     g_overlay = livearea_search::PafNew<livearea_search::SearchOverlay>(plugin);
     if (g_overlay == NULL) {
         livearea_search::StartupLog("overlay allocation failed");
+#if LIVEAREA_SEARCH_DIAGNOSTICS
         sceClibPrintf("[LiveAreaSearch] overlay allocation failed\n");
+#endif
         g_plugin = NULL;
         paf::Plugin::UnloadAsync(plugin);
         return;
@@ -176,7 +249,9 @@ void OnPluginStarted(paf::Plugin* plugin) {
     delete prepared;
     livearea_search::StartupLogResult("overlay initialize", result);
     if (result < 0) {
+#if LIVEAREA_SEARCH_DIAGNOSTICS
         sceClibPrintf("[LiveAreaSearch] overlay init failed: 0x%08X\n", result);
+#endif
         delete g_overlay;
         g_overlay = NULL;
         g_plugin = NULL;
@@ -200,7 +275,9 @@ void UiFrame(void*) {
         data_ready &&
         shell_loading_scene_ready &&
         livearea_search::IsTopMenuHomeRenderReady(top_menu);
+#if LIVEAREA_SEARCH_DIAGNOSTICS
     bool log_waiting = false;
+#endif
     LockState();
     g_shell_ready_frames = livearea_search::AdvanceShellReadyFrames(
         g_shell_ready_frames,
@@ -215,6 +292,7 @@ void UiFrame(void*) {
         shell_stable);
     if (should_load) {
         g_ui_load_in_progress = true;
+#if LIVEAREA_SEARCH_DIAGNOSTICS
     } else if (
         g_running &&
         !g_ui_active &&
@@ -223,11 +301,14 @@ void UiFrame(void*) {
         !g_waiting_for_shell_logged) {
         g_waiting_for_shell_logged = true;
         log_waiting = true;
+#endif
     }
     UnlockState();
+#if LIVEAREA_SEARCH_DIAGNOSTICS
     if (log_waiting) {
         livearea_search::StartupLog("ui frame waiting for stable LiveArea");
     }
+#endif
     if (!should_load) {
         return;
     }
@@ -245,7 +326,9 @@ void UiFrame(void*) {
     livearea_search::StartupLog("paf load sync returned");
     if (g_plugin == NULL) {
         livearea_search::StartupLog("paf resource plugin did not start");
+#if LIVEAREA_SEARCH_DIAGNOSTICS
         sceClibPrintf("[LiveAreaSearch] PAF resource plugin did not start\n");
+#endif
     }
 
     paf::common::MainThreadCallList::Unregister(UiFrame, NULL);
@@ -358,7 +441,9 @@ int WorkerMain(SceSize, void*) {
             livearea_search::StartupLogResult(
                 "worker AppMgr visibility unavailable",
                 visibility_result);
+#if LIVEAREA_SEARCH_DIAGNOSTICS
             sceClibPrintf("[LiveAreaSearch] AppMgr state unavailable\n");
+#endif
             return 0;
         }
         sceKernelDelayThread(100000);
@@ -383,10 +468,14 @@ int WorkerMain(SceSize, void*) {
     }
     while (IsRunning()) {
         PollShellVisibility();
+#if LIVEAREA_SEARCH_DIAGNOSTICS
         FlushInteractionLogs();
+#endif
         sceKernelDelayThread(100000);
     }
+#if LIVEAREA_SEARCH_DIAGNOSTICS
     FlushInteractionLogs();
+#endif
     return 0;
 }
 
@@ -409,6 +498,7 @@ void SuppressOverlayFor(std::uint64_t microseconds) {
     UnlockState();
 }
 
+#if LIVEAREA_SEARCH_DIAGNOSTICS
 void QueueInteractionLog(const char* message) {
     LockState();
     g_interaction_logs.Push(message);
@@ -426,6 +516,7 @@ void QueueInteractionLogResult(const char* stage, int result) {
         result);
     QueueInteractionLog(line);
 }
+#endif
 
 } // namespace livearea_search
 
@@ -433,24 +524,32 @@ extern "C" int _start(SceSize, const void*)
     __attribute__((weak, alias("module_start")));
 
 extern "C" int module_start(SceSize, const void*) {
+#if LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE
     const int disabled_entries =
         livearea_search::DisablePluginConfigEntriesForNextBoot();
     if (disabled_entries < 0) {
+#if LIVEAREA_SEARCH_DIAGNOSTICS
         sceClibPrintf(
             "[LiveAreaSearch] config self-disable failed: 0x%08X\n",
             disabled_entries);
+#endif
         return SCE_KERNEL_START_NO_RESIDENT;
     }
+#endif
+#if LIVEAREA_SEARCH_DIAGNOSTICS
     livearea_search::ResetStartupLog();
-    livearea_search::StartupLogResult("module_start config entries disabled", disabled_entries);
-    sceClibPrintf(
-        "[LiveAreaSearch] disabled %d config entr%s for next boot\n",
-        disabled_entries,
-        disabled_entries == 1 ? "y" : "ies");
+#if LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE
+    livearea_search::StartupLogResult(
+        "module_start config entries disabled",
+        disabled_entries);
+#endif
+#endif
 
     if (!PathExists(kResourcePath)) {
         livearea_search::StartupLog("module_start resource missing");
+#if LIVEAREA_SEARCH_DIAGNOSTICS
         sceClibPrintf("[LiveAreaSearch] missing %s\n", kResourcePath);
+#endif
         return SCE_KERNEL_START_NO_RESIDENT;
     }
 
@@ -473,9 +572,13 @@ extern "C" int module_start(SceSize, const void*) {
     g_ui_callback_registered = false;
     g_ui_load_in_progress = false;
     g_ui_active = false;
+#if LIVEAREA_SEARCH_DIAGNOSTICS
     g_waiting_for_shell_logged = false;
+#endif
     g_shell_ready_frames = 0;
+#if LIVEAREA_SEARCH_DIAGNOSTICS
     g_interaction_logs.Clear();
+#endif
     g_prepared_search_data = NULL;
     UnlockState();
     g_plugin = NULL;

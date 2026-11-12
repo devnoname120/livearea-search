@@ -1,0 +1,362 @@
+{
+  "schema": 1,
+  "minimum_version": "3.600",
+  "modules": {
+    "lsdb": {
+      "expected_name": "SceLsdb",
+      "file_names": [
+        "livespace_db.elf",
+        "SceLsdb.elf",
+        "SceLsdb.enriched.elf"
+      ],
+      "allowed_export_signatures": [
+        "e773e38b28b7000a4e4b2562fde25f7c4b2ca59ebad1173d385ce2162946dccb"
+      ],
+      "allowed_module_nids": [
+        "0x0F0BB309",
+        "0x19F82753",
+        "0x1BF57DA4",
+        "0x204C7C4E",
+        "0x23B8732E",
+        "0x250BFD8A",
+        "0x2612CE74",
+        "0x326C249C",
+        "0x410C4AAC",
+        "0x45CEE0E5",
+        "0x5B2FF189",
+        "0x5CD1ADAF",
+        "0x5E5DE111",
+        "0x643FBB44",
+        "0x66532DC3",
+        "0x6F568F90",
+        "0x72FE9753",
+        "0x74AE6E9C",
+        "0x789A2CF9",
+        "0x7A826945",
+        "0x7EF8A03A",
+        "0x864089DD",
+        "0x8E2447E4",
+        "0x948BACEF",
+        "0x975F7B36",
+        "0x9A8D272B",
+        "0xA7E78C4A",
+        "0xB569DDD2",
+        "0xBB3E1DC8",
+        "0xD08912C8",
+        "0xD9538088",
+        "0xDA3ABD86",
+        "0xEBF636DB",
+        "0xEF2E651E",
+        "0xF60E4B51"
+      ],
+      "required_strings": [],
+      "libraries": [
+        {
+          "name": "SceLsdb",
+          "nid": "0x6BC25E17",
+          "function_nids": [
+            "0xD322A870",
+            "0x56D8DCF0",
+            "0xA6CEEAB3",
+            "0x1F569CFC",
+            "0x4141EBCD",
+            "0x3B064DF5",
+            "0xD02A8B85",
+            "0x6469796F",
+            "0x46BF2766",
+            "0xDD7D68C0"
+          ]
+        }
+      ]
+    },
+    "paf": {
+      "expected_name": "ScePaf",
+      "file_names": [
+        "libpaf.elf",
+        "ScePaf.elf",
+        "ScePaf.enriched.elf"
+      ],
+      "allowed_export_signatures": [
+        "21d1c50c0b4c17fa827adccc14088dead71ac007bb1fadaf6767cb1a1c95a244",
+        "ad53f136cdf380206aeed7e79c90e57530e6977fbe9b358e1d79e1f70504e211"
+      ],
+      "allowed_module_nids": [
+        "0x0305714C",
+        "0x09111E96",
+        "0x0CEAECDD",
+        "0x0DBFBA9B",
+        "0x1FE36D93",
+        "0x23216CA9",
+        "0x2985CD70",
+        "0x352D98D4",
+        "0x3CABA6DA",
+        "0x43AAED2B",
+        "0x441BBC71",
+        "0x4AB91355",
+        "0x52A49770",
+        "0x534D3F3D",
+        "0x66EC0C5D",
+        "0x73F90499",
+        "0x78DF8738",
+        "0x9CE470B4",
+        "0x9E5A741C",
+        "0xA081BFE1",
+        "0xA1FE073A",
+        "0xB8DB18FD",
+        "0xCD679177",
+        "0xD0380FBC",
+        "0xD1BC32EE",
+        "0xD4018D85",
+        "0xD5A425AF",
+        "0xD6AB6069",
+        "0xDFE774A1",
+        "0xE15A86ED",
+        "0xE3D2D5CE",
+        "0xE7A89CA9",
+        "0xE9488C33",
+        "0xF8E53ADD",
+        "0xFA5137D0"
+      ],
+      "required_strings": [],
+      "libraries": [
+        {
+          "name": "ScePafToplevel",
+          "nid": "0x4D9A9DD0",
+          "function_nids": [
+            "0x3E9B4F77",
+            "0xE80B3F65",
+            "0x9C7F70FD"
+          ]
+        },
+        {
+          "name": "ScePafWidget",
+          "nid": "0x073F8C68",
+          "function_nids": [
+            "0xFFC580E3",
+            "0xD2BF4CC7"
+          ]
+        },
+        {
+          "name": "ScePafMisc",
+          "nid": "0x3D643CE8",
+          "function_nids": [
+            "0x7F98B644",
+            "0xCBAF777C"
+          ]
+        }
+      ]
+    },
+    "shell": {
+      "expected_name": "SceShell",
+      "file_names": [
+        "shell.elf",
+        "SceShell.elf",
+        "SceShell.enriched.elf"
+      ],
+      "allowed_export_signatures": [
+        "c1e0a3646e107f2b85699de102a4b22405502bd542c91784ddd63cc91faaf62c"
+      ],
+      "allowed_module_nids": [
+        "0x0552F692",
+        "0x0703C828",
+        "0x12DAC0F3",
+        "0x2053B5A5",
+        "0x232D733B",
+        "0x34B4D82E",
+        "0x3C652B1A",
+        "0x4670A0C8",
+        "0x4DF04256",
+        "0x4FE7C671",
+        "0x51CB6207",
+        "0x5314D60B",
+        "0x532155E5",
+        "0x54B23C76",
+        "0x5549BF1F",
+        "0x587F9CED",
+        "0x677ADA9A",
+        "0x6CB01295",
+        "0x734D476A",
+        "0x768E59EF",
+        "0x7A5F8457",
+        "0x939FFBE9",
+        "0xA6509361",
+        "0xAB5C2A00",
+        "0xB45216F4",
+        "0xB96BCFC3",
+        "0xBB4B0A3E",
+        "0xBECA8EB4",
+        "0xC5B7C871",
+        "0xD7AE3036",
+        "0xE541DB9B",
+        "0xE6A02F2B",
+        "0xE7C5011A",
+        "0xEAB89D5C",
+        "0xF476E785"
+      ],
+      "required_strings": [
+        "impose_net_plugin",
+        "impose_plugin",
+        "indicator_plugin",
+        "livearea_plugin",
+        "page_event_notification",
+        "topmenu_plugin"
+      ],
+      "libraries": [
+        {
+          "name": "SceShell",
+          "nid": "0x2404AE25",
+          "function_nids": []
+        }
+      ]
+    },
+    "shellsvc": {
+      "expected_name": "SceShellSvc",
+      "file_names": [
+        "libshellsvc.elf",
+        "SceShellSvc.elf",
+        "SceShellSvc.enriched.elf"
+      ],
+      "allowed_export_signatures": [
+        "aff6f3b01fb05013c00a22f83ded86cf8d83478c4180059da1bf9d6a80687a87"
+      ],
+      "allowed_module_nids": [
+        "0x0CD93DB2",
+        "0x0FFB48B9",
+        "0x13BB2AAF",
+        "0x226F8740",
+        "0x22A6E3D5",
+        "0x2F0515B3",
+        "0x36E557FA",
+        "0x36FCCF4E",
+        "0x390A3F9F",
+        "0x45B4D790",
+        "0x46D0966C",
+        "0x486EC1DE",
+        "0x4FE8BE7A",
+        "0x513C6EB5",
+        "0x52629663",
+        "0x5674F4FD",
+        "0x60E15EE9",
+        "0x6A4082E5",
+        "0x74DEA0FC",
+        "0x7F5E18D1",
+        "0x821DC423",
+        "0x833B7F3C",
+        "0x89452570",
+        "0x8FDE9B8E",
+        "0x92EE6A4E",
+        "0x9BFB719F",
+        "0xA102D1E0",
+        "0xA2687C04",
+        "0xAEDB9799",
+        "0xB0C78DA7",
+        "0xC36079D8",
+        "0xC7742067",
+        "0xC86E64A3",
+        "0xCB438759",
+        "0xCD4F067F"
+      ],
+      "required_strings": [],
+      "libraries": [
+        {
+          "name": "SceShellSvc",
+          "nid": "0x773242C7",
+          "function_nids": []
+        },
+        {
+          "name": "SceShellUtil",
+          "nid": "0xD2B1C8AE",
+          "function_nids": [
+            "0x21A6CF54",
+            "0xA9537233",
+            "0xE8AD11EC"
+          ]
+        },
+        {
+          "name": "SceShellUtilUketorne",
+          "nid": "0xA2316143",
+          "function_nids": []
+        },
+        {
+          "name": "SceShellUtilLaunchApp",
+          "nid": "0xA0FD0261",
+          "function_nids": []
+        },
+        {
+          "name": "SceSvcCtrl",
+          "nid": "0x33E9B101",
+          "function_nids": []
+        },
+        {
+          "name": "SceIpmi",
+          "nid": "0xF4E34EDB",
+          "function_nids": []
+        }
+      ]
+    },
+    "appmgr": {
+      "expected_name": "SceAppMgr",
+      "file_names": [
+        "appmgr.skprx.elf",
+        "appmgr.elf",
+        "SceAppMgr.elf",
+        "SceAppMgr.enriched.elf"
+      ],
+      "allowed_export_signatures": [
+        "68611cf3b1336b64884c5830329d560de61f230d81ba9e7644c06f053cbcb4b8"
+      ],
+      "allowed_module_nids": [
+        "0x1C9879D6",
+        "0x23B967C5",
+        "0x30007BD3",
+        "0x321E4852",
+        "0x437991F2",
+        "0x51C8AC87",
+        "0x54E2E984",
+        "0x700DA0CD",
+        "0xA8E80BA8",
+        "0xB299D195",
+        "0xB5F8EA7C",
+        "0xC3C538DE",
+        "0xDBB29DB7",
+        "0xF7846B4E"
+      ],
+      "required_strings": [],
+      "libraries": [
+        {
+          "name": "SceAppMgr",
+          "nid": "0x8AF17416",
+          "function_nids": [
+            "0x210C0046",
+            "0x37CE3984",
+            "0xBF4213A3"
+          ]
+        }
+      ]
+    },
+    "driveruser": {
+      "expected_name": "SceDriverUser",
+      "file_names": [
+        "SceDriverUser.elf",
+        "SceDriverUser.enriched.elf"
+      ],
+      "allowed_export_signatures": [
+        "046e45fd160bbcab68f53b1723bd67e114b3b42ca2f1e9fa4e44eacc688b024b"
+      ],
+      "allowed_module_nids": [
+        "0xAD0AEA9A"
+      ],
+      "required_strings": [],
+      "libraries": [
+        {
+          "name": "SceAppMgrUser",
+          "nid": "0xA6605D6F",
+          "function_nids": [
+            "0x003C634F",
+            "0x5E86319A"
+          ]
+        }
+      ]
+    }
+  }
+}

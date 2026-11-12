@@ -4,6 +4,16 @@ project(livearea_search LANGUAGES C CXX)
 
 option(LIVEAREA_SEARCH_BUILD_TESTS "Build host tests" ON)
 option(LIVEAREA_SEARCH_BUILD_VITA "Build the SceShell SUPRX" OFF)
+option(LIVEAREA_SEARCH_DIAGNOSTICS "Enable file/TTY diagnostics in the Vita plugin" OFF)
+option(LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE "Disable the Vita plugin config entry before experimental startup" OFF)
+
+if(LIVEAREA_SEARCH_DIAGNOSTICS AND NOT LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE)
+    message(FATAL_ERROR "Vita diagnostics require the experimental self-disable fail-safe")
+endif()
+
+if(LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE AND NOT LIVEAREA_SEARCH_DIAGNOSTICS)
+    message(FATAL_ERROR "Experimental self-disable builds require diagnostic validation")
+endif()
 
 add_library(livearea_search_core STATIC
     src/core/app_index.cpp

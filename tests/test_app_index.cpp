@@ -251,6 +251,7 @@ void TestCatalogRecordPolicy() {
         "persona4g",
         "gd",
         "ur0:appmeta/PCSE00120/icon0.png",
+        true,
         1}, record);
     Check(accepted, "launchable catalog entry is accepted");
     if (accepted) {
@@ -263,26 +264,29 @@ void TestCatalogRecordPolicy() {
     }
 
     accepted = BuildCatalogRecord(CatalogMetadataView{
-        "NPXS10015", "", "Settings", "settings", "gda", "", 1}, record);
+        "NPXS10015", "", "Settings", "settings", "gda", "", true, 1}, record);
     Check(accepted && record.display_title == "Settings",
           "short title is used when the full title is empty");
 
     accepted = BuildCatalogRecord(CatalogMetadataView{
-        "NPXS10026", "", "", "content_manager", "gda", "", -1}, record);
+        "NPXS10026", "", "", "content_manager", "gda", "", true, -1}, record);
     Check(accepted && record.display_title == "content_manager",
           "application name is used when localized titles are absent");
 
     accepted = BuildCatalogRecord(CatalogMetadataView{
-        "PCSE00001", "", "", "", "gd", "", 1}, record);
+        "PCSE00001", "", "", "", "gd", "", true, 1}, record);
     Check(accepted && record.display_title == "PCSE00001",
           "title ID is the final display fallback");
 
     Check(!BuildCatalogRecord(CatalogMetadataView{
-               "NPXS10015&x=1", "Settings", "", "", "gda", "", 1}, record),
+               "NPXS10015&x=1", "Settings", "", "", "gda", "", true, 1}, record),
           "catalog entry with unsafe title ID is rejected");
     Check(!BuildCatalogRecord(CatalogMetadataView{
-               "NPXS10015", "Settings", "", "", "gda", "", 0}, record),
+               "NPXS10015", "Settings", "", "", "gda", "", true, 0}, record),
           "explicitly non-bootable catalog entry is rejected");
+    Check(!BuildCatalogRecord(CatalogMetadataView{
+               "NPXS99999", "Internal Tool", "", "", "gda", "", false, 1}, record),
+          "catalog entries without a real Home/LiveArea bubble are rejected");
 }
 
 void TestModuleLookupReadiness() {
@@ -422,6 +426,7 @@ void TestHomeVisibilityTransitions() {
     using livearea_search::HomeVisibilityAction;
     using livearea_search::IsBubbleHomeSurface;
     using livearea_search::ShouldCloseResultsPage;
+    using livearea_search::ShouldExposeHomeSearch;
 
     Check(
         IsBubbleHomeSurface(
@@ -466,6 +471,17 @@ void TestHomeVisibilityTransitions() {
             960.0f,
             0.0f),
         "an outbound transition hides the Home control as soon as its target leaves Home");
+
+    Check(ShouldExposeHomeSearch(true, true, false, false),
+          "plain bubble Home exposes the Search control");
+    Check(!ShouldExposeHomeSearch(true, true, true, false),
+          "the event-notification panel yields the bottom-right corner to Sony's ellipsis");
+    Check(!ShouldExposeHomeSearch(true, true, false, true),
+          "a foreground title LiveArea hides Search");
+    Check(!ShouldExposeHomeSearch(false, true, false, false),
+          "AppMgr foreground or system-overlay ownership suppresses Search");
+    Check(!ShouldExposeHomeSearch(true, false, false, false),
+          "non-Home topmenu surfaces do not expose Search");
 
     Check(
         ComputeHomeVisibilityAction(false, true, false) ==

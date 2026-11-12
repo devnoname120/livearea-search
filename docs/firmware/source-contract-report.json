@@ -1,0 +1,120 @@
+{
+  "checks": [
+    {
+      "id": "appmgr-livearea-launch-interface",
+      "issues": [],
+      "source": "src/vita/launcher.cpp"
+    },
+    {
+      "id": "appmgr-shell-state-interface",
+      "issues": [],
+      "source": "src/vita/plugin_main.cpp"
+    },
+    {
+      "id": "filtered-title-output-ownership",
+      "issues": [],
+      "source": "src/vita/lsdb_index_source.cpp"
+    },
+    {
+      "id": "filtered-title-query-semantics",
+      "issues": [],
+      "source": "include/livearea_search/lsdb_abi.h"
+    },
+    {
+      "id": "indicator-notification-corner-resource-hashes",
+      "issues": [],
+      "source": "include/livearea_search/overlay_visibility.h"
+    },
+    {
+      "id": "indicator-popup-return-classification",
+      "issues": [],
+      "source": "src/core/overlay_visibility.cpp"
+    },
+    {
+      "id": "lsdb-abi-layout",
+      "issues": [],
+      "source": "include/livearea_search/lsdb_abi.h"
+    },
+    {
+      "id": "lsdb-export-contract",
+      "issues": [],
+      "source": "include/livearea_search/lsdb_abi.h"
+    },
+    {
+      "id": "notification-panel-preemption",
+      "issues": [],
+      "source": "src/vita/search_overlay.cpp"
+    },
+    {
+      "id": "paf-draw-order-contract",
+      "issues": [],
+      "source": "src/vita/search_overlay.cpp"
+    },
+    {
+      "id": "paf-ime-exports-and-layout",
+      "issues": [],
+      "source": "src/vita/paf_text_box_ime.h"
+    },
+    {
+      "id": "paf-pad-export-and-layout",
+      "issues": [],
+      "source": "src/vita/paf_pad_device_handler.h"
+    },
+    {
+      "id": "paf-page-order-exports",
+      "issues": [],
+      "source": "src/vita/paf_page_order.h"
+    },
+    {
+      "id": "paf-touchscreen-handler-abi",
+      "issues": [],
+      "source": "src/vita/paf_touchscreen_device_handler.h"
+    },
+    {
+      "id": "rejected-lsdb-icon-info-abi",
+      "issues": [],
+      "source": "include/livearea_search/lsdb_abi.h"
+    },
+    {
+      "id": "rejected-lsdb-icon-info-caller",
+      "issues": [],
+      "source": "src/vita/lsdb_index_source.cpp"
+    },
+    {
+      "id": "release-binary-cleanliness",
+      "issues": [],
+      "source": "CMakeLists.txt"
+    },
+    {
+      "id": "results-layout-contract",
+      "issues": [],
+      "source": "resources/livearea_search_plugin.xml"
+    },
+    {
+      "id": "shell-loading-scene-contract",
+      "issues": [],
+      "source": "include/livearea_search/module_readiness.h"
+    },
+    {
+      "id": "shell-ps-button-ownership",
+      "issues": [],
+      "source": "src/vita/search_overlay.cpp"
+    },
+    {
+      "id": "system-overlay-identifiers",
+      "issues": [],
+      "source": "src/vita/search_overlay.cpp"
+    },
+    {
+      "id": "topmenu-resource-hashes",
+      "issues": [],
+      "source": "include/livearea_search/overlay_visibility.h"
+    }
+  ],
+  "schema": 1,
+  "summary": {
+    "checks": 22,
+    "failed": 0,
+    "passed": 22
+  }
+}

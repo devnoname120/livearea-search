@@ -45,8 +45,7 @@ target_include_directories(livearea_search_core SYSTEM BEFORE PRIVATE
     "${LIVEAREA_SEARCH_PAF_INCLUDE}"
 )
 
-add_executable(livearea_search_vita
-    src/vita/config_file_failsafe.cpp
+set(LIVEAREA_SEARCH_VITA_SOURCES
     src/vita/icon_cache.cpp
     src/vita/launcher.cpp
     src/vita/libc_shim.c
@@ -56,9 +55,24 @@ add_executable(livearea_search_vita
     src/vita/plugin_main.cpp
     src/vita/recent_apps_file.cpp
     src/vita/search_overlay.cpp
-    src/vita/startup_log.cpp
     src/vita/widget_event.cpp
 )
+
+if(LIVEAREA_SEARCH_DIAGNOSTICS)
+    list(APPEND LIVEAREA_SEARCH_VITA_SOURCES src/vita/startup_log.cpp)
+endif()
+
+if(LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE)
+    list(APPEND LIVEAREA_SEARCH_VITA_SOURCES src/vita/config_file_failsafe.cpp)
+endif()
+
+add_executable(livearea_search_vita ${LIVEAREA_SEARCH_VITA_SOURCES})
+
+if(LIVEAREA_SEARCH_DIAGNOSTICS)
+    set(LIVEAREA_SEARCH_VITA_OPTIMIZATION -Os)
+else()
+    set(LIVEAREA_SEARCH_VITA_OPTIMIZATION -O2)
+endif()
 
 set_source_files_properties(src/vita/icon_cache.cpp PROPERTIES
     COMPILE_OPTIONS -fno-strict-aliasing
@@ -74,10 +88,12 @@ set_target_properties(livearea_search_vita PROPERTIES
 
 target_compile_definitions(livearea_search_vita PRIVATE
     LIVEAREA_SEARCH_VITASDK=1
+    LIVEAREA_SEARCH_DIAGNOSTICS=$<BOOL:${LIVEAREA_SEARCH_DIAGNOSTICS}>
+    LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE=$<BOOL:${LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE}>
 )
 
 target_compile_options(livearea_search_vita PRIVATE
-    -O2
+    ${LIVEAREA_SEARCH_VITA_OPTIMIZATION}
     -Wall
     -Wextra
     -Wpedantic

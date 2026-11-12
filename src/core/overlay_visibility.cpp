@@ -2,6 +2,37 @@
 
 namespace livearea_search {
 
+IndicatorPopupVisibility ClassifyIndicatorPopupVisibility(
+    bool plugin_available,
+    std::int32_t query_result,
+    std::size_t opened_page_count) noexcept {
+    if (!plugin_available) {
+        return IndicatorPopupVisibility::Unknown;
+    }
+    if (opened_page_count != 0U) {
+        return IndicatorPopupVisibility::Visible;
+    }
+    if (query_result >= 0 || query_result == -1) {
+        return IndicatorPopupVisibility::Hidden;
+    }
+    return IndicatorPopupVisibility::Unknown;
+}
+
+IndicatorPopupVisibility ClassifyIndicatorPopupOwnership(
+    bool static_root_available,
+    bool notification_corner_exists,
+    IndicatorPopupVisibility opened_pages) noexcept {
+    if (notification_corner_exists ||
+        opened_pages == IndicatorPopupVisibility::Visible) {
+        return IndicatorPopupVisibility::Visible;
+    }
+    if (!static_root_available ||
+        opened_pages == IndicatorPopupVisibility::Unknown) {
+        return IndicatorPopupVisibility::Unknown;
+    }
+    return IndicatorPopupVisibility::Hidden;
+}
+
 HomeVisibilityAction ComputeHomeVisibilityAction(
     bool currently_visible,
     bool topmenu_visible,
@@ -42,13 +73,79 @@ bool IsBubbleHomeSurface(
            target_y >= -tolerance && target_y <= tolerance;
 }
 
+bool ShouldExposeHomeSearch(
+    bool shell_allows_overlay,
+    bool bubble_home_visible,
+    bool event_notification_visible,
+    bool livearea_visible) noexcept {
+    return shell_allows_overlay &&
+        bubble_home_visible &&
+        !event_notification_visible &&
+        !livearea_visible;
+}
+
+bool ObserveNotificationCornerPress(
+    bool results_open,
+    bool touch_pressed,
+    std::int32_t x,
+    std::int32_t y,
+    std::uint64_t current_time_us,
+    NotificationPanelSuppression& suppression,
+    std::uint64_t& opening_deadline_us) noexcept {
+    const bool inside_notification_corner =
+        x >= 872 && x < 960 && y >= 0 && y < 80;
+    if (results_open || !touch_pressed || !inside_notification_corner ||
+        suppression != NotificationPanelSuppression::Inactive) {
+        return false;
+    }
+    suppression = NotificationPanelSuppression::Triggered;
+    opening_deadline_us = current_time_us + kNotificationPanelOpeningGraceUs;
+    if (opening_deadline_us < current_time_us) {
+        opening_deadline_us = UINT64_MAX;
+    }
+    return true;
+}
+
+bool AdvanceNotificationPanelSuppression(
+    IndicatorPopupVisibility popup_visibility,
+    std::uint64_t current_time_us,
+    std::uint64_t opening_deadline_us,
+    NotificationPanelSuppression& suppression) noexcept {
+    if (suppression == NotificationPanelSuppression::Inactive) {
+        return false;
+    }
+    if (suppression == NotificationPanelSuppression::Triggered) {
+        if (popup_visibility == IndicatorPopupVisibility::Visible) {
+            suppression = NotificationPanelSuppression::WaitingForClose;
+            return true;
+        }
+        if (popup_visibility == IndicatorPopupVisibility::Unknown ||
+            current_time_us < opening_deadline_us) {
+            return true;
+        }
+        suppression = NotificationPanelSuppression::Inactive;
+        return false;
+    }
+    if (popup_visibility == IndicatorPopupVisibility::Unknown) {
+        return true;
+    }
+    if (popup_visibility == IndicatorPopupVisibility::Visible) {
+        return true;
+    }
+    suppression = NotificationPanelSuppression::Inactive;
+    return false;
+}
+
 bool ObserveHomePadPress(
     bool results_open,
     std::uint32_t ps_button_mask,
-    std::uint32_t current_buttons,
+    std::uint32_t& forwarded_buttons,
     bool& ps_owned) noexcept {
-    const bool pressed = (current_buttons & ps_button_mask) != 0U;
+    const bool pressed = (forwarded_buttons & ps_button_mask) != 0U;
     if (ps_owned) {
+        if (pressed) {
+            forwarded_buttons &= ~ps_button_mask;
+        }
         if (!pressed) {
             ps_owned = false;
         }
@@ -58,14 +155,19 @@ bool ObserveHomePadPress(
         return false;
     }
     ps_owned = true;
+    forwarded_buttons &= ~ps_button_mask;
     return true;
 }
 
-bool ShouldReleaseHomePadLock(
-    bool lock_held,
-    bool results_open,
+HomePadCloseAction ComputeHomePadCloseAction(
+    bool close_pending,
     bool ps_owned) noexcept {
-    return lock_held && !results_open && !ps_owned;
+    if (!close_pending) {
+        return HomePadCloseAction::None;
+    }
+    return ps_owned ?
+        HomePadCloseAction::WaitForRelease :
+        HomePadCloseAction::ReleaseLockAndClose;
 }
 
 bool ShouldAdoptExternalImeEdit(

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "minimum_version": "3.600",
+  "resources": {
+    "topmenu": {
+      "file_names": [
+        "topmenu_plugin.rco"
+      ],
+      "required_u32_le": {
+        "home_page": "0x5E9535B3",
+        "home_scroll": "0x9CC405A3"
+      },
+      "exact_count": 1
+    },
+    "indicator": {
+      "file_names": [
+        "indicator_plugin.rco"
+      ],
+      "required_u32_le": {
+        "indicator_page": "0xFFD7E3F0",
+        "notification_corner": "0x8BF9D3C5"
+      },
+      "exact_count": 1
+    }
+  }
+}

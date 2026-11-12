@@ -7,6 +7,9 @@ namespace livearea_search {
 
 const std::uint32_t kTopMenuHomePageHash = 0x5E9535B3U;
 const std::uint32_t kTopMenuHomeScrollHash = 0x9CC405A3U;
+const std::uint32_t kIndicatorPageHash = 0xFFD7E3F0U;
+const std::uint32_t kIndicatorNotificationCornerHash = 0x8BF9D3C5U;
+const std::uint64_t kNotificationPanelOpeningGraceUs = 500000ULL;
 
 enum class HomeVisibilityAction {
     None,
@@ -33,6 +36,33 @@ enum class ResultsBackAction {
     CloseResults,
 };
 
+enum class HomePadCloseAction {
+    None,
+    WaitForRelease,
+    ReleaseLockAndClose,
+};
+
+enum class NotificationPanelSuppression {
+    Inactive,
+    Triggered,
+    WaitingForClose,
+};
+
+enum class IndicatorPopupVisibility {
+    Unknown,
+    Hidden,
+    Visible,
+};
+
+IndicatorPopupVisibility ClassifyIndicatorPopupVisibility(
+    bool plugin_available,
+    std::int32_t query_result,
+    std::size_t opened_page_count) noexcept;
+IndicatorPopupVisibility ClassifyIndicatorPopupOwnership(
+    bool static_root_available,
+    bool notification_corner_exists,
+    IndicatorPopupVisibility opened_pages) noexcept;
+
 HomeVisibilityAction ComputeHomeVisibilityAction(
     bool currently_visible,
     bool topmenu_visible,
@@ -48,14 +78,31 @@ bool IsBubbleHomeSurface(
     float focus_y,
     float target_x,
     float target_y) noexcept;
+bool ShouldExposeHomeSearch(
+    bool shell_allows_overlay,
+    bool bubble_home_visible,
+    bool event_notification_visible,
+    bool livearea_visible) noexcept;
+bool ObserveNotificationCornerPress(
+    bool results_open,
+    bool touch_pressed,
+    std::int32_t x,
+    std::int32_t y,
+    std::uint64_t current_time_us,
+    NotificationPanelSuppression& suppression,
+    std::uint64_t& opening_deadline_us) noexcept;
+bool AdvanceNotificationPanelSuppression(
+    IndicatorPopupVisibility popup_visibility,
+    std::uint64_t current_time_us,
+    std::uint64_t opening_deadline_us,
+    NotificationPanelSuppression& suppression) noexcept;
 bool ObserveHomePadPress(
     bool results_open,
     std::uint32_t ps_button_mask,
-    std::uint32_t current_buttons,
+    std::uint32_t& forwarded_buttons,
     bool& ps_owned) noexcept;
-bool ShouldReleaseHomePadLock(
-    bool lock_held,
-    bool results_open,
+HomePadCloseAction ComputeHomePadCloseAction(
+    bool close_pending,
     bool ps_owned) noexcept;
 bool ShouldAdoptExternalImeEdit(
     bool results_open,

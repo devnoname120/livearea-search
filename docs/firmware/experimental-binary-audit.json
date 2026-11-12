@@ -1,0 +1,257 @@
+{
+  "imports": [
+    {
+      "function_nids": [
+        "0xBF4213A3"
+      ],
+      "name": "SceAppMgr",
+      "nid": "0x8AF17416",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    },
+    {
+      "function_nids": [
+        "0x003C634F",
+        "0x5E86319A"
+      ],
+      "name": "SceAppMgrUser",
+      "nid": "0xA6605D6F",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    },
+    {
+      "function_nids": [
+        "0x16512F59",
+        "0x34EFD876",
+        "0xC70B8886",
+        "0xFDB32293"
+      ],
+      "name": "SceIofilemgr",
+      "nid": "0xF2FF276E",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    },
+    {
+      "function_nids": [
+        "0x14E9DBD7",
+        "0x244E76D2",
+        "0x2611CB0B",
+        "0x46E7BE7B",
+        "0x52315AD7",
+        "0x632980D7",
+        "0x6C60AC61",
+        "0x736753C8",
+        "0x8CBA03D5",
+        "0x8FFFF5A8",
+        "0x91FA6614",
+        "0x9670D39F",
+        "0x99BA173E",
+        "0x9CC2BFDF",
+        "0xAC595E68",
+        "0xBCA5B623",
+        "0xC5C11EE7",
+        "0xDA6EC8EF",
+        "0xDDB395A9",
+        "0xE20ED0F3",
+        "0xF08DE149",
+        "0xF737E369",
+        "0xFA26BC62"
+      ],
+      "name": "SceLibKernel",
+      "nid": "0xCAE9ACE6",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    },
+    {
+      "function_nids": [
+        "0x06C015C6",
+        "0x4A8115D5",
+        "0x6735B503",
+        "0x6A687A77",
+        "0x950C3AA0"
+      ],
+      "name": "ScePafCommon",
+      "nid": "0x3C1965CD",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    },
+    {
+      "function_nids": [
+        "0x29FC820B",
+        "0x9FAF51CF",
+        "0xB228A257",
+        "0xCDE30B64"
+      ],
+      "name": "ScePafGraphics",
+      "nid": "0xA070D6A7",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    },
+    {
+      "function_nids": [
+        "0x7F98B644",
+        "0xB9FB9BD6",
+        "0xCBAF777C"
+      ],
+      "name": "ScePafMisc",
+      "nid": "0x3D643CE8",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    },
+    {
+      "function_nids": [
+        "0x5F05DE68",
+        "0x74FB882A",
+        "0xA7368FD6",
+        "0xB673D5D7",
+        "0xB7C0081F"
+      ],
+      "name": "ScePafResource",
+      "nid": "0x2836DC9B",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    },
+    {
+      "function_nids": [
+        "0x0886C1E3",
+        "0x2C5B6F9C",
+        "0x347AFDD9",
+        "0xF5A2AA0C"
+      ],
+      "name": "ScePafStdc",
+      "nid": "0xA7D28DAE",
+      "tls_variable_nids": [],
+      "variable_nids": [
+        "0x610F2F91",
+        "0xB4A712A7"
+      ]
+    },
+    {
+      "function_nids": [
+        "0x1ABA2C42",
+        "0x2AE6D3EB",
+        "0x789B263C",
+        "0x88061E60",
+        "0x8CCECAC9",
+        "0x93F7A9D6",
+        "0x95F9C45F",
+        "0xC4BD9753",
+        "0xE639D331",
+        "0xECF8334D",
+        "0xEEDBA99E",
+        "0xF9FFA0BE"
+      ],
+      "name": "ScePafThread",
+      "nid": "0x54276D19",
+      "tls_variable_nids": [],
+      "variable_nids": [
+        "0x1B570C72"
+      ]
+    },
+    {
+      "function_nids": [
+        "0x004D98CC",
+        "0x16A302B9",
+        "0x18158D58",
+        "0x185EC9F9",
+        "0x1ADB3A22",
+        "0x2FB738A8",
+        "0x30B442D9",
+        "0x34FE1331",
+        "0x3E9B4F77",
+        "0x3FE812F6",
+        "0x400F84CE",
+        "0x99300D8B",
+        "0x9C7F70FD",
+        "0xAB0DB9B0",
+        "0xBE479650",
+        "0xCBCCEBCF",
+        "0xE80B3F65",
+        "0xF72FC59E"
+      ],
+      "name": "ScePafToplevel",
+      "nid": "0x4D9A9DD0",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    },
+    {
+      "function_nids": [
+        "0x046AA07D",
+        "0x1316E7E8",
+        "0x21125870",
+        "0x417201D9",
+        "0x44B22ACA",
+        "0x57D78B6F",
+        "0x5E31C59D",
+        "0x627CDA4E",
+        "0x6381B5FA",
+        "0x701AADB6",
+        "0x77CE1B80",
+        "0x7B4B305A",
+        "0x82515E71",
+        "0x8552BF82",
+        "0x9224D27B",
+        "0x95FE9C0D",
+        "0x9D304F4A",
+        "0xA2061BF4",
+        "0xAA43C610",
+        "0xB3FA381F",
+        "0xB4B7F2FB",
+        "0xB8CA08DA",
+        "0xC347E909",
+        "0xCBA27AAC",
+        "0xD2BF4CC7",
+        "0xD2E00457",
+        "0xDE4C0601",
+        "0xE29AB31F",
+        "0xEBF3AB0F",
+        "0xF1176ACC",
+        "0xFB7FE189",
+        "0xFFC580E3"
+      ],
+      "name": "ScePafWidget",
+      "nid": "0x073F8C68",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    },
+    {
+      "function_nids": [
+        "0xA91E15EE",
+        "0xB8EF5818",
+        "0xB9D5EBDE"
+      ],
+      "name": "SceSysmem",
+      "nid": "0x37FE725A",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    },
+    {
+      "function_nids": [
+        "0x1BBDE3D9",
+        "0x4B675D05",
+        "0xF4EE4FA9"
+      ],
+      "name": "SceThreadmgr",
+      "nid": "0x859A24B1",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    },
+    {
+      "function_nids": [
+        "0x6231AAD1",
+        "0xA5899384"
+      ],
+      "name": "taihen",
+      "nid": "0x203D1A28",
+      "tls_variable_nids": [],
+      "variable_nids": []
+    }
+  ],
+  "issues": [],
+  "module_name": "livearea_search",
+  "module_nid": "0x00000000",
+  "passed": true,
+  "profile": "experimental",
+  "schema": 1,
+  "sha256": "292188d3759d3eb7a95fcce0328bb790c1cf53028905ae241fadcb549fcc5af7"
+}

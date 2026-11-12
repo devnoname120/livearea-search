@@ -1,0 +1,682 @@
+{
+  "resources": [
+    {
+      "family": "internal-cex",
+      "issues": [],
+      "path": "decrypted/SCE/4.00_ina/inai400/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "4.000"
+    },
+    {
+      "family": "internal-cex",
+      "issues": [],
+      "path": "decrypted/SCE/4.00_ina/inai400/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "4.000"
+    },
+    {
+      "family": "external-dex",
+      "issues": [],
+      "path": "decrypted/SCE/External/3.650/E.dex.release.type3.qaf/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.650"
+    },
+    {
+      "family": "external-dex",
+      "issues": [],
+      "path": "decrypted/SCE/External/3.650/E.dex.release.type3.qaf/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.650"
+    },
+    {
+      "family": "external-dex",
+      "issues": [],
+      "path": "decrypted/SCE/External/3.670/E.dex.release.type3.qaf/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.670"
+    },
+    {
+      "family": "external-dex",
+      "issues": [],
+      "path": "decrypted/SCE/External/3.670/E.dex.release.type3.qaf/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.670"
+    },
+    {
+      "family": "internal-cex",
+      "issues": [],
+      "path": "decrypted/SCE/Internal (No Watermarks)/3.650/3_650._011.I.cex.release.type3.qaf/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.650"
+    },
+    {
+      "family": "internal-cex",
+      "issues": [],
+      "path": "decrypted/SCE/Internal (No Watermarks)/3.650/3_650._011.I.cex.release.type3.qaf/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.650"
+    },
+    {
+      "family": "internal-dex",
+      "issues": [],
+      "path": "decrypted/SCE/Internal (No Watermarks)/3.650/3_650._011.I.dex.release.type3.qaf/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.650"
+    },
+    {
+      "family": "internal-dex",
+      "issues": [],
+      "path": "decrypted/SCE/Internal (No Watermarks)/3.650/3_650._011.I.dex.release.type3.qaf/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.650"
+    },
+    {
+      "family": "internal-cex",
+      "issues": [],
+      "path": "decrypted/SCE/Internal/3.600/3_600_011.I.cex_for_tool.release.type3.qaf/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.600"
+    },
+    {
+      "family": "internal-cex",
+      "issues": [],
+      "path": "decrypted/SCE/Internal/3.600/3_600_011.I.cex_for_tool.release.type3.qaf/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.600"
+    },
+    {
+      "family": "internal-devtool",
+      "issues": [],
+      "path": "decrypted/SCE/Internal/3.630/3_630_011.I.devtool.release.type3.qaf/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.630"
+    },
+    {
+      "family": "internal-devtool",
+      "issues": [],
+      "path": "decrypted/SCE/Internal/3.630/3_630_011.I.devtool.release.type3.qaf/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.630"
+    },
+    {
+      "family": "internal-cex",
+      "issues": [],
+      "path": "decrypted/SCE/Internal/3.650/3_650_000.I.cex_for_tool.release.type3.qaf/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.650"
+    },
+    {
+      "family": "internal-cex",
+      "issues": [],
+      "path": "decrypted/SCE/Internal/3.650/3_650_000.I.cex_for_tool.release.type3.qaf/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.650"
+    },
+    {
+      "family": "internal-cex",
+      "issues": [],
+      "path": "decrypted/SCE/Internal/3.650/3_650_011.I.cex_for_tool.release.type3.qaf/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.650"
+    },
+    {
+      "family": "internal-cex",
+      "issues": [],
+      "path": "decrypted/SCE/Internal/3.650/3_650_011.I.cex_for_tool.release.type3.qaf/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.650"
+    },
+    {
+      "family": "internal-devtool",
+      "issues": [],
+      "path": "decrypted/SCE/Internal/3.650/3_650_011.I.devtool.release.type3.qaf/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.650"
+    },
+    {
+      "family": "internal-devtool",
+      "issues": [],
+      "path": "decrypted/SCE/Internal/3.650/3_650_011.I.devtool.release.type3.qaf/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.650"
+    },
+    {
+      "family": "internal-devtool",
+      "issues": [],
+      "path": "decrypted/SCE/Internal/3.720/3_720_011.I.devtool.release.type3/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.720"
+    },
+    {
+      "family": "internal-devtool",
+      "issues": [],
+      "path": "decrypted/SCE/Internal/3.720/3_720_011.I.devtool.release.type3/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.720"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.600.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.600"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.600.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.600"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.610.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.610"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.610.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.610"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.630.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.630"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.630.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.630"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.650.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.650"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.650.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.650"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.670.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.670"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.670.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.670"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.680.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.680"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.680.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.680"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.690.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.690"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.690.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.690"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.700.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.700"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.700.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.700"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.710.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.710"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.710.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.710"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.730.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.730"
+    },
+    {
+      "family": "devkit",
+      "issues": [],
+      "path": "decrypted/external/devkit/3.730.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.730"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.60/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.600"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.60/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.600"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.61/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.610"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.61/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.610"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.63/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.630"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.63/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.630"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.65/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.650"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.65/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.650"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.67/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.670"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.67/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.670"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.68/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.680"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.68/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.680"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.69/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.690"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.69/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.690"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.70/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.700"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.70/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.700"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.71/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.710"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.71/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.710"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.72/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.720"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.72/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.720"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.73/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.730"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.73/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.730"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.74/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.740"
+    },
+    {
+      "family": "retail",
+      "issues": [],
+      "path": "decrypted/external/official/3.74/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.740"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.600.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.600"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.600.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.600"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.610.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.610"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.610.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.610"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.630.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.630"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.630.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.630"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.650.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.650"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.650.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.650"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.670.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.670"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.670.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.670"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.680.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.680"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.680.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.680"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.700.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.700"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.700.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.700"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.720.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.720"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.720.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.720"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.730.011/fs/vs0/vsh/shell/indicator_plugin.rco",
+      "resource_key": "indicator",
+      "sha256": "060df71c2489055129dadad9bf17e06a857f87e5525273880fa5db670d990c08",
+      "version": "3.730"
+    },
+    {
+      "family": "testkit",
+      "issues": [],
+      "path": "decrypted/external/testkit/3.730.011/fs/vs0/vsh/shell/topmenu_plugin.rco",
+      "resource_key": "topmenu",
+      "sha256": "d98de175cc211a15e848e90eeaeeb76c4ad076acbfdcd3d19e05440c3ab83e1e",
+      "version": "3.730"
+    }
+  ],
+  "schema": 1,
+  "summary": {
+    "failed": 0,
+    "passed": 84,
+    "resources": 84
+  }
+}

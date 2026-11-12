@@ -29,13 +29,23 @@ endif()
 
 foreach(required_style IN ITEMS
     "<style_corner_button sound=\"_common_sound_corner_button_menu\" key_focus=\"0\" corner_obj=\"home_search_corner_obj\""
-    "texture0=\"_common_texture_corner_button_base\" id=\"home_search_bg_obj\""
-    "size=\"64,64,0\" texture0=\"texture_home_search\" id=\"home_search_corner_obj\" pos=\"13,-11,0\""
+    "color=\"0.21,0.43,0.73,0.9\" texture0=\"_common_texture_corner_button_base\" id=\"home_search_bg_obj\""
+    "size=\"48,48,0\" texture0=\"texture_home_search\" id=\"home_search_corner_obj\" pos=\"14,-17,0\""
     "texture0=\"_common_texture_corner_button_highlight\" id=\"home_search_highlight_obj\""
     "texture0=\"_common_texture_corner_button_glow\" blend=\"2\" id=\"home_search_glow_obj\"")
     string(FIND "${resource_xml}" "${required_style}" required_style_index)
     if(required_style_index EQUAL -1)
         message(FATAL_ERROR "Missing native corner-style component: ${required_style}")
+    endif()
+endforeach()
+
+foreach(forbidden_style IN ITEMS
+    "color=\"0.16,0.15,0.22,0.8\" texture0=\"_common_texture_corner_button_base\""
+    "size=\"64,64,0\" texture0=\"texture_home_search\""
+    "pos=\"13,-11,0\"")
+    string(FIND "${resource_xml}" "${forbidden_style}" forbidden_style_index)
+    if(NOT forbidden_style_index EQUAL -1)
+        message(FATAL_ERROR "Home Search still uses the oversized/dark visual: ${forbidden_style}")
     endif()
 endforeach()
 

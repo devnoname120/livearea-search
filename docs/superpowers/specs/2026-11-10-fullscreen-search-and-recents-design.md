@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved on 2026-11-10 and corrected after Vita 146 hardware validation. This document supersedes the compact IME surface and empty-query-close behavior in `2026-11-09-livearea-search-design.md`. The existing Home-only magnifier control, progressive search, icon-cache policy, deferred kinetic-scroll teardown, startup self-disable fail-safe, and title launch route remain in force unless explicitly changed below.
+Approved on 2026-11-10 and corrected after Vita 146 hardware validation. This document supersedes the compact IME surface and empty-query-close behavior in `2026-11-09-livearea-search-design.md`. The existing Home-only magnifier control, progressive search, icon-cache policy, deferred kinetic-scroll teardown, and title launch route remain in force unless explicitly changed below. The startup self-disable requirement was later narrowed to the diagnostic experimental profile; permanent release builds do not read or mutate `config.txt`.
 
 ## Goal
 

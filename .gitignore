@@ -14,4 +14,7 @@
 *.obj
 *.pdb
 *.user
+*.py[cod]
+__pycache__/
+/build-*-latest.txt
 .DS_Store

@@ -13,7 +13,9 @@ const char* NonNull(const char* value) {
 
 bool BuildCatalogRecord(const CatalogMetadataView& metadata, AppRecord& record) {
     const String title_id(NonNull(metadata.title_id));
-    if (metadata.bootable == 0 || !IsValidTitleId(title_id)) {
+    if (!metadata.has_home_bubble ||
+        metadata.bootable == 0 ||
+        !IsValidTitleId(title_id)) {
         return false;
     }
 
