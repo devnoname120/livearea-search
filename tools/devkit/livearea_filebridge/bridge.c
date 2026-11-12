@@ -211,8 +211,8 @@ static int allowed_read(const char *path) {
     static const char *const exact[] = {
         "ur0:/tai/config.txt",
         "ur0:/tai/livearea_search.suprx",
-        "ur0:/data/livearea-search/livearea_search_plugin.rco",
-        "ur0:/data/livearea-search/startup.log",
+        "ur0:/data/livearea_search/livearea_search_plugin.rco",
+        "ur0:/data/livearea_search/startup.log",
     };
     for (size_t i = 0; i < sizeof(exact) / sizeof(exact[0]); ++i)
         if (exact_path(path, exact[i])) return 1;
@@ -222,11 +222,11 @@ static int allowed_read(const char *path) {
 static int allowed_replace(const char *path) {
     return exact_path(path, "ur0:/tai/config.txt") ||
            exact_path(path, "ur0:/tai/livearea_search.suprx") ||
-           exact_path(path, "ur0:/data/livearea-search/livearea_search_plugin.rco");
+           exact_path(path, "ur0:/data/livearea_search/livearea_search_plugin.rco");
 }
 
 static int allowed_directory(const char *path) {
-    return exact_path(path, "ur0:/data/livearea-search");
+    return exact_path(path, "ur0:/data/livearea_search");
 }
 
 static int entry_path(const request_entry *entry, char output[257]) {
@@ -528,7 +528,7 @@ static int list_tree(int output, const char *base, const char *relative, unsigne
 static int list_operation(uint32_t job, uint32_t index, const request_entry *entry, const char *path,
                           uint32_t *size) {
     if ((!exact_path(path, "ux0:/data") &&
-         !exact_path(path, "ur0:/data/livearea-search")) || !entry->limit ||
+         !exact_path(path, "ur0:/data/livearea_search")) || !entry->limit ||
         entry->limit > MAX_READ || entry->new_size || entry->old_size) return -EINVAL;
     char output_path[96];
     int result = artifact_path(output_path, job, index, "out");

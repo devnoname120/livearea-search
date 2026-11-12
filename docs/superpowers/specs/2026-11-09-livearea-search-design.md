@@ -71,7 +71,7 @@ The repository provides:
 - a host CMake target for the portable core and tests;
 - a Vita CMake target when `VITASDK` and ScePaf-RE headers/libraries are available;
 - RCO XML and generated hash constants;
-- an install layout under `ur0:data/livearea-search/` plus a `ur0:tai/config.txt` entry for `*NPXS10015`/SceShell.
+- an install layout under `ur0:data/livearea_search/` plus a `ur0:tai/config.txt` entry for `*NPXS10015`/SceShell.
 
 The repository includes a container build helper for the configured VitaSDK, ScePaf-RE, and CXML toolchain. It produces the SUPRX, RCO, and install-shaped staging tree locally. The complete flow has been validated on Vita 146; other firmware and hardware variants still require device testing.
 

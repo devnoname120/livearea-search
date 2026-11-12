@@ -178,13 +178,13 @@ add_custom_target(livearea_search_rco ALL
 
 add_custom_target(livearea_search_dist ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory
-        "${CMAKE_CURRENT_BINARY_DIR}/dist/ur0/data/livearea-search"
+        "${CMAKE_CURRENT_BINARY_DIR}/dist/ur0/data/livearea_search"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_BINARY_DIR}/livearea_search.suprx"
         "${CMAKE_CURRENT_BINARY_DIR}/dist/livearea_search.suprx"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${LIVEAREA_SEARCH_RCO}"
-        "${CMAKE_CURRENT_BINARY_DIR}/dist/ur0/data/livearea-search/livearea_search_plugin.rco"
+        "${CMAKE_CURRENT_BINARY_DIR}/dist/ur0/data/livearea_search/livearea_search_plugin.rco"
     DEPENDS livearea_search.suprx-self livearea_search_rco
     VERBATIM
 )

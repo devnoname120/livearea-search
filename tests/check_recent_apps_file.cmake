@@ -16,9 +16,9 @@ foreach(required_header IN ITEMS
 endforeach()
 
 foreach(required_source IN ITEMS
-    "ur0:data/livearea-search/recent_apps.txt"
-    "ur0:data/livearea-search/recent_apps.txt.tmp"
-    "ur0:data/livearea-search/recent_apps.txt.bak"
+    "ur0:data/livearea_search/recent_apps.txt"
+    "ur0:data/livearea_search/recent_apps.txt.tmp"
+    "ur0:data/livearea_search/recent_apps.txt.bak"
     "sceIoSyncByFd"
     "VerifyFile"
     "RecoverBackupIfNeeded"
@@ -34,6 +34,12 @@ foreach(required_source IN ITEMS
         message(FATAL_ERROR "Missing bounded atomic persistence step: ${required_source}")
     endif()
 endforeach()
+
+string(CONCAT obsolete_path "ur0:data/livearea" "-search")
+string(FIND "${recent_source}" "${obsolete_path}" obsolete_directory)
+if(NOT obsolete_directory EQUAL -1)
+    message(FATAL_ERROR "Recent persistence still uses the obsolete hyphenated data directory")
+endif()
 
 string(FIND "${recent_source}" "sceIoRename(kRecentPath, kBackupPath)" backup_rename)
 string(FIND "${recent_source}" "sceIoRename(kTemporaryPath, kRecentPath)" install_rename REVERSE)

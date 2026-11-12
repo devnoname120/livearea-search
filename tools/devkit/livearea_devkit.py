@@ -27,9 +27,9 @@ OP_READ_OPTIONAL = 6
 
 CONFIG_PATH = "ur0:/tai/config.txt"
 SUPRX_PATH = "ur0:/tai/livearea_search.suprx"
-RCO_PATH = "ur0:/data/livearea-search/livearea_search_plugin.rco"
-STARTUP_LOG_PATH = "ur0:/data/livearea-search/startup.log"
-DATA_DIRECTORY = "ur0:/data/livearea-search"
+RCO_PATH = "ur0:/data/livearea_search/livearea_search_plugin.rco"
+STARTUP_LOG_PATH = "ur0:/data/livearea_search/startup.log"
+DATA_DIRECTORY = "ur0:/data/livearea_search"
 
 ACTIVE_PATHS = (
     b"ur0:tai/livearea_search.suprx",

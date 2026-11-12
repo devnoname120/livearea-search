@@ -471,8 +471,8 @@ foreach(required_header IN ITEMS
 endforeach()
 
 foreach(required_source IN ITEMS
-    "ur0:data/livearea-search/recent_apps.txt"
-    "ur0:data/livearea-search/recent_apps.txt.tmp"
+    "ur0:data/livearea_search/recent_apps.txt"
+    "ur0:data/livearea_search/recent_apps.txt.tmp"
     "sceIoSyncByFd"
     "VerifyFile"
     "sceIoRename"
@@ -545,9 +545,9 @@ Create `src/vita/recent_apps_file.cpp` with these helpers and ordering:
 namespace livearea_search {
 namespace {
 
-const char kRecentDirectory[] = "ur0:data/livearea-search";
-const char kRecentPath[] = "ur0:data/livearea-search/recent_apps.txt";
-const char kTemporaryPath[] = "ur0:data/livearea-search/recent_apps.txt.tmp";
+const char kRecentDirectory[] = "ur0:data/livearea_search";
+const char kRecentPath[] = "ur0:data/livearea_search/recent_apps.txt";
+const char kTemporaryPath[] = "ur0:data/livearea_search/recent_apps.txt.tmp";
 const int kErrorNoEntry = static_cast<int>(0x80010002U);
 const int kErrorIo = static_cast<int>(0x80010005U);
 
@@ -1155,7 +1155,7 @@ git diff --check
   resources src tests
 sha256sum \
   build-vita-goal4-final/dist/livearea_search.suprx \
-  build-vita-goal4-final/dist/ur0/data/livearea-search/livearea_search_plugin.rco
+  build-vita-goal4-final/dist/ur0/data/livearea_search/livearea_search_plugin.rco
 ```
 
 Inside the pinned VitaSDK container, inspect the unconverted ELF and VELF:
@@ -1196,9 +1196,9 @@ Before uploading anything, retrieve to a timestamped evidence directory:
 
 - `ur0:/tai/config.txt`
 - `ur0:/tai/livearea_search.suprx`
-- `ur0:/data/livearea-search/livearea_search_plugin.rco`
-- `ur0:/data/livearea-search/recent_apps.txt` when present
-- `ur0:/data/livearea-search/startup.log`
+- `ur0:/data/livearea_search/livearea_search_plugin.rco`
+- `ur0:/data/livearea_search/recent_apps.txt` when present
+- `ur0:/data/livearea_search/startup.log`
 - the current recent `ux0:/data/psp2core-*shell.self*` name window
 
 Record sizes and SHA-256 hashes. Require the active config entry to be disabled as `#r0:/tai/livearea_search.suprx` before deployment.

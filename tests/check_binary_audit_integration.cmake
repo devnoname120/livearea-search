@@ -49,9 +49,15 @@ foreach(required IN ITEMS
     "\"experimental\""
     "\"0xFA26BC62\""
     "\"ur0:tai/config.txt\""
-    "\"ur0:data/livearea-search/startup.log\"")
+    "\"ur0:data/livearea_search/startup.log\"")
     string(FIND "${contract_file}" "${required}" found)
     if(found EQUAL -1)
         message(FATAL_ERROR "Binary contract is missing release/experimental evidence: ${required}")
     endif()
 endforeach()
+
+string(CONCAT obsolete_path "ur0:data/livearea" "-search")
+string(FIND "${contract_file}" "${obsolete_path}" obsolete_directory)
+if(NOT obsolete_directory EQUAL -1)
+    message(FATAL_ERROR "Binary contract still permits the obsolete hyphenated data directory")
+endif()

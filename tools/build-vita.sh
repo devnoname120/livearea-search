@@ -116,4 +116,4 @@ docker run --rm \
     '
 
 printf 'SUPRX: %s/%s/dist/livearea_search.suprx\n' "$ROOT" "$BUILD_DIR"
-printf 'RCO:   %s/%s/dist/ur0/data/livearea-search/livearea_search_plugin.rco\n' "$ROOT" "$BUILD_DIR"
+printf 'RCO:   %s/%s/dist/ur0/data/livearea_search/livearea_search_plugin.rco\n' "$ROOT" "$BUILD_DIR"

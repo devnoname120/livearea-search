@@ -8,8 +8,8 @@ namespace livearea_search {
 
 namespace {
 
-const char kLogDirectory[] = "ur0:data/livearea-search";
-const char kLogPath[] = "ur0:data/livearea-search/startup.log";
+const char kLogDirectory[] = "ur0:data/livearea_search";
+const char kLogPath[] = "ur0:data/livearea_search/startup.log";
 
 void AppendLine(const char* message) {
     if (message == NULL) {

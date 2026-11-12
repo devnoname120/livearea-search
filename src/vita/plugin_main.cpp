@@ -26,7 +26,7 @@
 namespace {
 
 const char kPluginName[] = "livearea_search_plugin";
-const char kResourcePath[] = "ur0:data/livearea-search/livearea_search_plugin.rco";
+const char kResourcePath[] = "ur0:data/livearea_search/livearea_search_plugin.rco";
 const std::uint32_t kShellReadyFrameThreshold = 1;
 const unsigned int kLsdbReadyPollDelayUs = 100000U;
 

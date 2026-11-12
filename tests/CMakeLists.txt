@@ -382,6 +382,20 @@ add_test(
 )
 
 add_test(
+    NAME livearea_search_data_directory_naming
+    COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/check_data_directory_naming.py
+        --root ${CMAKE_SOURCE_DIR}
+)
+
+add_test(
+    NAME livearea_search_missing_rco_fail_closed
+    COMMAND ${CMAKE_COMMAND}
+        -DPLUGIN_MAIN=${CMAKE_SOURCE_DIR}/src/vita/plugin_main.cpp
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/check_missing_rco_fail_closed.cmake
+)
+
+add_test(
     NAME livearea_search_resource_compatibility_audit_tests
     COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tools/firmware/test_resource_compatibility_audit.py

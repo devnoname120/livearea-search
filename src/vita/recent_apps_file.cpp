@@ -6,10 +6,10 @@
 namespace livearea_search {
 namespace {
 
-const char kRecentDirectory[] = "ur0:data/livearea-search";
-const char kRecentPath[] = "ur0:data/livearea-search/recent_apps.txt";
-const char kTemporaryPath[] = "ur0:data/livearea-search/recent_apps.txt.tmp";
-const char kBackupPath[] = "ur0:data/livearea-search/recent_apps.txt.bak";
+const char kRecentDirectory[] = "ur0:data/livearea_search";
+const char kRecentPath[] = "ur0:data/livearea_search/recent_apps.txt";
+const char kTemporaryPath[] = "ur0:data/livearea_search/recent_apps.txt.tmp";
+const char kBackupPath[] = "ur0:data/livearea_search/recent_apps.txt.bak";
 const int kErrorNoEntry = static_cast<int>(0x80010002U);
 const int kErrorIo = static_cast<int>(0x80010005U);
 

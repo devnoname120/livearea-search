@@ -55,7 +55,7 @@
         }
       ],
       "required_strings": [
-        "ur0:data/livearea-search/livearea_search_plugin.rco",
+        "ur0:data/livearea_search/livearea_search_plugin.rco",
         "topmenu_plugin",
         "indicator_plugin",
         "page_event_notification",
@@ -64,7 +64,7 @@
       "forbidden_strings": [
         "ur0:tai/config.txt",
         "LiveAreaSearchConfig",
-        "ur0:data/livearea-search/startup.log",
+        "ur0:data/livearea_search/startup.log",
         "[LiveAreaSearch]",
         "module_start config entries disabled",
         "overlay active",
@@ -125,10 +125,10 @@
       ],
       "forbidden_imports": [],
       "required_strings": [
-        "ur0:data/livearea-search/livearea_search_plugin.rco",
+        "ur0:data/livearea_search/livearea_search_plugin.rco",
         "ur0:tai/config.txt",
         "LiveAreaSearchConfig",
-        "ur0:data/livearea-search/startup.log",
+        "ur0:data/livearea_search/startup.log",
         "module_start config entries disabled",
         "overlay active"
       ],

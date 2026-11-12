@@ -86,7 +86,7 @@ When the query is non-empty, the existing ranked search behavior and numeric res
 
 ### Persistence format
 
-Use `ur0:data/livearea-search/recent_apps.txt` with this bounded text format:
+Use `ur0:data/livearea_search/recent_apps.txt` with this bounded text format:
 
 ```text
 LIVEAREA_SEARCH_RECENTS_V1

@@ -157,7 +157,7 @@ class FileBridgeTests(unittest.TestCase):
     def test_optional_read_reports_an_absent_log_without_stopping(self) -> None:
         status = self.run_job(
             [
-                (6, 8192, 0, 0, "ur0:/data/livearea-search/startup.log"),
+                (6, 8192, 0, 0, "ur0:/data/livearea_search/startup.log"),
                 (1, 8192, 0, 0, "ur0:/tai/config.txt"),
             ]
         )
@@ -199,18 +199,18 @@ class FileBridgeTests(unittest.TestCase):
         self.stage(1, "payload", payload)
         status = self.run_job(
             [
-                (5, 0, 0, 0, "ur0:/data/livearea-search"),
+                (5, 0, 0, 0, "ur0:/data/livearea_search"),
                 (
                     4,
                     8192,
                     len(payload),
                     0,
-                    "ur0:/data/livearea-search/livearea_search_plugin.rco",
+                    "ur0:/data/livearea_search/livearea_search_plugin.rco",
                 ),
             ]
         )
         self.assertEqual(status, [(0, 0), (0, len(payload))])
-        target = self.root / "ur0/data/livearea-search/livearea_search_plugin.rco"
+        target = self.root / "ur0/data/livearea_search/livearea_search_plugin.rco"
         self.assertEqual(target.read_bytes(), payload)
 
     def test_unlisted_write_path_is_rejected(self) -> None:
