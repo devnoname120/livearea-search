@@ -2,6 +2,31 @@
 
 LiveArea Search is a resident SceShell user plugin that adds a native ScePaf search control to the bottom-right corner of the Vita Home LiveArea. It opens the system IME through a PAF `TextBox`, searches the installed application database, and renders matching applications in a virtualized PAF `ListView`. Selecting a row asks SceShell to open that title through its normal `psgm:open` route.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="docs/screenshots/home-search.png"><img src="docs/screenshots/home-search.png" width="480" alt="LiveArea Search magnifier on the Vita Home screen"></a><br>
+      <sub>Native Search control on the Home LiveArea</sub>
+    </td>
+    <td align="center">
+      <a href="docs/screenshots/search-ime.png"><img src="docs/screenshots/search-ime.png" width="480" alt="Progressive LiveArea Search results above the Vita system keyboard"></a><br>
+      <sub>Progressive results with the system IME</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="docs/screenshots/recent.png"><img src="docs/screenshots/recent.png" width="480" alt="Recent applications listed in LiveArea Search"></a><br>
+      <sub>Persistent eligible-only Recent list</sub>
+    </td>
+    <td align="center">
+      <a href="docs/screenshots/livearea-launch.png"><img src="docs/screenshots/livearea-launch.png" width="480" alt="A title LiveArea opened from a LiveArea Search result"></a><br>
+      <sub>Selected results open the title's native LiveArea</sub>
+    </td>
+  </tr>
+</table>
+
 ## Runtime behavior
 
 - The Search control is a native lower-right PAF `CornerButton` using Sony's base, highlight, glow, sound, and layout with only the stock ellipsis replaced by a centered magnifying-glass texture. Its bubble keeps Sony's blue corner-button chroma at a lighter value, and the glyph is deliberately smaller than the original prototype. It accepts front-touch input but is excluded from focus, keycode, and analog routing, so it does not interfere with Home navigation.
