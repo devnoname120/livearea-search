@@ -69,21 +69,21 @@ class ProtocolTests(unittest.TestCase):
 
 class ConfigTests(unittest.TestCase):
     def test_active_entry_produces_exact_disabled_and_active_variants(self) -> None:
-        original = b"*KERNEL\n*main\nur0:tai/livearea_search.suprx\n"
+        original = b"*KERNEL\n*main\nur0:tai/livearea_search/livearea_search.suprx\n"
         disabled, active = livearea_devkit.config_variants(original)
         self.assertEqual(active, original)
         self.assertEqual(
             disabled,
-            b"*KERNEL\n*main\n#r0:tai/livearea_search.suprx\n",
+            b"*KERNEL\n*main\n#r0:tai/livearea_search/livearea_search.suprx\n",
         )
 
     def test_disabled_entry_reactivates_without_reformatting(self) -> None:
-        original = b"*main\r\n#r0:/tai/livearea_search.suprx\r\n"
+        original = b"*main\r\n#r0:/tai/livearea_search/livearea_search.suprx\r\n"
         disabled, active = livearea_devkit.config_variants(original)
         self.assertEqual(disabled, original)
         self.assertEqual(
             active,
-            b"*main\r\nur0:/tai/livearea_search.suprx\r\n",
+            b"*main\r\nur0:/tai/livearea_search/livearea_search.suprx\r\n",
         )
 
     def test_missing_entry_is_inserted_disabled_after_main(self) -> None:
@@ -91,27 +91,27 @@ class ConfigTests(unittest.TestCase):
         disabled, active = livearea_devkit.config_variants(original)
         self.assertEqual(
             disabled,
-            b"*KERNEL\nfoo.skprx\n*main\n#r0:tai/livearea_search.suprx\nbar.suprx\n",
+            b"*KERNEL\nfoo.skprx\n*main\n#r0:tai/livearea_search/livearea_search.suprx\nbar.suprx\n",
         )
         self.assertEqual(
             active,
-            b"*KERNEL\nfoo.skprx\n*main\nur0:tai/livearea_search.suprx\nbar.suprx\n",
+            b"*KERNEL\nfoo.skprx\n*main\nur0:tai/livearea_search/livearea_search.suprx\nbar.suprx\n",
         )
 
     def test_ambiguous_or_indented_entries_are_rejected(self) -> None:
         with self.assertRaises(livearea_devkit.DevkitError):
             livearea_devkit.config_variants(
-                b"*main\nur0:tai/livearea_search.suprx\n#r0:tai/livearea_search.suprx\n"
+                b"*main\nur0:tai/livearea_search/livearea_search.suprx\n#r0:tai/livearea_search/livearea_search.suprx\n"
             )
         with self.assertRaises(livearea_devkit.DevkitError):
             livearea_devkit.config_variants(
-                b"*main\n  ur0:tai/livearea_search.suprx\n"
+                b"*main\n  ur0:tai/livearea_search/livearea_search.suprx\n"
             )
 
 
 class StagePlanTests(unittest.TestCase):
     def test_absent_artifacts_are_installed_between_disable_and_activate(self) -> None:
-        config = b"*main\nur0:tai/livearea_search.suprx\n"
+        config = b"*main\nur0:tai/livearea_search/livearea_search.suprx\n"
         entries, staged, disabled, active = livearea_devkit.build_stage_plan(
             config,
             b"",
@@ -124,6 +124,7 @@ class StagePlanTests(unittest.TestCase):
             [
                 livearea_devkit.OP_REPLACE,
                 livearea_devkit.OP_ENSURE_DIR,
+                livearea_devkit.OP_ENSURE_DIR,
                 livearea_devkit.OP_INSTALL,
                 livearea_devkit.OP_INSTALL,
                 livearea_devkit.OP_REPLACE,
@@ -131,23 +132,25 @@ class StagePlanTests(unittest.TestCase):
         )
         self.assertEqual(staged[(0, "expected")], config)
         self.assertEqual(staged[(0, "payload")], disabled)
-        self.assertEqual(staged[(4, "expected")], disabled)
-        self.assertEqual(staged[(4, "payload")], active)
-        self.assertNotIn((2, "expected"), staged)
+        self.assertEqual(entries[1].path, livearea_devkit.DATA_DIRECTORY)
+        self.assertEqual(entries[2].path, livearea_devkit.INSTALL_DIRECTORY)
+        self.assertEqual(staged[(5, "expected")], disabled)
+        self.assertEqual(staged[(5, "payload")], active)
         self.assertNotIn((3, "expected"), staged)
+        self.assertNotIn((4, "expected"), staged)
 
     def test_existing_artifacts_require_exact_old_bytes(self) -> None:
         entries, staged, _, _ = livearea_devkit.build_stage_plan(
-            b"*main\n#r0:tai/livearea_search.suprx\n",
+            b"*main\n#r0:tai/livearea_search/livearea_search.suprx\n",
             b"old-suprx",
             b"old-rco",
             b"new-suprx",
             b"new-rco",
         )
-        self.assertEqual(entries[2].operation, livearea_devkit.OP_REPLACE)
         self.assertEqual(entries[3].operation, livearea_devkit.OP_REPLACE)
-        self.assertEqual(staged[(2, "expected")], b"old-suprx")
-        self.assertEqual(staged[(3, "expected")], b"old-rco")
+        self.assertEqual(entries[4].operation, livearea_devkit.OP_REPLACE)
+        self.assertEqual(staged[(3, "expected")], b"old-suprx")
+        self.assertEqual(staged[(4, "expected")], b"old-rco")
 
     def test_baseline_reads_are_nonmutating(self) -> None:
         entries = livearea_devkit.baseline_entries()
@@ -163,7 +166,7 @@ class StagePlanTests(unittest.TestCase):
 
     def test_stage_plan_never_emits_zero_length_writes(self) -> None:
         entries, _, _, _ = livearea_devkit.build_stage_plan(
-            b"*main\n#r0:tai/livearea_search.suprx\n",
+            b"*main\n#r0:tai/livearea_search/livearea_search.suprx\n",
             b"old-suprx",
             b"old-rco",
             b"new-suprx",

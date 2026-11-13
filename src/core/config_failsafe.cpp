@@ -3,8 +3,8 @@
 namespace livearea_search {
 namespace {
 
-const char kCanonicalPluginPath[] = "ur0:tai/livearea_search.suprx";
-const char kSlashPluginPath[] = "ur0:/tai/livearea_search.suprx";
+const char kCanonicalPluginPath[] = "ur0:tai/livearea_search/livearea_search.suprx";
+const char kSlashPluginPath[] = "ur0:/tai/livearea_search/livearea_search.suprx";
 
 bool IsLineBreak(char value) {
     return value == '\n' || value == '\r';

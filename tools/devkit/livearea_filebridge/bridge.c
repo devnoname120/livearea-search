@@ -210,8 +210,8 @@ static int exact_path(const char *path, const char *expected) {
 static int allowed_read(const char *path) {
     static const char *const exact[] = {
         "ur0:/tai/config.txt",
-        "ur0:/tai/livearea_search.suprx",
-        "ur0:/data/livearea_search/livearea_search_plugin.rco",
+        "ur0:/tai/livearea_search/livearea_search.suprx",
+        "ur0:/tai/livearea_search/livearea_search_plugin.rco",
         "ur0:/data/livearea_search/startup.log",
     };
     for (size_t i = 0; i < sizeof(exact) / sizeof(exact[0]); ++i)
@@ -221,12 +221,13 @@ static int allowed_read(const char *path) {
 
 static int allowed_replace(const char *path) {
     return exact_path(path, "ur0:/tai/config.txt") ||
-           exact_path(path, "ur0:/tai/livearea_search.suprx") ||
-           exact_path(path, "ur0:/data/livearea_search/livearea_search_plugin.rco");
+           exact_path(path, "ur0:/tai/livearea_search/livearea_search.suprx") ||
+           exact_path(path, "ur0:/tai/livearea_search/livearea_search_plugin.rco");
 }
 
 static int allowed_directory(const char *path) {
-    return exact_path(path, "ur0:/data/livearea_search");
+    return exact_path(path, "ur0:/data/livearea_search") ||
+           exact_path(path, "ur0:/tai/livearea_search");
 }
 
 static int entry_path(const request_entry *entry, char output[257]) {

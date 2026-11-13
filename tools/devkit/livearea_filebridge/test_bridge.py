@@ -56,7 +56,8 @@ class FileBridgeTests(unittest.TestCase):
         self.job = 1
         self.config_path = self.root / "ur0/tai/config.txt"
         self.config_path.parent.mkdir(parents=True)
-        self.config_path.write_bytes(b"*main\nur0:tai/livearea_search.suprx\n")
+        (self.root / "ur0/tai/livearea_search").mkdir()
+        self.config_path.write_bytes(b"*main\nur0:tai/livearea_search/livearea_search.suprx\n")
         (self.root / "ur0/data").mkdir(parents=True)
 
     def run_job(
@@ -135,21 +136,21 @@ class FileBridgeTests(unittest.TestCase):
         payload = b"experimental suprx"
         self.stage(0, "payload", payload)
         status = self.run_job(
-            [(4, 8192, len(payload), 0, "ur0:/tai/livearea_search.suprx")]
+            [(4, 8192, len(payload), 0, "ur0:/tai/livearea_search/livearea_search.suprx")]
         )
-        target = self.root / "ur0/tai/livearea_search.suprx"
+        target = self.root / "ur0/tai/livearea_search/livearea_search.suprx"
         self.assertEqual(status, [(0, len(payload))])
         self.assertEqual(target.read_bytes(), payload)
         evidence = self.root / "host0/bridge/00000001-000.out"
         self.assertEqual(evidence.read_bytes(), payload)
 
     def test_install_refuses_an_existing_file(self) -> None:
-        target = self.root / "ur0/tai/livearea_search.suprx"
+        target = self.root / "ur0/tai/livearea_search/livearea_search.suprx"
         target.write_bytes(b"existing")
         payload = b"replacement"
         self.stage(0, "payload", payload)
         status = self.run_job(
-            [(4, 8192, len(payload), 0, "ur0:/tai/livearea_search.suprx")]
+            [(4, 8192, len(payload), 0, "ur0:/tai/livearea_search/livearea_search.suprx")]
         )
         self.assertNotEqual(status[0][0], 0)
         self.assertEqual(target.read_bytes(), b"existing")
@@ -180,7 +181,7 @@ class FileBridgeTests(unittest.TestCase):
         self.assertNotEqual(status[0][0], 0)
 
         status = self.run_job(
-            [(4, 8192, 0, 0, "ur0:/tai/livearea_search.suprx")]
+            [(4, 8192, 0, 0, "ur0:/tai/livearea_search/livearea_search.suprx")]
         )
         self.assertNotEqual(status[0][0], 0)
 
@@ -188,29 +189,30 @@ class FileBridgeTests(unittest.TestCase):
         payload = b"candidate requiring rollback"
         self.stage(0, "payload", payload)
         status = self.run_job(
-            [(4, 8192, len(payload), 0, "ur0:/tai/livearea_search.suprx")],
+            [(4, 8192, len(payload), 0, "ur0:/tai/livearea_search/livearea_search.suprx")],
             {"BRIDGE_FAIL_WRITE_CALL": "1"},
         )
         self.assertNotEqual(status[0][0], 0)
-        self.assertFalse((self.root / "ur0/tai/livearea_search.suprx").exists())
+        self.assertFalse((self.root / "ur0/tai/livearea_search/livearea_search.suprx").exists())
 
     def test_ensure_directory_then_install_rco(self) -> None:
+        (self.root / "ur0/tai/livearea_search").rmdir()
         payload = b"plugin rco"
         self.stage(1, "payload", payload)
         status = self.run_job(
             [
-                (5, 0, 0, 0, "ur0:/data/livearea_search"),
+                (5, 0, 0, 0, "ur0:/tai/livearea_search"),
                 (
                     4,
                     8192,
                     len(payload),
                     0,
-                    "ur0:/data/livearea_search/livearea_search_plugin.rco",
+                    "ur0:/tai/livearea_search/livearea_search_plugin.rco",
                 ),
             ]
         )
         self.assertEqual(status, [(0, 0), (0, len(payload))])
-        target = self.root / "ur0/data/livearea_search/livearea_search_plugin.rco"
+        target = self.root / "ur0/tai/livearea_search/livearea_search_plugin.rco"
         self.assertEqual(target.read_bytes(), payload)
 
     def test_unlisted_write_path_is_rejected(self) -> None:
@@ -224,7 +226,7 @@ class FileBridgeTests(unittest.TestCase):
 
     def test_short_writes_are_completed(self) -> None:
         old = self.config_path.read_bytes()
-        new = b"*main\n#r0:tai/livearea_search.suprx\n"
+        new = b"*main\n#r0:tai/livearea_search/livearea_search.suprx\n"
         self.stage(0, "expected", old)
         self.stage(0, "payload", new)
         status = self.run_job(

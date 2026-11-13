@@ -76,26 +76,26 @@ void TestConfigSelfDisable() {
     Check(
         ApplyConfigSelfDisable(
             "*main\n"
-            "ur0:/tai/livearea_search.suprx \n"
+            "ur0:/tai/livearea_search/livearea_search.suprx \n"
             "ur0:tai/other.suprx\n") ==
             "*main\n"
-            "#r0:/tai/livearea_search.suprx \n"
+            "#r0:/tai/livearea_search/livearea_search.suprx \n"
             "ur0:tai/other.suprx\n",
         "slash-form plugin entry is disabled with a one-byte replacement");
 
     Check(
         ApplyConfigSelfDisable(
             "*main\r\n"
-            "ur0:tai/livearea_search.suprx\r\n") ==
+            "ur0:tai/livearea_search/livearea_search.suprx\r\n") ==
             "*main\r\n"
-            "#r0:tai/livearea_search.suprx\r\n",
+            "#r0:tai/livearea_search/livearea_search.suprx\r\n",
         "canonical Vita path form is disabled with CRLF line endings");
 
     const std::string unterminated_entry =
-        "ur0:/tai/livearea_search.suprx";
+        "ur0:/tai/livearea_search/livearea_search.suprx";
     Check(
         ApplyConfigSelfDisable(unterminated_entry) ==
-            "#r0:/tai/livearea_search.suprx",
+            "#r0:/tai/livearea_search/livearea_search.suprx",
         "a final unterminated plugin entry is disabled");
     Check(
         livearea_search::CountConfigSelfDisableEntries(
@@ -103,8 +103,8 @@ void TestConfigSelfDisable() {
         "a unique active entry is counted exactly once");
 
     const std::string duplicate_entries =
-        "ur0:tai/livearea_search.suprx\n"
-        "ur0:/tai/livearea_search.suprx\n";
+        "ur0:tai/livearea_search/livearea_search.suprx\n"
+        "ur0:/tai/livearea_search/livearea_search.suprx\n";
     Check(
         livearea_search::CountConfigSelfDisableEntries(
             duplicate_entries.data(), duplicate_entries.size()) == 2,
@@ -112,21 +112,21 @@ void TestConfigSelfDisable() {
 
     Check(
         ApplyConfigSelfDisable(
-            "#r0:tai/livearea_search.suprx\n"
-            "#ur0:/tai/livearea_search.suprx\n"
-            "prefix ur0:tai/livearea_search.suprx\n"
-            "ur0:tai/livearea_search.suprx.bak\n"
-            "ur0:tai/livearea_search.suprx extra\n") ==
-            "#r0:tai/livearea_search.suprx\n"
-            "#ur0:/tai/livearea_search.suprx\n"
-            "prefix ur0:tai/livearea_search.suprx\n"
-            "ur0:tai/livearea_search.suprx.bak\n"
-            "ur0:tai/livearea_search.suprx extra\n",
+            "#r0:tai/livearea_search/livearea_search.suprx\n"
+            "#ur0:/tai/livearea_search/livearea_search.suprx\n"
+            "prefix ur0:tai/livearea_search/livearea_search.suprx\n"
+            "ur0:tai/livearea_search/livearea_search.suprx.bak\n"
+            "ur0:tai/livearea_search/livearea_search.suprx extra\n") ==
+            "#r0:tai/livearea_search/livearea_search.suprx\n"
+            "#ur0:/tai/livearea_search/livearea_search.suprx\n"
+            "prefix ur0:tai/livearea_search/livearea_search.suprx\n"
+            "ur0:tai/livearea_search/livearea_search.suprx.bak\n"
+            "ur0:tai/livearea_search/livearea_search.suprx extra\n",
         "commented, embedded, longer, and token-suffixed paths remain unchanged");
 
     Check(
-        ApplyConfigSelfDisable("  ur0:tai/livearea_search.suprx\n") ==
-            "# ur0:tai/livearea_search.suprx\n",
+        ApplyConfigSelfDisable("  ur0:tai/livearea_search/livearea_search.suprx\n") ==
+            "# ur0:tai/livearea_search/livearea_search.suprx\n",
         "an indented entry is disabled by commenting the physical line start");
 
     Check(

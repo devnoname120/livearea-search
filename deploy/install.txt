@@ -1,0 +1,19 @@
+LiveArea Search - Installation
+
+1. Copy the livearea_search folder from this ZIP to ur0:/tai.
+
+The files should be at:
+ur0:/tai/livearea_search/livearea_search.suprx
+ur0:/tai/livearea_search/livearea_search_plugin.rco
+
+2. Back up ur0:/tai/config.txt, then open it in a text editor.
+
+Add the plugin under *main:
+
+*main
+ur0:tai/livearea_search/livearea_search.suprx
+
+If *main already exists, add only the plugin line under it.
+Replace any older LiveArea Search entry instead of adding a second one.
+
+3. Restart your PS Vita.

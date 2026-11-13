@@ -14,16 +14,16 @@ OLD_PATHS = (
 REQUIRED_PATHS = {
     "README.md": (
         b"ur0:data/livearea_search/recent_apps.txt",
-        b"ur0:data/livearea_search/livearea_search_plugin.rco",
+        b"ur0:/tai/livearea_search/livearea_search_plugin.rco",
     ),
     "cmake/VitaShellPlugin.cmake": (
-        b"dist/ur0/data/livearea_search",
+        b"dist/livearea_search",
     ),
     "tools/build-vita.sh": (
-        b"dist/ur0/data/livearea_search/livearea_search_plugin.rco",
+        b"dist/livearea_search/livearea_search_plugin.rco",
     ),
     "src/vita/plugin_main.cpp": (
-        b"ur0:data/livearea_search/livearea_search_plugin.rco",
+        b"ur0:tai/livearea_search/livearea_search_plugin.rco",
     ),
     "src/vita/recent_apps_file.cpp": (
         b"ur0:data/livearea_search/recent_apps.txt",
@@ -34,18 +34,18 @@ REQUIRED_PATHS = {
         b"ur0:data/livearea_search/startup.log",
     ),
     "tools/devkit/livearea_devkit.py": (
-        b"ur0:/data/livearea_search/livearea_search_plugin.rco",
+        b"ur0:/tai/livearea_search/livearea_search_plugin.rco",
         b"ur0:/data/livearea_search/startup.log",
     ),
     "tools/devkit/livearea_filebridge/bridge.c": (
-        b"ur0:/data/livearea_search/livearea_search_plugin.rco",
+        b"ur0:/tai/livearea_search/livearea_search_plugin.rco",
         b"ur0:/data/livearea_search/startup.log",
     ),
     "tools/devkit/livearea_filebridge/test_bridge.py": (
-        b"ur0/data/livearea_search/livearea_search_plugin.rco",
+        b"ur0/tai/livearea_search/livearea_search_plugin.rco",
     ),
     "tools/firmware/release_binary_contract.json": (
-        b"ur0:data/livearea_search/livearea_search_plugin.rco",
+        b"ur0:tai/livearea_search/livearea_search_plugin.rco",
         b"ur0:data/livearea_search/startup.log",
     ),
     "tools/firmware/source_firmware_contract.json": (

@@ -113,7 +113,15 @@ docker run --rm \
             --profile "$BINARY_AUDIT_PROFILE" \
             --binary "$LIVEAREA_BUILD_DIR/livearea_search_vita.velf" \
             --json-out "$LIVEAREA_BUILD_DIR/binary-audit.json"
+        if [ "$BINARY_AUDIT_PROFILE" = release ]; then
+            python3 /src/tools/package_release.py \
+                --dist "$LIVEAREA_BUILD_DIR/dist" \
+                --output "$LIVEAREA_BUILD_DIR/livearea_search.zip"
+        fi
     '
 
-printf 'SUPRX: %s/%s/dist/livearea_search.suprx\n' "$ROOT" "$BUILD_DIR"
-printf 'RCO:   %s/%s/dist/ur0/data/livearea_search/livearea_search_plugin.rco\n' "$ROOT" "$BUILD_DIR"
+printf 'SUPRX: %s/%s/dist/livearea_search/livearea_search.suprx\n' "$ROOT" "$BUILD_DIR"
+printf 'RCO:   %s/%s/dist/livearea_search/livearea_search_plugin.rco\n' "$ROOT" "$BUILD_DIR"
+if [ "$BINARY_AUDIT_PROFILE" = release ]; then
+    printf 'ZIP:   %s/%s/livearea_search.zip\n' "$ROOT" "$BUILD_DIR"
+fi

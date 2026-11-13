@@ -389,6 +389,13 @@ add_test(
 )
 
 add_test(
+    NAME livearea_search_release_package_tests
+    COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/tools/test_package_release.py
+        -v
+)
+
+add_test(
     NAME livearea_search_missing_rco_fail_closed
     COMMAND ${CMAKE_COMMAND}
         -DPLUGIN_MAIN=${CMAKE_SOURCE_DIR}/src/vita/plugin_main.cpp

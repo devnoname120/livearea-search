@@ -26,18 +26,19 @@ OP_ENSURE_DIR = 5
 OP_READ_OPTIONAL = 6
 
 CONFIG_PATH = "ur0:/tai/config.txt"
-SUPRX_PATH = "ur0:/tai/livearea_search.suprx"
-RCO_PATH = "ur0:/data/livearea_search/livearea_search_plugin.rco"
+SUPRX_PATH = "ur0:/tai/livearea_search/livearea_search.suprx"
+RCO_PATH = "ur0:/tai/livearea_search/livearea_search_plugin.rco"
 STARTUP_LOG_PATH = "ur0:/data/livearea_search/startup.log"
 DATA_DIRECTORY = "ur0:/data/livearea_search"
+INSTALL_DIRECTORY = "ur0:/tai/livearea_search"
 
 ACTIVE_PATHS = (
-    b"ur0:tai/livearea_search.suprx",
-    b"ur0:/tai/livearea_search.suprx",
+    b"ur0:tai/livearea_search/livearea_search.suprx",
+    b"ur0:/tai/livearea_search/livearea_search.suprx",
 )
 DISABLED_PATHS = (
-    b"#r0:tai/livearea_search.suprx",
-    b"#r0:/tai/livearea_search.suprx",
+    b"#r0:tai/livearea_search/livearea_search.suprx",
+    b"#r0:/tai/livearea_search/livearea_search.suprx",
 )
 
 REMOTE_TOOLING = "/home/dietpi/vita-devkit/psp2-tooling"
@@ -472,6 +473,7 @@ def build_stage_plan(
     entries = [
         Entry(OP_REPLACE, CONFIG_PATH, 1024 * 1024, len(disabled_config), len(config)),
         Entry(OP_ENSURE_DIR, DATA_DIRECTORY),
+        Entry(OP_ENSURE_DIR, INSTALL_DIRECTORY),
         Entry(
             OP_REPLACE if old_suprx else OP_INSTALL,
             SUPRX_PATH,
@@ -497,15 +499,15 @@ def build_stage_plan(
     staged: dict[tuple[int, str], bytes] = {
         (0, "expected"): config,
         (0, "payload"): disabled_config,
-        (2, "payload"): new_suprx,
-        (3, "payload"): new_rco,
-        (4, "expected"): disabled_config,
-        (4, "payload"): active_config,
+        (3, "payload"): new_suprx,
+        (4, "payload"): new_rco,
+        (5, "expected"): disabled_config,
+        (5, "payload"): active_config,
     }
     if old_suprx:
-        staged[(2, "expected")] = old_suprx
+        staged[(3, "expected")] = old_suprx
     if old_rco:
-        staged[(3, "expected")] = old_rco
+        staged[(4, "expected")] = old_rco
     return entries, staged, disabled_config, active_config
 
 
@@ -538,9 +540,9 @@ def command_stage(args: argparse.Namespace) -> None:
     job = report["job"]
     expected_outputs = {
         0: disabled_config,
-        2: new_suprx,
-        3: new_rco,
-        4: active_config,
+        3: new_suprx,
+        4: new_rco,
+        5: active_config,
     }
     for index, expected in expected_outputs.items():
         actual = load_output(evidence, job, index)
