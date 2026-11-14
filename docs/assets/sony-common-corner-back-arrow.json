@@ -1,0 +1,17 @@
+{
+  "compressed_sha256": "c3dc3cd62a2f6145f0622c123c6cb9b340658a282238de00101f3ab49610981b",
+  "compressed_size": 1514,
+  "filetable_offset": "0x00035270",
+  "gim_format": 5,
+  "gim_order": 0,
+  "gim_sha256": "a007d2290f159db87ccd49ac689053e3b57c927ff323de7275676c69a074c2ba",
+  "height": 64,
+  "png_sha256": "6d18fe0829e3767f9ba972cb8774a908e6a0c01526295e11284df4fba6bbfa1d",
+  "schema": 1,
+  "source": "SCE/Internal/3.600/3_600_011.I.cex_for_tool.release.type3.qaf/fs/vs0/data/external/common/common_resource.rco",
+  "source_rco_sha256": "6ee58e58d1e78fecd99ea93e585c81efde3e940e3e0ca5cec4e64ba7cacdc806",
+  "texture_id": "0x352FFDE1",
+  "tree_node_offset": "0x00009ED8",
+  "uncompressed_size": 5328,
+  "width": 64
+}

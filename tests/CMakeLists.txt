@@ -207,6 +207,13 @@ add_test(
 )
 
 add_test(
+    NAME livearea_search_home_icon_asset_contracts
+    COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_home_icon_assets.py
+        --root ${CMAKE_SOURCE_DIR}
+)
+
+add_test(
     NAME livearea_search_experience_contract
     COMMAND ${CMAKE_COMMAND}
         -DRESOURCE_XML=${CMAKE_SOURCE_DIR}/resources/livearea_search_plugin.xml
