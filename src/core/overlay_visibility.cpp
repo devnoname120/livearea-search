@@ -2,6 +2,17 @@
 
 namespace livearea_search {
 
+ApplicationSwitcherEventAction ClassifyApplicationSwitcherEvent(
+    std::int32_t event) noexcept {
+    if (event == kShellEventApplicationSwitcherEnter) {
+        return ApplicationSwitcherEventAction::Enter;
+    }
+    if (event == kShellEventApplicationSwitcherLeave) {
+        return ApplicationSwitcherEventAction::Leave;
+    }
+    return ApplicationSwitcherEventAction::None;
+}
+
 IndicatorPopupVisibility ClassifyIndicatorPopupVisibility(
     bool plugin_available,
     std::int32_t query_result,
@@ -130,13 +141,15 @@ bool ShouldExposeHomeSearch(
     bool event_notification_visible,
     bool livearea_visible,
     bool external_ime_visible,
-    bool home_edit_mode_visible) noexcept {
+    bool home_edit_mode_visible,
+    bool application_switcher_owned) noexcept {
     return shell_allows_overlay &&
         bubble_home_visible &&
         !event_notification_visible &&
         !livearea_visible &&
         !external_ime_visible &&
-        !home_edit_mode_visible;
+        !home_edit_mode_visible &&
+        !application_switcher_owned;
 }
 
 bool ObserveNotificationCornerPress(

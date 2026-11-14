@@ -29,6 +29,10 @@ const std::uint32_t kShellUtilLibraryNid = 0xD2B1C8AEU;
 const std::uint32_t kShellUtilInitEventsNid = 0xE8AD11ECU;
 const std::uint32_t kShellUtilLockNid = 0xA9537233U;
 const std::uint32_t kShellUtilUnlockNid = 0x21A6CF54U;
+const char* kShellModuleName = "SceShell";
+const std::uint32_t kShellLibraryNid = 0x2404AE25U;
+const std::uint32_t kShellEventRegisterNid = 0x7FE4E732U;
+const std::uint32_t kShellEventUnregisterNid = 0xD4C7D2B7U;
 
 template <typename Function>
 int ResolveShellUtilFunction(std::uint32_t nid, Function& function) {
@@ -36,6 +40,24 @@ int ResolveShellUtilFunction(std::uint32_t nid, Function& function) {
     const int result = taiGetModuleExportFunc(
         kShellSvcModuleName,
         kShellUtilLibraryNid,
+        nid,
+        &address);
+    if (result < 0) {
+        return result;
+    }
+    if (address == 0) {
+        return -1;
+    }
+    function = reinterpret_cast<Function>(address);
+    return 0;
+}
+
+template <typename Function>
+int ResolveShellEventFunction(std::uint32_t nid, Function& function) {
+    std::uintptr_t address = 0;
+    const int result = taiGetModuleExportFunc(
+        kShellModuleName,
+        kShellLibraryNid,
         nid,
         &address);
     if (result < 0) {
@@ -253,6 +275,7 @@ void LogHomeGate(
     bool livearea_visible,
     bool external_ime_visible,
     bool home_edit_mode_visible,
+    bool application_switcher_owned,
     bool immediate_hide,
     bool topmenu_found,
     bool root_found,
@@ -272,7 +295,8 @@ void LogHomeGate(
         (exposed ? 1U << 8U : 0U) |
         (external_ime_visible ? 1U << 9U : 0U) |
         (home_edit_mode_visible ? 1U << 10U : 0U) |
-        (immediate_hide ? 1U << 11U : 0U);
+        (immediate_hide ? 1U << 11U : 0U) |
+        (application_switcher_owned ? 1U << 12U : 0U);
     static unsigned int last_state = ~0U;
     if (state == last_state) {
         return;
@@ -281,12 +305,13 @@ void LogHomeGate(
     sceClibSnprintf(
         line,
         sizeof(line),
-        "home gate shell=%d notification=%d livearea=%d ime=%d edit=%d immediate=%d topmenu=%d root=%d root_visible=%d scroll=%d bubble=%d exposed=%d",
+        "home gate shell=%d notification=%d livearea=%d ime=%d edit=%d switcher=%d immediate=%d topmenu=%d root=%d root_visible=%d scroll=%d bubble=%d exposed=%d",
         shell_allows_overlay ? 1 : 0,
         event_notification_visible ? 1 : 0,
         livearea_visible ? 1 : 0,
         external_ime_visible ? 1 : 0,
         home_edit_mode_visible ? 1 : 0,
+        application_switcher_owned ? 1 : 0,
         immediate_hide ? 1 : 0,
         topmenu_found ? 1 : 0,
         root_found ? 1 : 0,
@@ -408,16 +433,21 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       home_ps_owned_(false),
       start_button_open_pending_(false),
       start_button_owned_(false),
+      application_switcher_owned_(false),
+      shell_events_registered_(false),
       shell_util_ready_(false),
       home_ps_lock_held_(false),
       shell_util_init_events_(NULL),
       shell_util_lock_(NULL),
       shell_util_unlock_(NULL),
+      shell_event_register_(NULL),
+      shell_event_unregister_(NULL),
       initialized_(false) {}
 
 SearchOverlay::~SearchOverlay() {
     visibility_registered_ = false;
     paf::common::MainThreadCallList::Unregister(VisibilityTick, this);
+    UnregisterShellEvents();
     if (previous_touchscreen_handler_ != NULL) {
         const paf_touchscreen_device_handler::DeviceHandler displaced_touchscreen =
             paf_touchscreen_device_handler::SetDeviceHandler(
@@ -477,6 +507,12 @@ int SearchOverlay::Initialize(AppIndex& prepared_index, RecentApps& prepared_rec
         return result;
     }
 
+    result = ResolveShellEvents();
+    StartupLogResult("shell event resolve", result);
+    if (result < 0) {
+        return result;
+    }
+
     index_.Swap(prepared_index);
     recent_apps_.Swap(prepared_recent_apps);
 
@@ -489,9 +525,17 @@ int SearchOverlay::Initialize(AppIndex& prepared_index, RecentApps& prepared_rec
         icon_cache_ = NULL;
         return -1;
     }
+    result = RegisterShellEvents();
+    StartupLogResult("shell event register", result);
+    if (result < 0) {
+        delete icon_cache_;
+        icon_cache_ = NULL;
+        return result;
+    }
     result = OpenHomePage();
     StartupLogResult("overlay open home page", result);
     if (result < 0) {
+        UnregisterShellEvents();
         delete icon_cache_;
         icon_cache_ = NULL;
         return result;
@@ -692,6 +736,81 @@ int SearchOverlay::ResolveShellUtil() {
         return result;
     }
     return ResolveShellUtilFunction(kShellUtilUnlockNid, shell_util_unlock_);
+}
+
+int SearchOverlay::ResolveShellEvents() {
+    shell_event_register_ = NULL;
+    shell_event_unregister_ = NULL;
+
+    int result = ResolveShellEventFunction(
+        kShellEventRegisterNid,
+        shell_event_register_);
+    if (result < 0) {
+        return result;
+    }
+    return ResolveShellEventFunction(
+        kShellEventUnregisterNid,
+        shell_event_unregister_);
+}
+
+int SearchOverlay::RegisterShellEvents() {
+    if (shell_events_registered_) {
+        return 0;
+    }
+    if (shell_event_register_ == NULL || shell_event_unregister_ == NULL) {
+        return -1;
+    }
+
+    int result = shell_event_register_(
+        kShellEventApplicationSwitcherEnter,
+        ShellEventHandler,
+        this);
+    if (result < 0) {
+        return result;
+    }
+    result = shell_event_register_(
+        kShellEventApplicationSwitcherLeave,
+        ShellEventHandler,
+        this);
+    if (result < 0) {
+        shell_event_unregister_(
+            kShellEventApplicationSwitcherEnter,
+            ShellEventHandler,
+            this);
+        return result;
+    }
+    shell_events_registered_ = true;
+    return 0;
+}
+
+void SearchOverlay::UnregisterShellEvents() {
+    if (!shell_events_registered_ || shell_event_unregister_ == NULL) {
+        return;
+    }
+    QueueInteractionLogResult(
+        "shell switcher leave unregister",
+        shell_event_unregister_(
+            kShellEventApplicationSwitcherLeave,
+            ShellEventHandler,
+            this));
+    QueueInteractionLogResult(
+        "shell switcher enter unregister",
+        shell_event_unregister_(
+            kShellEventApplicationSwitcherEnter,
+            ShellEventHandler,
+            this));
+    shell_events_registered_ = false;
+}
+
+void SearchOverlay::HandleShellEvent(int event) {
+    const ApplicationSwitcherEventAction action =
+        ClassifyApplicationSwitcherEvent(event);
+    if (action == ApplicationSwitcherEventAction::Enter) {
+        application_switcher_owned_ = true;
+        SetHomeVisible(false, false);
+    } else if (action == ApplicationSwitcherEventAction::Leave) {
+        application_switcher_owned_ = false;
+    }
 }
 
 void SearchOverlay::HandleBack() {
@@ -1218,7 +1337,8 @@ bool SearchOverlay::IsBubbleHomeVisible(bool& immediate_hide) {
         event_notification_visible,
         livearea_visible,
         external_ime_visible,
-        home_edit_mode_visible);
+        home_edit_mode_visible,
+        application_switcher_owned_);
 #if LIVEAREA_SEARCH_DIAGNOSTICS
     LogHomeGate(
         shell_allows_overlay,
@@ -1226,6 +1346,7 @@ bool SearchOverlay::IsBubbleHomeVisible(bool& immediate_hide) {
         livearea_visible,
         external_ime_visible,
         home_edit_mode_visible,
+        application_switcher_owned_,
         immediate_hide,
         topmenu != NULL,
         root != NULL,
@@ -1464,8 +1585,23 @@ void SearchOverlay::HomePadDeviceHandler(paf::inputdevice::pad::Data* data) {
                 overlay->home_ps_owned_)) {
             overlay->home_pad_press_pending_ = true;
         }
+        const bool start_rising_edge =
+            !overlay->start_button_owned_ &&
+            (forwarded.paddata &
+             paf::inputdevice::pad::Data::Keycode::PAD_START) != 0U;
+        bool start_home_visible =
+            overlay->home_visible_ && overlay->results_page_ == NULL;
+        if (start_rising_edge) {
+            bool immediate_hide = false;
+            const bool live_home_visible =
+                overlay->IsBubbleHomeVisible(immediate_hide);
+            if (!live_home_visible) {
+                overlay->SetHomeVisible(false, immediate_hide);
+            }
+            start_home_visible = start_home_visible && live_home_visible;
+        }
         if (ObserveStartButtonPress(
-                overlay->home_visible_ && overlay->results_page_ == NULL,
+                start_home_visible,
                 paf::inputdevice::pad::Data::Keycode::PAD_START,
                 forwarded.paddata,
                 overlay->start_button_owned_)) {
@@ -1516,6 +1652,19 @@ void SearchOverlay::TouchscreenDeviceHandler(
         previous_touchscreen_handler_ != TouchscreenDeviceHandler) {
         previous_touchscreen_handler_(data);
     }
+}
+
+void SearchOverlay::ShellEventHandler(
+    int event,
+    int,
+    int,
+    void* user_data) {
+    SearchOverlay* overlay = static_cast<SearchOverlay*>(user_data);
+    if (overlay == NULL) {
+        return;
+    }
+    QueueInteractionLogResult("shell event", event);
+    overlay->HandleShellEvent(event);
 }
 
 void SearchOverlay::VisibilityTick(void* user_data) {

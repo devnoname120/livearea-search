@@ -30,6 +30,15 @@ private:
     typedef int (*ShellUtilInitEventsFunction)(int);
     typedef int (*ShellUtilLockFunction)(SceShellUtilLockType);
     typedef int (*ShellUtilUnlockFunction)(SceShellUtilLockType);
+    typedef void (*ShellEventHandlerFunction)(
+        int event,
+        int argument_2,
+        int argument_3,
+        void* user_data);
+    typedef int (*ShellEventRegistrationFunction)(
+        int event,
+        ShellEventHandlerFunction handler,
+        void* user_data);
 
     class ResultItemFactory : public paf::ui::listview::ItemFactory {
     public:
@@ -81,12 +90,21 @@ private:
     static void HomePadDeviceHandler(paf::inputdevice::pad::Data* data);
     static void TouchscreenDeviceHandler(
         paf_touchscreen_device_handler::DataList* data);
+    static void ShellEventHandler(
+        int event,
+        int argument_2,
+        int argument_3,
+        void* user_data);
     static void VisibilityTick(void* user_data);
 
     int OpenHomePage();
     int OpenResultsPage();
     int BeginImeEdit();
     int ResolveShellUtil();
+    int ResolveShellEvents();
+    int RegisterShellEvents();
+    void UnregisterShellEvents();
+    void HandleShellEvent(int event);
     void HandleBack();
     void HandleHome();
     void HandleStartButton();
@@ -152,11 +170,15 @@ private:
     bool home_ps_owned_;
     bool start_button_open_pending_;
     bool start_button_owned_;
+    bool application_switcher_owned_;
+    bool shell_events_registered_;
     bool shell_util_ready_;
     bool home_ps_lock_held_;
     ShellUtilInitEventsFunction shell_util_init_events_;
     ShellUtilLockFunction shell_util_lock_;
     ShellUtilUnlockFunction shell_util_unlock_;
+    ShellEventRegistrationFunction shell_event_register_;
+    ShellEventRegistrationFunction shell_event_unregister_;
     bool initialized_;
 
     static SearchOverlay* home_pad_overlay_;

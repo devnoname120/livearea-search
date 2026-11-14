@@ -85,6 +85,33 @@ add_test(
     COMMAND livearea_search_exclusive_home_visibility_tests
 )
 
+add_executable(livearea_search_application_switcher_event_tests
+    test_application_switcher_events.cpp
+)
+
+target_link_libraries(
+    livearea_search_application_switcher_event_tests
+    PRIVATE
+        livearea_search_core
+)
+
+target_compile_features(
+    livearea_search_application_switcher_event_tests
+    PRIVATE
+        cxx_std_11
+)
+
+target_compile_options(
+    livearea_search_application_switcher_event_tests
+    PRIVATE
+        $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Wsign-conversion>
+)
+
+add_test(
+    NAME livearea_search_application_switcher_event_tests
+    COMMAND livearea_search_application_switcher_event_tests
+)
+
 add_executable(livearea_search_notification_panel_gate_tests
     test_notification_panel_gate.cpp
 )
@@ -281,6 +308,16 @@ add_test(
         -DSEARCH_OVERLAY=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.cpp
         -DREPORT=${CMAKE_SOURCE_DIR}/docs/firmware/appmgr-system-ui-overlay-state.md
         -P ${CMAKE_CURRENT_SOURCE_DIR}/check_appmgr_overlay_state.cmake
+)
+
+add_test(
+    NAME livearea_search_application_switcher_event_contract
+    COMMAND ${CMAKE_COMMAND}
+        -DOVERLAY_HEADER=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.h
+        -DSEARCH_OVERLAY=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.cpp
+        -DVISIBILITY_HEADER=${CMAKE_SOURCE_DIR}/include/livearea_search/overlay_visibility.h
+        -DFIRMWARE_REPORT=${CMAKE_SOURCE_DIR}/docs/firmware/shell-application-switcher-events.md
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/check_application_switcher_events.cmake
 )
 
 add_test(

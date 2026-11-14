@@ -10,6 +10,8 @@ const std::uint32_t kTopMenuHomeScrollHash = 0x9CC405A3U;
 const std::uint32_t kIndicatorPageHash = 0xFFD7E3F0U;
 const std::uint32_t kIndicatorNotificationCornerHash = 0x8BF9D3C5U;
 const std::uint64_t kNotificationPanelOpeningGraceUs = 500000ULL;
+const std::int32_t kShellEventApplicationSwitcherEnter = 4;
+const std::int32_t kShellEventApplicationSwitcherLeave = 5;
 
 enum class HomeVisibilityAction {
     None,
@@ -54,6 +56,15 @@ enum class IndicatorPopupVisibility {
     Hidden,
     Visible,
 };
+
+enum class ApplicationSwitcherEventAction {
+    None,
+    Enter,
+    Leave,
+};
+
+ApplicationSwitcherEventAction ClassifyApplicationSwitcherEvent(
+    std::int32_t event) noexcept;
 
 IndicatorPopupVisibility ClassifyIndicatorPopupVisibility(
     bool plugin_available,
@@ -107,7 +118,8 @@ bool ShouldExposeHomeSearch(
     bool event_notification_visible,
     bool livearea_visible,
     bool external_ime_visible,
-    bool home_edit_mode_visible) noexcept;
+    bool home_edit_mode_visible,
+    bool application_switcher_owned) noexcept;
 bool ObserveNotificationCornerPress(
     bool results_open,
     bool touch_pressed,

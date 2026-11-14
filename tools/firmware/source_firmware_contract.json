@@ -792,7 +792,13 @@
       "source_needles": [
         "paf::inputdevice::pad::Data::Keycode::PAD_START",
         "ObserveStartButtonPress(",
-        "overlay->home_visible_ && overlay->results_page_ == NULL,",
+        "const bool start_rising_edge =",
+        "bool start_home_visible =",
+        "const bool live_home_visible =",
+        "overlay->IsBubbleHomeVisible(immediate_hide);",
+        "overlay->SetHomeVisible(false, immediate_hide);",
+        "start_home_visible = start_home_visible && live_home_visible;",
+        "ObserveStartButtonPress(\n                start_home_visible,",
         "overlay->start_button_open_pending_ = true;",
         "void SearchOverlay::HandleStartButton()",
         "if (!home_visible_ || results_page_ != NULL)",
@@ -833,6 +839,70 @@
             "PAD_START",
             "ObserveStartButtonPress(",
             "Start must open Search only after both visible and live Home gates pass"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shell-application-switcher-events",
+      "source": "src/vita/search_overlay.cpp",
+      "source_needles": [
+        "const std::uint32_t kShellLibraryNid = 0x2404AE25U;",
+        "const std::uint32_t kShellEventRegisterNid = 0x7FE4E732U;",
+        "const std::uint32_t kShellEventUnregisterNid = 0xD4C7D2B7U;",
+        "ResolveShellEventFunction(",
+        "shell_event_register_(\n        kShellEventApplicationSwitcherEnter,",
+        "shell_event_register_(\n        kShellEventApplicationSwitcherLeave,",
+        "ClassifyApplicationSwitcherEvent(event)",
+        "application_switcher_owned_ = true;",
+        "application_switcher_owned_ = false;",
+        "SetHomeVisible(false, false);",
+        "home_edit_mode_visible,\n        application_switcher_owned_);"
+      ],
+      "source_forbidden_needles": [
+        "0x9F7C030D",
+        "application_switcher_page_hash",
+        "LogEnvironmentWidgetDeltas",
+        "GetSceneNum(",
+        "dword_815AC4CC",
+        "+ 132"
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/compatibility_manifest.json",
+          "needles": [
+            "\"name\": \"SceShell\"",
+            "\"nid\": \"0x2404AE25\"",
+            "\"0x7FE4E732\"",
+            "\"0xD4C7D2B7\""
+          ]
+        },
+        {
+          "path": "docs/firmware/shell-application-switcher-events.md",
+          "needles": [
+            "Contract ID: `shell-application-switcher-events-v1`",
+            "`handler(event, argument_2, argument_3, user_data)`",
+            "event `4`",
+            "event `5`",
+            "All 45 locally available SceShell images",
+            "does not access that field"
+          ]
+        },
+        {
+          "path": "tests/test_application_switcher_events.cpp",
+          "needles": [
+            "shell event 4 must begin application-switcher ownership",
+            "shell event 5 must end application-switcher ownership",
+            "switcher entry must use the native fast fade-out",
+            "returning Home must use the native fast fade-in",
+            "system-owned surfaces must retain hard-hide precedence"
+          ]
+        },
+        {
+          "path": "tests/check_application_switcher_events.cmake",
+          "needles": [
+            "Shell switcher events must be registered before Home Search is exposed",
+            "Rejected switcher inference returned"
           ]
         }
       ]

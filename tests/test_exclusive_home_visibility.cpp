@@ -49,17 +49,20 @@ int main() {
           "a full-screen non-scroll widget must not claim persistent edit ownership");
 
     Check(
-        ShouldExposeHomeSearch(true, true, false, false, false, false),
+        ShouldExposeHomeSearch(true, true, false, false, false, false, false),
         "bubble Home must expose Search when no higher shell surface is visible");
     Check(
-        !ShouldExposeHomeSearch(true, true, false, true, false, false),
+        !ShouldExposeHomeSearch(true, true, false, true, false, false, false),
         "a visible LiveArea card must own the foreground and hide Search");
     Check(
-        !ShouldExposeHomeSearch(true, true, false, false, true, false),
+        !ShouldExposeHomeSearch(true, true, false, false, true, false, false),
         "an external IME must own the lower-right keyboard region");
     Check(
-        !ShouldExposeHomeSearch(true, true, false, false, false, true),
+        !ShouldExposeHomeSearch(true, true, false, false, false, true, false),
         "Home edit controls must own the lower-right page controls");
+    Check(
+        !ShouldExposeHomeSearch(true, true, false, false, false, false, true),
+        "the application switcher must own the Home corner");
 
     Check(
         ComputeHomeVisibilityAction(true, false, false, false) ==

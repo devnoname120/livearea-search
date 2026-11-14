@@ -206,7 +206,10 @@
         {
           "name": "SceShell",
           "nid": "0x2404AE25",
-          "function_nids": []
+          "function_nids": [
+            "0x7FE4E732",
+            "0xD4C7D2B7"
+          ]
         }
       ]
     },

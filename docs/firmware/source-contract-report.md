@@ -1,6 +1,6 @@
 # LiveArea Search source-to-firmware contract audit
 
-24 checks: 24 passed, 0 failed.
+25 checks: 25 passed, 0 failed.
 
 | Check | Source | Result |
 |---|---|---|
@@ -23,6 +23,7 @@
 | rejected-lsdb-icon-info-caller | `src/vita/lsdb_index_source.cpp` | PASS |
 | release-binary-cleanliness | `CMakeLists.txt` | PASS |
 | results-layout-contract | `resources/livearea_search_plugin.xml` | PASS |
+| shell-application-switcher-events | `src/vita/search_overlay.cpp` | PASS |
 | shell-loading-scene-contract | `include/livearea_search/module_readiness.h` | PASS |
 | shell-ps-button-ownership | `src/vita/search_overlay.cpp` | PASS |
 | start-button-shortcut | `src/vita/search_overlay.cpp` | PASS |

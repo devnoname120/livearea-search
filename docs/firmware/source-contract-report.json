@@ -96,6 +96,11 @@
       "source": "resources/livearea_search_plugin.xml"
     },
     {
+      "id": "shell-application-switcher-events",
+      "issues": [],
+      "source": "src/vita/search_overlay.cpp"
+    },
+    {
       "id": "shell-loading-scene-contract",
       "issues": [],
       "source": "include/livearea_search/module_readiness.h"
@@ -123,8 +128,8 @@
   ],
   "schema": 1,
   "summary": {
-    "checks": 24,
+    "checks": 25,
     "failed": 0,
-    "passed": 24
+    "passed": 25
   }
 }

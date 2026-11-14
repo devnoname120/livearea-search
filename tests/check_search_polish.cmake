@@ -93,7 +93,7 @@ foreach(required_source IN ITEMS
     "ObserveHomePadPress("
     "ObserveStartButtonPress("
     "overlay->results_page_ != NULL,"
-    "overlay->home_visible_ && overlay->results_page_ == NULL,"
+    "overlay->home_visible_ && overlay->results_page_ == NULL;"
     "forwarded.paddata,"
     "previous_home_pad_handler_(forwarded_data);"
     "home_pad_press_pending_ = true;"
@@ -153,11 +153,11 @@ foreach(forbidden_source IN ITEMS
 endforeach()
 
 string(FIND "${source}"
-    "event_notification_visible,\n        livearea_visible,\n        external_ime_visible,\n        home_edit_mode_visible);"
+    "event_notification_visible,\n        livearea_visible,\n        external_ime_visible,\n        home_edit_mode_visible,\n        application_switcher_owned_);"
     exclusive_home_gate)
 if(exclusive_home_gate EQUAL -1)
     message(FATAL_ERROR
-        "Search visibility must pass LiveArea, IME, and edit ownership into the exclusive Home gate")
+        "Search visibility must pass LiveArea, IME, edit, and switcher ownership into the exclusive Home gate")
 endif()
 
 string(FIND "${source}" "int SearchOverlay::OpenHomePage()" open_home_start)
@@ -222,6 +222,38 @@ string(FIND "${source}" "previous_home_pad_handler_(forwarded_data);" forward_in
 if(filter_index EQUAL -1 OR start_filter_index EQUAL -1 OR forward_index EQUAL -1 OR
    NOT filter_index LESS forward_index OR NOT start_filter_index LESS forward_index)
     message(FATAL_ERROR "Owned PS and Start bits must be removed before forwarding the PAF sample")
+endif()
+
+string(FIND "${source}" "void SearchOverlay::HomePadDeviceHandler(" home_pad_handler_start)
+string(FIND "${source}" "void SearchOverlay::TouchscreenDeviceHandler(" touchscreen_handler_start)
+if(home_pad_handler_start EQUAL -1 OR touchscreen_handler_start EQUAL -1 OR
+   NOT home_pad_handler_start LESS touchscreen_handler_start)
+    message(FATAL_ERROR "Unable to isolate the Home pad device handler")
+endif()
+math(EXPR home_pad_handler_length "${touchscreen_handler_start} - ${home_pad_handler_start}")
+string(SUBSTRING "${source}" ${home_pad_handler_start} ${home_pad_handler_length} home_pad_handler_source)
+string(FIND "${home_pad_handler_source}" "const bool start_rising_edge =" start_rising_edge_index)
+string(FIND "${home_pad_handler_source}" "bool start_home_visible =" start_home_visible_index)
+string(FIND "${home_pad_handler_source}" "if (start_rising_edge)" start_live_recheck_guard_index)
+string(FIND "${home_pad_handler_source}" "const bool live_home_visible =" start_live_recheck_decl_index)
+string(FIND "${home_pad_handler_source}" "overlay->IsBubbleHomeVisible(immediate_hide);" start_live_recheck_index)
+string(FIND "${home_pad_handler_source}" "overlay->SetHomeVisible(false, immediate_hide);" start_hide_index)
+string(FIND "${home_pad_handler_source}" "start_home_visible = start_home_visible && live_home_visible;" start_live_combine_index)
+string(FIND "${home_pad_handler_source}" "ObserveStartButtonPress(\n                start_home_visible," start_observe_index)
+if(start_rising_edge_index EQUAL -1 OR start_home_visible_index EQUAL -1 OR
+   start_live_recheck_guard_index EQUAL -1 OR start_live_recheck_decl_index EQUAL -1 OR
+   start_live_recheck_index EQUAL -1 OR
+   start_hide_index EQUAL -1 OR start_live_combine_index EQUAL -1 OR
+   start_observe_index EQUAL -1 OR
+   NOT start_rising_edge_index LESS start_live_recheck_guard_index OR
+   NOT start_home_visible_index LESS start_live_recheck_guard_index OR
+   NOT start_live_recheck_guard_index LESS start_live_recheck_decl_index OR
+   NOT start_live_recheck_decl_index LESS start_live_recheck_index OR
+   NOT start_live_recheck_index LESS start_hide_index OR
+   NOT start_hide_index LESS start_live_combine_index OR
+   NOT start_live_combine_index LESS start_observe_index)
+    message(FATAL_ERROR
+        "A Start rising edge must re-evaluate live Home ownership and synchronously apply any hide before it can consume the button")
 endif()
 
 string(FIND "${source}" "void SearchOverlay::HandleStartButton()" start_handler_index)

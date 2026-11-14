@@ -472,20 +472,22 @@ void TestHomeVisibilityTransitions() {
             0.0f),
         "an outbound transition hides the Home control as soon as its target leaves Home");
 
-    Check(ShouldExposeHomeSearch(true, true, false, false, false, false),
+    Check(ShouldExposeHomeSearch(true, true, false, false, false, false, false),
           "plain bubble Home exposes the Search control");
-    Check(!ShouldExposeHomeSearch(true, true, true, false, false, false),
+    Check(!ShouldExposeHomeSearch(true, true, true, false, false, false, false),
           "the event-notification panel yields the bottom-right corner to Sony's ellipsis");
-    Check(!ShouldExposeHomeSearch(true, true, false, true, false, false),
+    Check(!ShouldExposeHomeSearch(true, true, false, true, false, false, false),
           "a foreground title LiveArea hides Search");
-    Check(!ShouldExposeHomeSearch(false, true, false, false, false, false),
+    Check(!ShouldExposeHomeSearch(false, true, false, false, false, false, false),
           "AppMgr foreground or system-overlay ownership suppresses Search");
-    Check(!ShouldExposeHomeSearch(true, false, false, false, false, false),
+    Check(!ShouldExposeHomeSearch(true, false, false, false, false, false, false),
           "non-Home topmenu surfaces do not expose Search");
-    Check(!ShouldExposeHomeSearch(true, true, false, false, true, false),
+    Check(!ShouldExposeHomeSearch(true, true, false, false, true, false, false),
           "an external IME suppresses the Home Search control");
-    Check(!ShouldExposeHomeSearch(true, true, false, false, false, true),
+    Check(!ShouldExposeHomeSearch(true, true, false, false, false, true, false),
           "Home edit mode suppresses the Home Search control");
+    Check(!ShouldExposeHomeSearch(true, true, false, false, false, false, true),
+          "the application switcher suppresses the Home Search control");
 
     Check(
         ComputeHomeVisibilityAction(false, true, false, false) ==
