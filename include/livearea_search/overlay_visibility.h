@@ -84,7 +84,8 @@ bool ShouldCloseResultsPage(
     bool shell_allows_overlay,
     bool topmenu_visible,
     bool results_open,
-    bool ime_transition_active) noexcept;
+    bool ime_transition_active,
+    bool home_close_pending) noexcept;
 bool IsBubbleHomeSurface(
     std::uint32_t visible_page_hash,
     float focus_x,

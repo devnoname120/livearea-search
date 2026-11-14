@@ -1217,7 +1217,8 @@ void SearchOverlay::UpdateVisibility() {
             shell_allows_overlay,
             home_surface_visible,
             results_page_ != NULL,
-            ime_transition_active_)) {
+            ime_transition_active_,
+            home_close_pending_)) {
         RequestCloseResultsPage();
         return;
     }

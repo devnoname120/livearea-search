@@ -65,11 +65,12 @@ bool ShouldCloseResultsPage(
     bool shell_allows_overlay,
     bool topmenu_visible,
     bool results_open,
-    bool ime_transition_active) noexcept {
+    bool ime_transition_active,
+    bool home_close_pending) noexcept {
     if (!results_open) {
         return false;
     }
-    if (ime_transition_active) {
+    if (ime_transition_active || home_close_pending) {
         return false;
     }
     if (!shell_allows_overlay) {

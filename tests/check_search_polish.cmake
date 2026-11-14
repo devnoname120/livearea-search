@@ -106,6 +106,7 @@ foreach(required_source IN ITEMS
     "search_box_->EndEdit()"
     "home_close_pending_ = true;"
     "results_pending_display_ = false;"
+    "ime_transition_active_,\n            home_close_pending_))"
     "const HomePadCloseAction action = ComputeHomePadCloseAction("
     "HomePadCloseAction::ReleaseLockAndClose"
     "ReleaseHomePadLock();"

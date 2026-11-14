@@ -514,16 +514,18 @@ void TestHomeVisibilityTransitions() {
             HomeVisibilityAction::None,
         "an already hidden Home page is left unchanged");
 
-    Check(!ShouldCloseResultsPage(true, false, true, true),
+    Check(!ShouldCloseResultsPage(true, false, true, true, false),
           "temporary topmenu loss does not close a page while the IME is editing");
-    Check(ShouldCloseResultsPage(true, false, true, false),
+    Check(ShouldCloseResultsPage(true, false, true, false, false),
           "topmenu loss closes a results page after IME editing ends");
-    Check(!ShouldCloseResultsPage(false, true, true, true),
+    Check(!ShouldCloseResultsPage(false, true, true, true, false),
           "an owned IME transition suppresses all shell visibility closure");
-    Check(ShouldCloseResultsPage(false, true, true, false),
+    Check(ShouldCloseResultsPage(false, true, true, false, false),
           "a real foreground-app change closes results outside an IME transition");
-    Check(!ShouldCloseResultsPage(true, false, false, false),
+    Check(!ShouldCloseResultsPage(true, false, false, false, false),
           "visibility changes do not close a page that is not open");
+    Check(!ShouldCloseResultsPage(true, false, true, false, true),
+          "the owned PS close lifecycle outranks transient IME visibility loss");
 
 }
 
