@@ -32,6 +32,7 @@ endforeach()
 
 foreach(required_header IN ITEMS
     "void HandleHome();"
+    "void HandleStartButton();"
     "int ResolveShellUtil();"
     "bool AcquireHomePadLock();"
     "void ReleaseHomePadLock();"
@@ -42,6 +43,8 @@ foreach(required_header IN ITEMS
     "bool home_close_pending_;"
     "bool home_pad_press_pending_;"
     "bool home_ps_owned_;"
+    "bool start_button_open_pending_;"
+    "bool start_button_owned_;"
     "bool home_ps_lock_held_;"
     "ShellUtilLockFunction shell_util_lock_;"
     "ShellUtilUnlockFunction shell_util_unlock_;"
@@ -79,17 +82,27 @@ foreach(required_source IN ITEMS
     "home_button_->DisableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);"
     "home_button_->EnableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);"
     "paf::inputdevice::pad::Data::Keycode::PAD_PS"
+    "paf::inputdevice::pad::Data::Keycode::PAD_START"
     "overlay->HandleHome();"
+    "overlay->HandleStartButton();"
     "previous_home_pad_handler_ = paf_pad_device_handler::SetDeviceHandler(HomePadDeviceHandler);"
     "paf_pad_device_handler::SetDeviceHandler(previous_home_pad_handler_)"
     "paf::inputdevice::pad::Data forwarded;"
     "forwarded = *data;"
     "forwarded_data = &forwarded;"
     "ObserveHomePadPress("
+    "ObserveStartButtonPress("
     "overlay->results_page_ != NULL,"
+    "overlay->home_visible_ && overlay->results_page_ == NULL,"
     "forwarded.paddata,"
     "previous_home_pad_handler_(forwarded_data);"
     "home_pad_press_pending_ = true;"
+    "start_button_open_pending_ = true;"
+    "start pad device callback"
+    "void SearchOverlay::HandleStartButton()"
+    "if (!home_visible_ || results_page_ != NULL)"
+    "if (!IsBubbleHomeVisible(immediate_hide))"
+    "start open results page"
     "search_box_->EndEdit()"
     "home_close_pending_ = true;"
     "results_pending_display_ = false;"
@@ -204,9 +217,23 @@ foreach(forbidden IN ITEMS
 endforeach()
 
 string(FIND "${source}" "ObserveHomePadPress(" filter_index)
+string(FIND "${source}" "ObserveStartButtonPress(" start_filter_index)
 string(FIND "${source}" "previous_home_pad_handler_(forwarded_data);" forward_index)
-if(filter_index EQUAL -1 OR forward_index EQUAL -1 OR NOT filter_index LESS forward_index)
-    message(FATAL_ERROR "The owned PS bit must be removed before forwarding the PAF sample")
+if(filter_index EQUAL -1 OR start_filter_index EQUAL -1 OR forward_index EQUAL -1 OR
+   NOT filter_index LESS forward_index OR NOT start_filter_index LESS forward_index)
+    message(FATAL_ERROR "Owned PS and Start bits must be removed before forwarding the PAF sample")
+endif()
+
+string(FIND "${source}" "void SearchOverlay::HandleStartButton()" start_handler_index)
+string(FIND "${source}" "if (!home_visible_ || results_page_ != NULL)" start_visible_gate_index)
+string(FIND "${source}" "if (!IsBubbleHomeVisible(immediate_hide))" start_live_gate_index)
+string(FIND "${source}" "QueueInteractionLogResult(\"start open results page\", OpenResultsPage());" start_open_index)
+if(start_handler_index EQUAL -1 OR start_visible_gate_index EQUAL -1 OR
+   start_live_gate_index EQUAL -1 OR start_open_index EQUAL -1 OR
+   NOT start_handler_index LESS start_visible_gate_index OR
+   NOT start_visible_gate_index LESS start_live_gate_index OR
+   NOT start_live_gate_index LESS start_open_index)
+    message(FATAL_ERROR "Start must open Search only after both visible and live Home gates pass")
 endif()
 
 string(FIND "${source}" "int SearchOverlay::OpenResultsPage()" open_results_start)

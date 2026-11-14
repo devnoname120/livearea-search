@@ -214,6 +214,28 @@ bool ObserveHomePadPress(
     return true;
 }
 
+bool ObserveStartButtonPress(
+    bool home_search_visible,
+    std::uint32_t start_button_mask,
+    std::uint32_t& forwarded_buttons,
+    bool& start_owned) noexcept {
+    const bool pressed = (forwarded_buttons & start_button_mask) != 0U;
+    if (start_owned) {
+        if (pressed) {
+            forwarded_buttons &= ~start_button_mask;
+        } else {
+            start_owned = false;
+        }
+        return false;
+    }
+    if (!home_search_visible || !pressed) {
+        return false;
+    }
+    start_owned = true;
+    forwarded_buttons &= ~start_button_mask;
+    return true;
+}
+
 HomePadCloseAction ComputeHomePadCloseAction(
     bool close_pending,
     bool ps_owned) noexcept {

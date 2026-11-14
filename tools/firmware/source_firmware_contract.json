@@ -785,6 +785,57 @@
           ]
         }
       ]
+    },
+    {
+      "id": "start-button-shortcut",
+      "source": "src/vita/search_overlay.cpp",
+      "source_needles": [
+        "paf::inputdevice::pad::Data::Keycode::PAD_START",
+        "ObserveStartButtonPress(",
+        "overlay->home_visible_ && overlay->results_page_ == NULL,",
+        "overlay->start_button_open_pending_ = true;",
+        "void SearchOverlay::HandleStartButton()",
+        "if (!home_visible_ || results_page_ != NULL)",
+        "if (!IsBubbleHomeVisible(immediate_hide))",
+        "QueueInteractionLogResult(\"start open results page\", OpenResultsPage());",
+        "previous_home_pad_handler_(forwarded_data);"
+      ],
+      "source_forbidden_needles": [
+        "sceCtrlPeekBufferPositive",
+        "sceCtrlPeekBufferPositiveExt",
+        "data->paddata ="
+      ],
+      "evidence": [
+        {
+          "path": "docs/firmware/start-button-shortcut.md",
+          "needles": [
+            "Contract ID: `start-button-shortcut-v1`",
+            "`PAD_START = 0x200`",
+            "only when the Search Home page is visibly exposed",
+            "re-evaluate the complete live Home ownership gate",
+            "forwarded unchanged",
+            "does not add D-pad or analog focus"
+          ]
+        },
+        {
+          "path": "tests/test_start_button_filter.cpp",
+          "needles": [
+            "hidden Search must not open from Start",
+            "hidden Search must forward Start unchanged",
+            "visible Search must open on a Start rising edge",
+            "an owned held Start press must stay hidden while unrelated buttons survive",
+            "Start release must end ownership"
+          ]
+        },
+        {
+          "path": "tests/check_search_polish.cmake",
+          "needles": [
+            "PAD_START",
+            "ObserveStartButtonPress(",
+            "Start must open Search only after both visible and live Home gates pass"
+          ]
+        }
+      ]
     }
   ]
 }

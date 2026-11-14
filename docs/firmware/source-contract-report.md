@@ -1,6 +1,6 @@
 # LiveArea Search source-to-firmware contract audit
 
-23 checks: 23 passed, 0 failed.
+24 checks: 24 passed, 0 failed.
 
 | Check | Source | Result |
 |---|---|---|
@@ -25,5 +25,6 @@
 | results-layout-contract | `resources/livearea_search_plugin.xml` | PASS |
 | shell-loading-scene-contract | `include/livearea_search/module_readiness.h` | PASS |
 | shell-ps-button-ownership | `src/vita/search_overlay.cpp` | PASS |
+| start-button-shortcut | `src/vita/search_overlay.cpp` | PASS |
 | system-overlay-identifiers | `src/vita/search_overlay.cpp` | PASS |
 | topmenu-resource-hashes | `include/livearea_search/overlay_visibility.h` | PASS |

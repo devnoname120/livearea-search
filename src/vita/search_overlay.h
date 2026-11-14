@@ -89,6 +89,7 @@ private:
     int ResolveShellUtil();
     void HandleBack();
     void HandleHome();
+    void HandleStartButton();
     bool AcquireHomePadLock();
     void ReleaseHomePadLock();
     void UpdateHomePadClose();
@@ -149,6 +150,8 @@ private:
     bool home_close_pending_;
     bool home_pad_press_pending_;
     bool home_ps_owned_;
+    bool start_button_open_pending_;
+    bool start_button_owned_;
     bool shell_util_ready_;
     bool home_ps_lock_held_;
     ShellUtilInitEventsFunction shell_util_init_events_;

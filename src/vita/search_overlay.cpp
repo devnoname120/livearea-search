@@ -406,6 +406,8 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       home_close_pending_(false),
       home_pad_press_pending_(false),
       home_ps_owned_(false),
+      start_button_open_pending_(false),
+      start_button_owned_(false),
       shell_util_ready_(false),
       home_ps_lock_held_(false),
       shell_util_init_events_(NULL),
@@ -724,6 +726,18 @@ void SearchOverlay::HandleHome() {
     if (search_box_ != NULL) {
         QueueInteractionLogResult("home end edit", search_box_->EndEdit());
     }
+}
+
+void SearchOverlay::HandleStartButton() {
+    if (!home_visible_ || results_page_ != NULL) {
+        return;
+    }
+    bool immediate_hide = false;
+    if (!IsBubbleHomeVisible(immediate_hide)) {
+        return;
+    }
+    QueueInteractionLog("start open search");
+    QueueInteractionLogResult("start open results page", OpenResultsPage());
 }
 
 bool SearchOverlay::AcquireHomePadLock() {
@@ -1450,6 +1464,13 @@ void SearchOverlay::HomePadDeviceHandler(paf::inputdevice::pad::Data* data) {
                 overlay->home_ps_owned_)) {
             overlay->home_pad_press_pending_ = true;
         }
+        if (ObserveStartButtonPress(
+                overlay->home_visible_ && overlay->results_page_ == NULL,
+                paf::inputdevice::pad::Data::Keycode::PAD_START,
+                forwarded.paddata,
+                overlay->start_button_owned_)) {
+            overlay->start_button_open_pending_ = true;
+        }
     }
     if (previous_home_pad_handler_ != NULL &&
         previous_home_pad_handler_ != HomePadDeviceHandler) {
@@ -1506,6 +1527,11 @@ void SearchOverlay::VisibilityTick(void* user_data) {
         overlay->home_pad_press_pending_ = false;
         QueueInteractionLog("home pad device callback");
         overlay->HandleHome();
+    }
+    if (overlay->start_button_open_pending_) {
+        overlay->start_button_open_pending_ = false;
+        QueueInteractionLog("start pad device callback");
+        overlay->HandleStartButton();
     }
     overlay->UpdateImeTransition();
     if (overlay->visibility_registered_) {

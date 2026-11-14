@@ -31,6 +31,33 @@ add_test(
     COMMAND livearea_search_home_pad_filter_tests
 )
 
+add_executable(livearea_search_start_button_filter_tests
+    test_start_button_filter.cpp
+)
+
+target_link_libraries(
+    livearea_search_start_button_filter_tests
+    PRIVATE
+        livearea_search_core
+)
+
+target_compile_features(
+    livearea_search_start_button_filter_tests
+    PRIVATE
+        cxx_std_11
+)
+
+target_compile_options(
+    livearea_search_start_button_filter_tests
+    PRIVATE
+        $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Wsign-conversion>
+)
+
+add_test(
+    NAME livearea_search_start_button_filter_tests
+    COMMAND livearea_search_start_button_filter_tests
+)
+
 add_executable(livearea_search_exclusive_home_visibility_tests
     test_exclusive_home_visibility.cpp
 )
