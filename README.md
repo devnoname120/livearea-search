@@ -31,23 +31,19 @@ LiveArea Search is a resident SceShell user plugin that adds a native search con
 
 Download the ZIP from the [latest release](https://github.com/devnoname120/livearea-search/releases/latest). It contains a `livearea_search` folder and `install.txt` with the same instructions below.
 
-1. Extract the ZIP and copy the `livearea_search` folder to `ur0:/tai`.
-2. Back up `ur0:/tai/config.txt`, then open it in a text editor.
-3. Add the plugin under `*main`. If that section already exists, add only the plugin line. Replace any older LiveArea Search entry instead of adding a second one.
-
-```text
-*main
-ur0:tai/livearea_search/livearea_search.suprx
-```
+1. Extract the ZIP and copy the `livearea_search` folder to `ur0:/tai`. It should look like this:
+    ```
+    ur0:/tai/livearea_search/livearea_search.suprx
+    ur0:/tai/livearea_search/livearea_search_plugin.rco
+    ```
+3. Back up `ur0:/tai/config.txt`, then open it in a text editor.
+4. Add the plugin under `*main`. If that section already exists, add only the plugin line. Replace any older LiveArea Search entry instead of adding a second one.
+    ```
+    *main
+    ur0:tai/livearea_search/livearea_search.suprx
+    ```
 
 4. Restart your PS Vita.
-
-The installed files should be at:
-
-```text
-ur0:/tai/livearea_search/livearea_search.suprx
-ur0:/tai/livearea_search/livearea_search_plugin.rco
-```
 
 Recent history stays in `ur0:data/livearea_search/recent_apps.txt`; keep that data directory when upgrading. After restarting successfully with the new version, you can remove the old plugin and RCO files. If a plugin failure prevents SceShell from starting, hold **L** during boot to bypass taiHEN plugins and repair the configuration.
 
