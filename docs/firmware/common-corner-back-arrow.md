@@ -110,15 +110,25 @@ docs/assets/livearea-search-magnifier.png
 SHA-256:
 
 ```text
-e067e832aa4b82bd356ab9baa98d981f4bde03d9b184d4a8b39a16d12e86954e
+ee9d27f4517842252ad12e634b27470047aae38f4dd9d0c6fee1e93534e393f1
 ```
 
-The magnifier deliberately follows the stock arrow's visual grammar rather than
-copying its silhouette. It uses a grayscale white/silver body, top-left lighting,
-bottom-right beveling, a low-alpha dark drop edge, a translucent glass center,
-and supersampled antialiasing. Its optical mass is centered for the existing
-`48 × 48` plane and preserves the already validated corner-button tint,
-position, highlight, glow, sound, and interaction states.
+The first generated revision (`e067e832...e86954e`) was rejected after a direct
+side-by-side comparison with the exact arrow. Its glass fill, gray rim, and drop
+shadow were visibly heavier than Sony's artwork, especially on white.
+
+The corrected magnifier uses the stock arrow as a pixel-distribution reference,
+not merely a thematic reference. It has a nearly white plastic body, transparent
+negative space, top-left directional highlighting, a restrained pale-gray bevel,
+and a sparse low-alpha dark edge. The visible-pixel mean alpha is `122.28` versus
+`116.15` for the arrow; `100` magnifier pixels have alpha at least `240` versus
+`91` arrow pixels, and the magnifier's dark edge is capped at alpha `32`. This
+keeps it soft on white while retaining enough contrast on the blue and navy
+corner-button backgrounds.
+
+The silhouette remains optically centered for the existing `48 × 48` plane and
+preserves the validated corner-button tint, position, highlight, glow, sound, and
+interaction states.
 
 Regenerate it with:
 
@@ -131,9 +141,9 @@ python3 tools/assets/generate_skeuomorphic_magnifier.py \
 
 The final source asset was passed through the normal `psp2cxml-tool` RCO
 pipeline. The generated RCO stores the PNG as one zlib-compressed
-`texture/png` entry with ID `0xD743FC5B`; decompression returns all 2,176 source
+`texture/png` entry with ID `0xD743FC5B`; decompression returns all 1,732 source
 bytes exactly, including SHA-256
-`e067e832aa4b82bd356ab9baa98d981f4bde03d9b184d4a8b39a16d12e86954e`.
+`ee9d27f4517842252ad12e634b27470047aae38f4dd9d0c6fee1e93534e393f1`.
 
 Fresh pinned VitaSDK builds produced:
 
@@ -145,13 +155,13 @@ Fresh pinned VitaSDK builds produced:
 Both profiles contain the same generated RCO:
 
 ```text
-9f3fabbedf6b316ef245bc0a34c0e1a352e2fb2eb0b68236abe75268caac936b
+4938e89f709f9f1c5ad1b7aad154a962fcd70fbbe605f28f810c7341b8a65cb2
 ```
 
 The permanent install ZIP SHA-256 is:
 
 ```text
-68d152f14695ce2959d8c34223457b3acf2fad7c9e98954a986f7f12c0fe97b5
+05d722ed92eb40b8342cd4f22f3cb2d7144206a3577f0899b19e14ebd0989a43
 ```
 
 Both target builds completed without warnings and passed their respective

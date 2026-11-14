@@ -10,19 +10,25 @@ from pathlib import Path
 SIZE = 64
 SCALE = 8
 PARAMETERS = {
-    "cx": 26.5,
-    "cy": 25.5,
-    "outer": 14.6,
-    "inner": 8.6,
-    "hx0": 36.0,
-    "hy0": 35.0,
-    "hx1": 51.5,
-    "hy1": 50.5,
-    "handle": 4.7,
-    "shadow_x": 1.4,
-    "shadow_y": 2.0,
-    "shadow_blur": 2.2,
-    "shadow_alpha": 72.0,
+    "cx": 26.7,
+    "cy": 25.8,
+    "outer": 14.2,
+    "inner": 9.0,
+    "hx0": 35.8,
+    "hy0": 34.9,
+    "hx1": 50.4,
+    "hy1": 49.5,
+    "handle": 4.1,
+    "shadow_x": 1.0,
+    "shadow_y": 1.4,
+    "shadow_blur": 2.3,
+    "shadow_alpha": 25.0,
+    "body_alpha": 190.0,
+    "directional_alpha": 60.0,
+    "highlight_alpha": 22.0,
+    "shade_alpha": 5.0,
+    "specular_alpha": 45.0,
+    "edge_gray": 3.0,
 }
 
 
@@ -117,52 +123,45 @@ def generate_rgba() -> bytes:
                     1.0,
                 )
 
-            lens_distance = math.hypot(
-                x - PARAMETERS["cx"],
-                y - PARAMETERS["cy"],
-            )
-            if lens_distance < PARAMETERS["inner"] - 0.55:
-                glass_alpha = 14.0 + 20.0 * clamp(
-                    (
-                        PARAMETERS["cy"]
-                        + PARAMETERS["inner"]
-                        - y
-                    )
-                    / (2.0 * PARAMETERS["inner"]),
-                    0.0,
-                    1.0,
-                )
-                glint = math.exp(
-                    -(
-                        ((x - (PARAMETERS["cx"] - 4.4)) / 5.8) ** 2
-                        + ((y - (PARAMETERS["cy"] - 4.8)) / 2.0) ** 2
-                    )
-                )
-                glass_alpha += 35.0 * glint
-                if glass_alpha > alpha:
-                    red = green = blue = 255.0
-                    alpha = glass_alpha
-
             if signed_distance < 0.0:
                 normal_x, normal_y = body_normal(x, y)
                 light = normal_x * light_x + normal_y * light_y
-                edge = math.exp(signed_distance / 1.25)
-                diagonal = clamp((x + y - 10.0) / 95.0, 0.0, 1.0)
-                luminance = 254.0 - 24.0 * diagonal
-                luminance += edge * (
-                    28.0 * max(light, 0.0)
-                    - 34.0 * max(-light, 0.0)
+                edge = math.exp(signed_distance / 1.15)
+                specular = math.exp(
+                    -(
+                        ((x - (PARAMETERS["cx"] - 5.2)) / 5.2) ** 2
+                        + ((y - (PARAMETERS["cy"] - 5.0)) / 2.2) ** 2
+                    )
                 )
-                luminance += 7.0 * math.exp(
-                    -((x - 18.0) ** 2 + (y - 16.0) ** 2) / 180.0
+                directional = clamp(
+                    0.5
+                    + (PARAMETERS["cx"] - x)
+                    / (2.0 * PARAMETERS["outer"])
+                    + (PARAMETERS["cy"] - y)
+                    / (2.0 * PARAMETERS["outer"]),
+                    0.0,
+                    1.0,
                 )
-                red = green = blue = clamp(luminance, 150.0, 255.0)
                 alpha = clamp(
-                    244.0
-                    + 18.0 * clamp(max(light, 0.0) * edge, 0.0, 1.0),
+                    PARAMETERS["body_alpha"]
+                    + PARAMETERS["directional_alpha"] * directional
+                    + PARAMETERS["highlight_alpha"]
+                    * max(light, 0.0)
+                    * edge
+                    - PARAMETERS["shade_alpha"]
+                    * max(-light, 0.0)
+                    * edge
+                    + PARAMETERS["specular_alpha"] * specular,
                     0.0,
                     255.0,
                 )
+                luminance = 255.0
+                luminance -= (
+                    PARAMETERS["edge_gray"]
+                    * max(-light, 0.0)
+                    * edge
+                )
+                red = green = blue = clamp(luminance, 236.0, 255.0)
 
             pixel_index = (
                 (sample_y // SCALE) * SIZE + sample_x // SCALE

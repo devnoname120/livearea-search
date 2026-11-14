@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import math
 from pathlib import Path
 import struct
 import sys
@@ -11,7 +12,7 @@ import zlib
 
 
 ARROW_SHA256 = "6d18fe0829e3767f9ba972cb8774a908e6a0c01526295e11284df4fba6bbfa1d"
-MAGNIFIER_SHA256 = "e067e832aa4b82bd356ab9baa98d981f4bde03d9b184d4a8b39a16d12e86954e"
+MAGNIFIER_SHA256 = "ee9d27f4517842252ad12e634b27470047aae38f4dd9d0c6fee1e93534e393f1"
 SOURCE_RCO_SHA256 = "6ee58e58d1e78fecd99ea93e585c81efde3e940e3e0ca5cec4e64ba7cacdc806"
 
 
@@ -119,6 +120,47 @@ def bounding_box(
     )
 
 
+def resize_premultiplied_bilinear(
+    width: int,
+    height: int,
+    rgba: bytes,
+    output_width: int,
+    output_height: int,
+) -> bytes:
+    pixels = [tuple(rgba[index : index + 4]) for index in range(0, len(rgba), 4)]
+    output = bytearray(output_width * output_height * 4)
+    for output_y in range(output_height):
+        source_y = (output_y + 0.5) * height / output_height - 0.5
+        y0 = max(0, min(height - 1, math.floor(source_y)))
+        y1 = max(0, min(height - 1, y0 + 1))
+        fraction_y = source_y - math.floor(source_y)
+        for output_x in range(output_width):
+            source_x = (output_x + 0.5) * width / output_width - 0.5
+            x0 = max(0, min(width - 1, math.floor(source_x)))
+            x1 = max(0, min(width - 1, x0 + 1))
+            fraction_x = source_x - math.floor(source_x)
+            samples = (
+                ((1.0 - fraction_x) * (1.0 - fraction_y), pixels[y0 * width + x0]),
+                (fraction_x * (1.0 - fraction_y), pixels[y0 * width + x1]),
+                ((1.0 - fraction_x) * fraction_y, pixels[y1 * width + x0]),
+                (fraction_x * fraction_y, pixels[y1 * width + x1]),
+            )
+            alpha = sum(weight * color[3] for weight, color in samples)
+            destination = (output_y * output_width + output_x) * 4
+            output[destination + 3] = round(alpha)
+            if alpha == 0.0:
+                continue
+            for channel in range(3):
+                output[destination + channel] = round(
+                    sum(
+                        weight * color[channel] * color[3]
+                        for weight, color in samples
+                    )
+                    / alpha
+                )
+    return bytes(output)
+
+
 def load_generator(root: Path):
     path = root / "tools/assets/generate_skeuomorphic_magnifier.py"
     spec = importlib.util.spec_from_file_location("magnifier_generator", path)
@@ -197,26 +239,46 @@ def verify_magnifier(root: Path) -> None:
     pixels = visible_pixels(width, height, rgba)
     if (width, height) != (64, 64):
         raise AssertionError("magnifier must remain 64x64")
-    if bounding_box(pixels) != (11, 10, 59, 59):
+    if bounding_box(pixels) != (11, 11, 57, 56):
         raise AssertionError("magnifier optical bounds changed")
-    if len(pixels) != 1274:
+    if len(pixels) != 1029:
         raise AssertionError("magnifier alpha population changed")
     if (min(color[3] for _, _, color in pixels), max(color[3] for _, _, color in pixels)) != (
         1,
-        254,
+        255,
     ):
         raise AssertionError("magnifier alpha range changed")
     if not all(color[0] == color[1] == color[2] for _, _, color in pixels):
         raise AssertionError("magnifier must remain grayscale")
-    if sum(max(color[:3]) <= 12 for _, _, color in pixels) < 300:
+    dark_edge = [color for _, _, color in pixels if max(color[:3]) <= 64]
+    if len(dark_edge) < 300 or max(color[3] for color in dark_edge) > 32:
         raise AssertionError("magnifier lost its low-alpha dark edge/shadow")
-    if sum(min(color[:3]) >= 220 and color[3] >= 180 for _, _, color in pixels) < 600:
+    if sum(min(color[:3]) >= 220 and color[3] >= 180 for _, _, color in pixels) < 500:
         raise AssertionError("magnifier lost its bright beveled body")
+    if sum(color[3] >= 240 for _, _, color in pixels) != 100:
+        raise AssertionError("magnifier highlight population changed")
     center = tuple(rgba[(25 * width + 26) * 4 : (25 * width + 26) * 4 + 4])
-    if center != (255, 255, 255, 24):
-        raise AssertionError("magnifier glass center changed")
+    if center != (0, 0, 0, 0):
+        raise AssertionError("magnifier negative space must remain transparent")
     if tuple(rgba[:4]) != (0, 0, 0, 0):
         raise AssertionError("magnifier canvas corners must remain transparent")
+
+    rendered = resize_premultiplied_bilinear(width, height, rgba, 48, 48)
+    rendered_pixels = visible_pixels(48, 48, rendered)
+    if bounding_box(rendered_pixels) != (8, 8, 43, 42):
+        raise AssertionError("rendered magnifier optical bounds changed")
+    if len(rendered_pixels) != 610:
+        raise AssertionError("rendered magnifier alpha population changed")
+    rendered_alpha = [color[3] for _, _, color in rendered_pixels]
+    if (min(rendered_alpha), max(rendered_alpha)) != (1, 255):
+        raise AssertionError("rendered magnifier alpha range changed")
+    rendered_edge = [
+        color for _, _, color in rendered_pixels if max(color[:3]) <= 64
+    ]
+    if len(rendered_edge) != 188 or max(color[3] for color in rendered_edge) > 32:
+        raise AssertionError("rendered magnifier edge treatment changed")
+    if sum(color[3] >= 240 for _, _, color in rendered_pixels) != 48:
+        raise AssertionError("rendered magnifier highlight population changed")
 
 
 def verify_integration(root: Path) -> None:
