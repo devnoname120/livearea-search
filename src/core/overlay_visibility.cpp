@@ -36,12 +36,18 @@ IndicatorPopupVisibility ClassifyIndicatorPopupOwnership(
 HomeVisibilityAction ComputeHomeVisibilityAction(
     bool currently_visible,
     bool topmenu_visible,
-    bool results_open) noexcept {
+    bool results_open,
+    bool immediate_hide) noexcept {
     const bool should_show = topmenu_visible && !results_open;
     if (should_show == currently_visible) {
         return HomeVisibilityAction::None;
     }
-    return should_show ? HomeVisibilityAction::Show : HomeVisibilityAction::Hide;
+    if (should_show) {
+        return HomeVisibilityAction::Show;
+    }
+    return immediate_hide || results_open ?
+        HomeVisibilityAction::HideImmediately :
+        HomeVisibilityAction::HideWithFade;
 }
 
 bool ShouldCloseResultsPage(
@@ -73,15 +79,64 @@ bool IsBubbleHomeSurface(
            target_y >= -tolerance && target_y <= tolerance;
 }
 
+bool IsHomeEditOverlayWidget(
+    bool visible,
+    bool widget_base,
+    float position_x,
+    float position_y,
+    float width,
+    float height) noexcept {
+    return visible &&
+        widget_base &&
+        position_x >= -32.0f && position_x <= 32.0f &&
+        position_y >= -32.0f && position_y <= 32.0f &&
+        width >= 960.0f &&
+        height >= 544.0f;
+}
+
+bool IsHomeEditScrollWidget(
+    bool visible,
+    bool scroll_view,
+    float position_x,
+    float position_y,
+    float width,
+    float height) noexcept {
+    return visible &&
+        scroll_view &&
+        position_x >= -1.0f && position_x <= 1.0f &&
+        position_y >= -1.0f && position_y <= 1.0f &&
+        width >= 959.0f && width <= 961.0f &&
+        height >= 543.0f && height <= 545.0f;
+}
+
+bool IsHomeBackCornerWidget(
+    bool visible,
+    bool corner_button,
+    float position_x,
+    float position_y,
+    float width,
+    float height) noexcept {
+    return visible &&
+        corner_button &&
+        position_x <= -400.0f &&
+        position_y <= -220.0f &&
+        width >= 64.0f && width <= 128.0f &&
+        height >= 64.0f && height <= 128.0f;
+}
+
 bool ShouldExposeHomeSearch(
     bool shell_allows_overlay,
     bool bubble_home_visible,
     bool event_notification_visible,
-    bool livearea_visible) noexcept {
+    bool livearea_visible,
+    bool external_ime_visible,
+    bool home_edit_mode_visible) noexcept {
     return shell_allows_overlay &&
         bubble_home_visible &&
         !event_notification_visible &&
-        !livearea_visible;
+        !livearea_visible &&
+        !external_ime_visible &&
+        !home_edit_mode_visible;
 }
 
 bool ObserveNotificationCornerPress(

@@ -36,7 +36,7 @@ foreach(required_header IN ITEMS
     "static paf_touchscreen_device_handler::DeviceHandler previous_touchscreen_handler_;"
     "NotificationPanelSuppression notification_panel_suppression_;"
     "std::uint64_t notification_panel_opening_deadline_us_;"
-    "void SetHomeVisible(bool visible);")
+    "void SetHomeVisible(bool visible, bool immediate);")
     string(FIND "${overlay_header}" "${required_header}" found)
     if(found EQUAL -1)
         message(FATAL_ERROR "Missing notification preemption declaration: ${required_header}")
@@ -55,7 +55,7 @@ foreach(required_source IN ITEMS
     "ClassifyIndicatorPopupOwnership("
     "sceKernelGetSystemTimeWide()"
     "notification_panel_opening_deadline_us_"
-    "overlay->SetHomeVisible(false);"
+    "overlay->SetHomeVisible(false, true);"
     "previous_touchscreen_handler_(data);"
     "touch front slot=%u state=%d x=%d y=%d")
     string(FIND "${source}" "${required_source}" found)
@@ -75,7 +75,7 @@ if(NOT guarded_include EQUAL -1)
 endif()
 
 string(FIND "${source}" "ObserveNotificationCornerPress(" observe_index)
-string(FIND "${source}" "overlay->SetHomeVisible(false);" hide_index)
+string(FIND "${source}" "overlay->SetHomeVisible(false, true);" hide_index)
 string(FIND "${source}" "previous_touchscreen_handler_(data);" forward_index)
 if(observe_index EQUAL -1 OR hide_index EQUAL -1 OR forward_index EQUAL -1 OR
    NOT observe_index LESS hide_index OR NOT hide_index LESS forward_index)

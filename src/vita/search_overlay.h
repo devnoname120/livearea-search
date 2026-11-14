@@ -104,9 +104,9 @@ private:
     void SetResultsEditingLayout();
     void SetResultsDisplayLayout();
     void UpdateVisibility();
-    void SetHomeVisible(bool visible);
+    void SetHomeVisible(bool visible, bool immediate);
     void UpdateResultCount();
-    bool IsBubbleHomeVisible();
+    bool IsBubbleHomeVisible(bool& immediate_hide);
     int Launch(const String& title_id);
 
     const SearchResult* ResultAt(std::size_t index) const;

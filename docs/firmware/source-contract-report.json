@@ -21,6 +21,11 @@
       "source": "include/livearea_search/lsdb_abi.h"
     },
     {
+      "id": "home-edit-and-external-ime-ownership",
+      "issues": [],
+      "source": "src/vita/search_overlay.cpp"
+    },
+    {
       "id": "indicator-notification-corner-resource-hashes",
       "issues": [],
       "source": "include/livearea_search/overlay_visibility.h"
@@ -113,8 +118,8 @@
   ],
   "schema": 1,
   "summary": {
-    "checks": 22,
+    "checks": 23,
     "failed": 0,
-    "passed": 22
+    "passed": 23
   }
 }

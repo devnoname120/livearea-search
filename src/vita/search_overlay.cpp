@@ -71,6 +71,73 @@ IndicatorPopupVisibility QueryIndicatorPopupVisibility(paf::Plugin* indicator) {
         opened_pages);
 }
 
+bool IsHomeEditModeVisible(
+    paf::ui::Scene* root,
+    paf::ui::Widget* scroll_widget) {
+    if (root == NULL || scroll_widget == NULL) {
+        return false;
+    }
+    bool edit_overlay_visible = false;
+    bool back_corner_visible = false;
+    const paf::math::v4 origin(0.0f, 0.0f, 0.0f, 0.0f);
+    const int children = root->GetChildrenNum();
+    for (int index = 0; index < children; ++index) {
+        paf::ui::Widget* child = root->GetChild(index);
+        if (child == NULL) {
+            continue;
+        }
+        const char* type_name = child->GetTypeName();
+        const paf::math::v4 position = child->GetPos(0, root, origin);
+        const paf::math::v4* size = child->GetSize(0);
+        float position_values[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+        float size_values[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+        sceClibMemcpy(position_values, &position, sizeof(position_values));
+        if (size != NULL) {
+            sceClibMemcpy(size_values, size, sizeof(size_values));
+        }
+        edit_overlay_visible = edit_overlay_visible || IsHomeEditOverlayWidget(
+            child->IsVisible(),
+            type_name != NULL && sceClibStrcmp(type_name, "widget_base") == 0,
+            position_values[0],
+            position_values[1],
+            size_values[0],
+            size_values[1]);
+        back_corner_visible = back_corner_visible || IsHomeBackCornerWidget(
+            child->IsVisible(),
+            type_name != NULL && sceClibStrcmp(type_name, "corner_button") == 0,
+            position_values[0],
+            position_values[1],
+            size_values[0],
+            size_values[1]);
+    }
+
+    const char* scroll_type = scroll_widget->GetTypeName();
+    const paf::math::v4 scroll_position =
+        scroll_widget->GetPos(0, root, origin);
+    const paf::math::v4* scroll_size = scroll_widget->GetSize(0);
+    float scroll_position_values[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float scroll_size_values[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    sceClibMemcpy(
+        scroll_position_values,
+        &scroll_position,
+        sizeof(scroll_position_values));
+    if (scroll_size != NULL) {
+        sceClibMemcpy(
+            scroll_size_values,
+            scroll_size,
+            sizeof(scroll_size_values));
+    }
+    const bool full_screen_scroll = IsHomeEditScrollWidget(
+        scroll_widget->IsVisible(),
+        scroll_type != NULL && sceClibStrcmp(scroll_type, "scroll_view") == 0,
+        scroll_position_values[0],
+        scroll_position_values[1],
+        scroll_size_values[0],
+        scroll_size_values[1]);
+    return back_corner_visible &&
+        (edit_overlay_visible || full_screen_scroll);
+}
+
 #if LIVEAREA_SEARCH_DIAGNOSTICS
 unsigned int HashPluginPageState(
     unsigned int hash,
@@ -184,6 +251,9 @@ void LogHomeGate(
     bool shell_allows_overlay,
     bool event_notification_visible,
     bool livearea_visible,
+    bool external_ime_visible,
+    bool home_edit_mode_visible,
+    bool immediate_hide,
     bool topmenu_found,
     bool root_found,
     bool root_visible,
@@ -199,19 +269,25 @@ void LogHomeGate(
         (root_visible ? 1U << 5U : 0U) |
         (scroll_found ? 1U << 6U : 0U) |
         (bubble_home_visible ? 1U << 7U : 0U) |
-        (exposed ? 1U << 8U : 0U);
+        (exposed ? 1U << 8U : 0U) |
+        (external_ime_visible ? 1U << 9U : 0U) |
+        (home_edit_mode_visible ? 1U << 10U : 0U) |
+        (immediate_hide ? 1U << 11U : 0U);
     static unsigned int last_state = ~0U;
     if (state == last_state) {
         return;
     }
-    char line[192];
+    char line[256];
     sceClibSnprintf(
         line,
         sizeof(line),
-        "home gate shell=%d notification=%d livearea=%d topmenu=%d root=%d root_visible=%d scroll=%d bubble=%d exposed=%d",
+        "home gate shell=%d notification=%d livearea=%d ime=%d edit=%d immediate=%d topmenu=%d root=%d root_visible=%d scroll=%d bubble=%d exposed=%d",
         shell_allows_overlay ? 1 : 0,
         event_notification_visible ? 1 : 0,
         livearea_visible ? 1 : 0,
+        external_ime_visible ? 1 : 0,
+        home_edit_mode_visible ? 1 : 0,
+        immediate_hide ? 1 : 0,
         topmenu_found ? 1 : 0,
         root_found ? 1 : 0,
         root_visible ? 1 : 0,
@@ -880,7 +956,8 @@ void SearchOverlay::UpdateImeTransition() {
 
     RefreshSearchFromText(false);
     const bool is_editing = search_box_->IsEditing();
-    const bool shell_ready = IsBubbleHomeVisible();
+    bool immediate_hide = false;
+    const bool shell_ready = IsBubbleHomeVisible(immediate_hide);
     const ImeFrameAction action = ComputeImeFrameAction(
         ime_transition_active_,
         ime_editing_seen_,
@@ -1001,7 +1078,8 @@ void SearchOverlay::UpdateVisibility() {
     }
 
     const bool shell_allows_overlay = ShellAllowsOverlay();
-    const bool home_surface_visible = IsBubbleHomeVisible();
+    bool immediate_hide = false;
+    const bool home_surface_visible = IsBubbleHomeVisible(immediate_hide);
     if (ShouldCloseResultsPage(
             shell_allows_overlay,
             home_surface_visible,
@@ -1014,15 +1092,18 @@ void SearchOverlay::UpdateVisibility() {
     const HomeVisibilityAction action = ComputeHomeVisibilityAction(
         home_visible_,
         home_surface_visible,
-        results_page_ != NULL);
+        results_page_ != NULL,
+        immediate_hide);
     if (action == HomeVisibilityAction::None) {
         return;
     }
 
-    SetHomeVisible(action == HomeVisibilityAction::Show);
+    SetHomeVisible(
+        action == HomeVisibilityAction::Show,
+        action == HomeVisibilityAction::HideImmediately);
 }
 
-void SearchOverlay::SetHomeVisible(bool visible) {
+void SearchOverlay::SetHomeVisible(bool visible, bool immediate) {
     if (home_visible_ == visible || home_button_ == NULL ||
         home_page_ == NULL || plugin_ == NULL) {
         return;
@@ -1034,7 +1115,10 @@ void SearchOverlay::SetHomeVisible(bool visible) {
         home_page_->Show(paf::common::transition::Type_FadeinFast);
     } else {
         home_button_->DisableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);
-        home_page_->Hide(paf::common::transition::Type_Reset);
+        home_page_->Hide(
+            immediate ?
+                paf::common::transition::Type_Reset :
+                paf::common::transition::Type_FadeinFast);
         plugin_->PageInactivate("page_home_search");
     }
 }
@@ -1056,7 +1140,7 @@ void SearchOverlay::UpdateResultCount() {
     SetText(result_count_, text);
 }
 
-bool SearchOverlay::IsBubbleHomeVisible() {
+bool SearchOverlay::IsBubbleHomeVisible(bool& immediate_hide) {
     const bool shell_allows_overlay = ShellAllowsOverlay();
     paf::Plugin* indicator = shell_allows_overlay ?
         paf::Plugin::Find("indicator_plugin") : NULL;
@@ -1076,13 +1160,18 @@ bool SearchOverlay::IsBubbleHomeVisible() {
         notification_touch_suppressed;
     paf::Plugin* livearea = shell_allows_overlay ?
         paf::Plugin::Find("livearea_plugin") : NULL;
+    paf::Plugin* ime = shell_allows_overlay ?
+        paf::Plugin::Find("ime_plugin") : NULL;
 #if LIVEAREA_SEARCH_DIAGNOSTICS
     static unsigned int last_indicator_pages = ~0U;
     static unsigned int last_livearea_pages = ~0U;
+    static unsigned int last_ime_pages = ~0U;
     LogPluginPages("indicator", indicator, last_indicator_pages);
     LogPluginPages("livearea", livearea, last_livearea_pages);
+    LogPluginPages("ime", ime, last_ime_pages);
 #endif
     const bool livearea_visible = IsPafPluginVisible(livearea);
+    const bool external_ime_visible = IsPafPluginVisible(ime);
     paf::Plugin* topmenu = shell_allows_overlay ?
         paf::Plugin::Find("topmenu_plugin") : NULL;
     paf::ui::Scene* root = topmenu == NULL ? NULL :
@@ -1102,16 +1191,28 @@ bool SearchOverlay::IsBubbleHomeVisible() {
             target.extract_x(),
             target.extract_y());
     }
+    const bool home_edit_mode_visible =
+        root_visible && IsHomeEditModeVisible(root, scroll_widget);
+    immediate_hide =
+        !shell_allows_overlay ||
+        event_notification_visible ||
+        external_ime_visible ||
+        home_edit_mode_visible;
     const bool exposed = ShouldExposeHomeSearch(
         shell_allows_overlay,
         bubble_home_visible,
         event_notification_visible,
-        livearea_visible);
+        livearea_visible,
+        external_ime_visible,
+        home_edit_mode_visible);
 #if LIVEAREA_SEARCH_DIAGNOSTICS
     LogHomeGate(
         shell_allows_overlay,
         event_notification_visible,
         livearea_visible,
+        external_ime_visible,
+        home_edit_mode_visible,
+        immediate_hide,
         topmenu != NULL,
         root != NULL,
         root_visible,
@@ -1238,7 +1339,8 @@ void SearchOverlay::OnHomeSearch(
     paf::ui::Event*,
     void* user_data) {
     SearchOverlay* overlay = static_cast<SearchOverlay*>(user_data);
-    if (overlay != NULL && overlay->IsBubbleHomeVisible()) {
+    bool immediate_hide = false;
+    if (overlay != NULL && overlay->IsBubbleHomeVisible(immediate_hide)) {
         QueueInteractionLog("home search callback");
         QueueInteractionLogResult("open results page", overlay->OpenResultsPage());
     }
@@ -1385,7 +1487,7 @@ void SearchOverlay::TouchscreenDeviceHandler(
                     static_cast<std::uint64_t>(sceKernelGetSystemTimeWide()),
                     overlay->notification_panel_suppression_,
                     overlay->notification_panel_opening_deadline_us_)) {
-                overlay->SetHomeVisible(false);
+                overlay->SetHomeVisible(false, true);
             }
         }
     }

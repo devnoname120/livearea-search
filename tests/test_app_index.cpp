@@ -472,35 +472,43 @@ void TestHomeVisibilityTransitions() {
             0.0f),
         "an outbound transition hides the Home control as soon as its target leaves Home");
 
-    Check(ShouldExposeHomeSearch(true, true, false, false),
+    Check(ShouldExposeHomeSearch(true, true, false, false, false, false),
           "plain bubble Home exposes the Search control");
-    Check(!ShouldExposeHomeSearch(true, true, true, false),
+    Check(!ShouldExposeHomeSearch(true, true, true, false, false, false),
           "the event-notification panel yields the bottom-right corner to Sony's ellipsis");
-    Check(!ShouldExposeHomeSearch(true, true, false, true),
+    Check(!ShouldExposeHomeSearch(true, true, false, true, false, false),
           "a foreground title LiveArea hides Search");
-    Check(!ShouldExposeHomeSearch(false, true, false, false),
+    Check(!ShouldExposeHomeSearch(false, true, false, false, false, false),
           "AppMgr foreground or system-overlay ownership suppresses Search");
-    Check(!ShouldExposeHomeSearch(true, false, false, false),
+    Check(!ShouldExposeHomeSearch(true, false, false, false, false, false),
           "non-Home topmenu surfaces do not expose Search");
+    Check(!ShouldExposeHomeSearch(true, true, false, false, true, false),
+          "an external IME suppresses the Home Search control");
+    Check(!ShouldExposeHomeSearch(true, true, false, false, false, true),
+          "Home edit mode suppresses the Home Search control");
 
     Check(
-        ComputeHomeVisibilityAction(false, true, false) ==
+        ComputeHomeVisibilityAction(false, true, false, false) ==
             HomeVisibilityAction::Show,
         "a newly opened Home page is explicitly shown");
     Check(
-        ComputeHomeVisibilityAction(true, true, false) ==
+        ComputeHomeVisibilityAction(true, true, false, false) ==
             HomeVisibilityAction::None,
         "an already visible Home page is left unchanged");
     Check(
-        ComputeHomeVisibilityAction(true, false, false) ==
-            HomeVisibilityAction::Hide,
-        "the Home control hides when topmenu is not visible");
+        ComputeHomeVisibilityAction(true, false, false, false) ==
+            HomeVisibilityAction::HideWithFade,
+        "ordinary Home departure fades out the Home control");
     Check(
-        ComputeHomeVisibilityAction(true, true, true) ==
-            HomeVisibilityAction::Hide,
-        "the Home control hides while the results page is open");
+        ComputeHomeVisibilityAction(true, true, true, false) ==
+            HomeVisibilityAction::HideImmediately,
+        "the Home control hides immediately while results are open");
     Check(
-        ComputeHomeVisibilityAction(false, false, false) ==
+        ComputeHomeVisibilityAction(true, false, false, true) ==
+            HomeVisibilityAction::HideImmediately,
+        "system-owned controls hide Search immediately");
+    Check(
+        ComputeHomeVisibilityAction(false, false, false, false) ==
             HomeVisibilityAction::None,
         "an already hidden Home page is left unchanged");
 

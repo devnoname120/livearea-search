@@ -45,6 +45,7 @@
         "0x9670D39F",
         "0x99BA173E",
         "0x9CC2BFDF",
+        "0xA2FB4D9D",
         "0xBCA5B623",
         "0xC5C11EE7",
         "0xDA6EC8EF",
@@ -175,6 +176,7 @@
         "0x046AA07D",
         "0x1316E7E8",
         "0x21125870",
+        "0x2F924BAD",
         "0x417201D9",
         "0x44B22ACA",
         "0x57D78B6F",
@@ -185,6 +187,7 @@
         "0x77CE1B80",
         "0x7B4B305A",
         "0x82515E71",
+        "0x83BE8594",
         "0x8552BF82",
         "0x9224D27B",
         "0x95FE9C0D",
@@ -238,5 +241,5 @@
   "passed": true,
   "profile": "release",
   "schema": 1,
-  "sha256": "fa5c297b8b51922b9e15d86ac124b039342feb66a0381ce88070a1ef039a0e28"
+  "sha256": "b01af50670bbf6118e1bae993da758d1b894effc8118c19e7fdd94e884f903ad"
 }

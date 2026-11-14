@@ -14,7 +14,8 @@ const std::uint64_t kNotificationPanelOpeningGraceUs = 500000ULL;
 enum class HomeVisibilityAction {
     None,
     Show,
-    Hide,
+    HideWithFade,
+    HideImmediately,
 };
 
 enum class ImeFrameAction {
@@ -66,7 +67,8 @@ IndicatorPopupVisibility ClassifyIndicatorPopupOwnership(
 HomeVisibilityAction ComputeHomeVisibilityAction(
     bool currently_visible,
     bool topmenu_visible,
-    bool results_open) noexcept;
+    bool results_open,
+    bool immediate_hide) noexcept;
 bool ShouldCloseResultsPage(
     bool shell_allows_overlay,
     bool topmenu_visible,
@@ -78,11 +80,34 @@ bool IsBubbleHomeSurface(
     float focus_y,
     float target_x,
     float target_y) noexcept;
+bool IsHomeEditOverlayWidget(
+    bool visible,
+    bool widget_base,
+    float position_x,
+    float position_y,
+    float width,
+    float height) noexcept;
+bool IsHomeEditScrollWidget(
+    bool visible,
+    bool scroll_view,
+    float position_x,
+    float position_y,
+    float width,
+    float height) noexcept;
+bool IsHomeBackCornerWidget(
+    bool visible,
+    bool corner_button,
+    float position_x,
+    float position_y,
+    float width,
+    float height) noexcept;
 bool ShouldExposeHomeSearch(
     bool shell_allows_overlay,
     bool bubble_home_visible,
     bool event_notification_visible,
-    bool livearea_visible) noexcept;
+    bool livearea_visible,
+    bool external_ime_visible,
+    bool home_edit_mode_visible) noexcept;
 bool ObserveNotificationCornerPress(
     bool results_open,
     bool touch_pressed,

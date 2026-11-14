@@ -209,7 +209,8 @@
         "paf::Plugin::Find(\"topmenu_plugin\")",
         "paf::Plugin::Find(\"indicator_plugin\")",
         "paf::IDParam(\"page_event_notification\")",
-        "paf::Plugin::Find(\"livearea_plugin\")"
+        "paf::Plugin::Find(\"livearea_plugin\")",
+        "paf::Plugin::Find(\"ime_plugin\")"
       ],
       "source_forbidden_needles": [
         "paf::Plugin::Find(\"impose_plugin\")",
@@ -224,7 +225,8 @@
             "\"impose_net_plugin\"",
             "\"indicator_plugin\"",
             "\"page_event_notification\"",
-            "\"livearea_plugin\""
+            "\"livearea_plugin\"",
+            "\"ime_plugin\""
           ]
         },
         {
@@ -450,7 +452,7 @@
         "ClassifyIndicatorPopupOwnership(",
         "AdvanceNotificationPanelSuppression(",
         "ObserveNotificationCornerPress(",
-        "overlay->SetHomeVisible(false);",
+        "overlay->SetHomeVisible(false, true);",
         "previous_touchscreen_handler_(data);"
       ],
       "evidence": [
@@ -718,6 +720,68 @@
           "needles": [
             "Filtered-title query ABI invariant is missing",
             "Unrelated/rejected LSDB query key returned"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "home-edit-and-external-ime-ownership",
+      "source": "src/vita/search_overlay.cpp",
+      "source_needles": [
+        "bool IsHomeEditModeVisible(\n    paf::ui::Scene* root,\n    paf::ui::Widget* scroll_widget)",
+        "paf::Plugin::Find(\"ime_plugin\")",
+        "IsHomeEditOverlayWidget(",
+        "IsHomeEditScrollWidget(",
+        "IsHomeBackCornerWidget(",
+        "scroll_widget->GetPos(0, root, origin)",
+        "scroll_widget->GetSize(0)",
+        "return back_corner_visible &&\n        (edit_overlay_visible || full_screen_scroll);",
+        "action == HomeVisibilityAction::HideImmediately",
+        "HomeVisibilityAction::HideImmediately",
+        "paf::common::transition::Type_FadeinFast",
+        "paf::common::transition::Type_Reset"
+      ],
+      "source_forbidden_needles": [
+        "\"edit_decide\"",
+        "\"edit_open\"",
+        "\"edit_cancel\"",
+        "\"edit_back\"",
+        "\"edit_modeMode\"",
+        "\"edit_menu\"",
+        "\"edit_kakutei\"",
+        "LogTopMenuTree(",
+        "QueueVisibleWidgetTree(",
+        "HashWidgetTree("
+      ],
+      "evidence": [
+        {
+          "path": "tools/firmware/compatibility_manifest.json",
+          "needles": [
+            "\"ime_plugin\""
+          ]
+        },
+        {
+          "path": "docs/firmware/home-edit-and-external-ime-ownership.md",
+          "needles": [
+            "Contract ID: `home-edit-and-external-ime-ownership-v1`",
+            "`ime_plugin`",
+            "`widget_base` at `(0, 0)` with size `1000 \u00d7 600`",
+            "`scroll_view` expands to `(0, 0)` with size `960 \u00d7 544`",
+            "`corner_button` at `(-480, -272)` with size `90 \u00d7 90`",
+            "Ordinary folder view",
+            "`960 \u00d7 512` at Y `-16`",
+            "no magic PAF identifier"
+          ]
+        },
+        {
+          "path": "tests/test_exclusive_home_visibility.cpp",
+          "needles": [
+            "IsHomeEditOverlayWidget",
+            "IsHomeEditScrollWidget",
+            "IsHomeBackCornerWidget",
+            "ordinary folder view may expose Back without the full-screen edit scroll",
+            "external IME must own the lower-right keyboard region",
+            "ordinary Home departure must use the native fade-out"
           ]
         }
       ]

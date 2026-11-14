@@ -1,6 +1,6 @@
 # LiveArea Search source-to-firmware contract audit
 
-22 checks: 22 passed, 0 failed.
+23 checks: 23 passed, 0 failed.
 
 | Check | Source | Result |
 |---|---|---|
@@ -8,6 +8,7 @@
 | appmgr-shell-state-interface | `src/vita/plugin_main.cpp` | PASS |
 | filtered-title-output-ownership | `src/vita/lsdb_index_source.cpp` | PASS |
 | filtered-title-query-semantics | `include/livearea_search/lsdb_abi.h` | PASS |
+| home-edit-and-external-ime-ownership | `src/vita/search_overlay.cpp` | PASS |
 | indicator-notification-corner-resource-hashes | `include/livearea_search/overlay_visibility.h` | PASS |
 | indicator-popup-return-classification | `src/core/overlay_visibility.cpp` | PASS |
 | lsdb-abi-layout | `include/livearea_search/lsdb_abi.h` | PASS |

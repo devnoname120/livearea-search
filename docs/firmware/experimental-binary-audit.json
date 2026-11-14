@@ -47,6 +47,7 @@
         "0x9670D39F",
         "0x99BA173E",
         "0x9CC2BFDF",
+        "0xA2FB4D9D",
         "0xAC595E68",
         "0xBCA5B623",
         "0xC5C11EE7",
@@ -179,6 +180,7 @@
         "0x046AA07D",
         "0x1316E7E8",
         "0x21125870",
+        "0x2F924BAD",
         "0x417201D9",
         "0x44B22ACA",
         "0x57D78B6F",
@@ -189,6 +191,7 @@
         "0x77CE1B80",
         "0x7B4B305A",
         "0x82515E71",
+        "0x83BE8594",
         "0x8552BF82",
         "0x9224D27B",
         "0x95FE9C0D",
@@ -253,5 +256,5 @@
   "passed": true,
   "profile": "experimental",
   "schema": 1,
-  "sha256": "7102808aeca3f1bcc3c6c7893d493eb9bd3efd68a974f98698ef8841450f8596"
+  "sha256": "70115ed5e0f0eb56cb11a3b5bf926474c578535589b8bb5ab23df7aa1168cda3"
 }

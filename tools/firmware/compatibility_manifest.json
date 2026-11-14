@@ -194,6 +194,7 @@
         "0xF476E785"
       ],
       "required_strings": [
+        "ime_plugin",
         "impose_net_plugin",
         "impose_plugin",
         "indicator_plugin",

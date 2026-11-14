@@ -44,7 +44,9 @@ foreach(required_header IN ITEMS
     "bool home_ps_owned_;"
     "bool home_ps_lock_held_;"
     "ShellUtilLockFunction shell_util_lock_;"
-    "ShellUtilUnlockFunction shell_util_unlock_;")
+    "ShellUtilUnlockFunction shell_util_unlock_;"
+    "void SetHomeVisible(bool visible, bool immediate);"
+    "bool IsBubbleHomeVisible(bool& immediate_hide);")
     string(FIND "${header}" "${required_header}" found)
     if(found EQUAL -1)
         message(FATAL_ERROR "Missing Home-close API/state: ${required_header}")
@@ -59,7 +61,20 @@ foreach(required_source IN ITEMS
     "paf_text_box_ime::SetImeParam(search_box_, ime_param)"
     "paf::Plugin::Find(\"indicator_plugin\")"
     "paf::Plugin::Find(\"livearea_plugin\")"
+    "paf::Plugin::Find(\"ime_plugin\")"
     "paf::IDParam(\"page_event_notification\")"
+    "IsHomeEditModeVisible(root, scroll_widget)"
+    "IsHomeEditOverlayWidget("
+    "IsHomeEditScrollWidget("
+    "IsHomeBackCornerWidget("
+    "sceClibStrcmp(type_name, \"widget_base\") == 0"
+    "sceClibStrcmp(type_name, \"corner_button\") == 0"
+    "sceClibStrcmp(scroll_type, \"scroll_view\") == 0"
+    "child->GetPos(0, root, origin)"
+    "child->GetSize(0)"
+    "scroll_widget->GetPos(0, root, origin)"
+    "scroll_widget->GetSize(0)"
+    "return back_corner_visible &&\n        (edit_overlay_visible || full_screen_scroll);"
     "ShouldExposeHomeSearch("
     "home_button_->DisableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);"
     "home_button_->EnableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);"
@@ -87,7 +102,9 @@ foreach(required_source IN ITEMS
     "kShellUtilUnlockNid = 0x21A6CF54U;"
     "shell_util_lock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2)"
     "shell_util_unlock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2)"
-    "home_page_->Show(paf::common::transition::Type_FadeinFast);")
+    "home_page_->Show(paf::common::transition::Type_FadeinFast);"
+    "HomeVisibilityAction::HideImmediately"
+    "home_page_->Hide(\n            immediate ?\n                paf::common::transition::Type_Reset :\n                paf::common::transition::Type_FadeinFast);")
     string(FIND "${source}" "${required_source}" found)
     if(found EQUAL -1)
         message(FATAL_ERROR "Missing IME/Home polish behavior: ${required_source}")
@@ -98,7 +115,18 @@ foreach(forbidden_source IN ITEMS
     "paf::Plugin::Find(\"impose_plugin\")"
     "paf::Plugin::Find(\"impose_net_plugin\")"
     "shell_util_lock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN)"
-    "shell_util_unlock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN)")
+    "shell_util_unlock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN)"
+    "\"edit_decide\""
+    "\"edit_open\""
+    "\"edit_cancel\""
+    "\"edit_back\""
+    "\"edit_modeMode\""
+    "\"edit_menu\""
+    "\"edit_kakutei\""
+    "LogTopMenuTree("
+    "QueueVisibleWidgetTree("
+    "HashWidgetTree("
+    "topmenu tree")
     string(FIND "${source}" "${forbidden_source}" found)
     if(NOT found EQUAL -1)
         if(forbidden_source MATCHES "SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN")
@@ -112,11 +140,11 @@ foreach(forbidden_source IN ITEMS
 endforeach()
 
 string(FIND "${source}"
-    "event_notification_visible,\n        livearea_visible);"
+    "event_notification_visible,\n        livearea_visible,\n        external_ime_visible,\n        home_edit_mode_visible);"
     exclusive_home_gate)
 if(exclusive_home_gate EQUAL -1)
     message(FATAL_ERROR
-        "Search visibility must pass the foreground LiveArea state into the exclusive Home gate")
+        "Search visibility must pass LiveArea, IME, and edit ownership into the exclusive Home gate")
 endif()
 
 string(FIND "${source}" "int SearchOverlay::OpenHomePage()" open_home_start)
@@ -141,7 +169,7 @@ if(open_home_start EQUAL -1 OR initial_touch_disable EQUAL -1 OR
         "The Home search page must start hidden and non-interactive before its first visibility evaluation")
 endif()
 
-string(FIND "${source}" "overlay != NULL && overlay->IsBubbleHomeVisible()" activation_gate)
+string(FIND "${source}" "overlay != NULL && overlay->IsBubbleHomeVisible(immediate_hide)" activation_gate)
 string(FIND "${source}" "overlay->OpenResultsPage()" activation_open)
 if(activation_gate EQUAL -1 OR activation_open EQUAL -1 OR
    NOT activation_gate LESS activation_open)
