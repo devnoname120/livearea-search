@@ -60,10 +60,11 @@ foreach(forbidden_source IN ITEMS
 endforeach()
 
 string(FIND "${resource_xml}"
-    "<layout_hint align=\"2,1\" anchor=\"2,1\" size=\"150,64\" pos=\"0,0\" />"
-    natural_results_count)
-if(natural_results_count EQUAL -1)
-    message(FATAL_ERROR "The Recent/results-count label must use the natural right-edge layout")
+    "<layout_hint align=\"2,1\" anchor=\"2,1\" size=\"150,64\" pos=\"-16,0\" />"
+    inset_results_count)
+if(inset_results_count EQUAL -1)
+    message(FATAL_ERROR
+        "The Recent/results-count label must use the approved 16-pixel right inset")
 endif()
 
 foreach(forbidden_resource IN ITEMS
@@ -72,7 +73,8 @@ foreach(forbidden_resource IN ITEMS
     "plane_notification_header_occluder"
     "style_notification_bar_occluder"
     "style_notification_header_occluder"
-    "pos=\"-80,0\"")
+    "<layout_hint align=\"2,1\" anchor=\"2,1\" size=\"150,64\" pos=\"0,0\" />"
+    "<layout_hint align=\"2,1\" anchor=\"2,1\" size=\"150,64\" pos=\"-80,0\" />")
     string(FIND "${resource_xml}" "${forbidden_resource}" found)
     if(NOT found EQUAL -1)
         message(FATAL_ERROR

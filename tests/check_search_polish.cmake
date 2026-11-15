@@ -20,15 +20,31 @@ file(READ "${PAF_PAD_HANDLER_HEADER}" pad_handler_adapter)
 
 foreach(required_resource IN ITEMS
     "<layout_hint align=\"1,1\" anchor=\"1,1\" size=\"750,58\" pos=\"18,0\" />"
-    "<layout_hint align=\"2,1\" anchor=\"2,1\" size=\"150,64\" pos=\"0,0\" />"
+    "<layout_hint align=\"2,1\" anchor=\"2,1\" size=\"150,64\" pos=\"-16,0\" />"
     "font_size=\"22\""
     "line_pitch=\"32\""
+    "align_x=\"2\""
+    "ellipsis=\"1\""
     "id=\"style_results_count\"")
     string(FIND "${resource}" "${required_resource}" found)
     if(found EQUAL -1)
         message(FATAL_ERROR "Missing unclipped results-count geometry: ${required_resource}")
     endif()
 endforeach()
+
+set(results_header_width 960)
+set(search_box_left 18)
+set(search_box_width 750)
+set(results_count_width 150)
+set(results_count_right_inset 16)
+math(EXPR search_box_right "${search_box_left} + ${search_box_width}")
+math(EXPR results_count_left
+    "${results_header_width} - ${results_count_right_inset} - ${results_count_width}")
+math(EXPR results_header_gap "${results_count_left} - ${search_box_right}")
+if(NOT results_header_gap EQUAL 26)
+    message(FATAL_ERROR
+        "Results header regions must retain a 26-pixel non-overlap gap")
+endif()
 
 foreach(required_header IN ITEMS
     "void HandleHome();"

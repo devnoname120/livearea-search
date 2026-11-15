@@ -28,7 +28,7 @@
                 </text_box>
 
                 <text style="style_results_count" id="text_results_count">
-                    <layout_hint align="2,1" anchor="2,1" size="150,64" pos="0,0" />
+                    <layout_hint align="2,1" anchor="2,1" size="150,64" pos="-16,0" />
                 </text>
 
                 <plane style="_common_default_style_plane" texture="_common_texture_ruled_line" id="plane_header_rule">
