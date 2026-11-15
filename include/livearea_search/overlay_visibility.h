@@ -9,6 +9,7 @@ const std::uint32_t kTopMenuHomePageHash = 0x5E9535B3U;
 const std::uint32_t kTopMenuHomeScrollHash = 0x9CC405A3U;
 const std::uint32_t kIndicatorPageHash = 0xFFD7E3F0U;
 const std::uint32_t kIndicatorNotificationCornerHash = 0x8BF9D3C5U;
+const std::uint32_t kIndicatorNotificationBubbleHash = 0x718CB7FFU;
 const std::uint64_t kNotificationPanelOpeningGraceUs = 500000ULL;
 const std::int32_t kShellEventApplicationSwitcherEnter = 4;
 const std::int32_t kShellEventApplicationSwitcherLeave = 5;

@@ -148,6 +148,53 @@ records the opening sequence as `0x00000001` (exists), then `0x03E80007`
 at firmware 3.60 or later, alongside the static page identifier. This covers
 retail, testkit, devkit, external debug, and internal families.
 
+### Native Home notification bubble
+
+The panel-close corner above is not the blue Home notification bubble. A bounded
+runtime tree inventory on retail Vita 146 identified the visible Home bubble as
+widget `0x718CB7FF`, a `button` under static indicator page `0xFFD7E3F0`.
+Its children are bubble plane `0x6AE5A623`, count text `0x6E6CC672`, and busy
+indicator `0x2D08677D`. The resource compatibility audit now requires
+`0x718CB7FF` exactly once alongside the page and panel-corner identifiers in all
+42 audited indicator resources.
+
+The legacy Search-results implementation did not hide this widget. It opened a
+plugin-owned page with two opaque `80 x 32` planes, leaving a black rectangle,
+part of the cyan bubble edge, and an artificial 80-pixel reservation in the
+results header. The replacement reacquires `0x718CB7FF` from
+`indicator_plugin`, calls native `Hide(Type_Reset)` once when Search opens, and
+calls `Show(Type_Reset)` only when the widget had originally been visible. The
+guard stores only logical ownership state; it never retains a Sony-owned widget
+pointer across frames.
+
+Repeatedly issuing `Hide(Type_Reset)` while Search is open is incorrect. The
+native transition restarts on every call and leaves part of the cyan bubble
+visible indefinitely. The final guard therefore returns success immediately
+after its first successful suppression and reacquires the widget only for
+restoration. The exact diagnostics-off release capture
+`build-vita-regression-diagnostic/native-notification-final-release-visual-20261115T145229Z/search-results.png`
+shows the bubble fully absent with no opaque replacement and the `Recent` label
+at its natural right edge. The matching `home-after.png` shows the native bubble
+restored.
+
+The final self-disabling candidate used SUPRX
+`f76d79a984879cb65d646e7bbd7b9c361f094c7b6b55629ea0d158772a627f94`
+and RCO
+`ebab91aa4669d225b6b88568299b1b36269f9c766ee91a114b21ee1fdd271a1d`.
+It passed native Search open/close, two notification-panel cycles, application
+switcher pass-through, PS/Home with active and dismissed IME, Start ownership in
+Home edit and external folder IME, and Triangle/Circle ownership. Exact hashes,
+self-disabled configuration, and core-name plus fixed-name fingerprints remained
+stable throughout.
+
+The matching permanent release SUPRX is
+`745d93dab382c919cfaa46d716984f8916ea454dcd27b2487512ce1eaa0f1546`.
+Guarded installation passed two clean helper-driven boots, Search/Back smoke,
+one active and zero disabled configuration entries, stable startup-log SHA-256
+`86932c19ff4f688039160b64e73e57501a0fd8bcf831e310bbbbae4d6198c0ed`,
+and the unchanged 443-core baseline. Permanent deployment evidence is in
+`build-vita-regression-diagnostic/native-notification-final-permanent-deploy-20261115T145043Z/report.json`.
+
 ## Integration rule
 
 The wrapper may inspect the list but must forward the same pointer, unchanged,

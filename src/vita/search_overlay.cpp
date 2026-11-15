@@ -414,7 +414,7 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       empty_text_(NULL),
       result_count_(NULL),
       close_button_(NULL),
-      notification_corner_(plugin),
+      notification_corner_(),
       icon_cache_(NULL),
       visibility_registered_(false),
       home_visible_(false),

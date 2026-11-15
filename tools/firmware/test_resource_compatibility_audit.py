@@ -32,6 +32,7 @@ def _manifest() -> dict[str, object]:
                 "required_u32_le": {
                     "indicator_page": "0xFFD7E3F0",
                     "notification_corner": "0x8BF9D3C5",
+                    "notification_bubble": "0x718CB7FF",
                 },
                 "exact_count": 1,
             }
@@ -56,10 +57,10 @@ class ResourceCompatibilityAuditTests(unittest.TestCase):
         issues = audit_resource_bytes(duplicate, requirement)
         self.assertTrue(any("home_page" in issue and "found 2" in issue for issue in issues))
 
-    def test_audits_notification_corner_identifier(self) -> None:
+    def test_audits_notification_identifiers(self) -> None:
         manifest = load_resource_manifest_data(_manifest())
         requirement = manifest.resources["indicator"]
-        image = struct.pack("<II", 0xFFD7E3F0, 0x8BF9D3C5)
+        image = struct.pack("<III", 0xFFD7E3F0, 0x8BF9D3C5, 0x718CB7FF)
 
         self.assertEqual(audit_resource_bytes(image, requirement), ())
 
@@ -69,6 +70,14 @@ class ResourceCompatibilityAuditTests(unittest.TestCase):
         )
         self.assertTrue(
             any("notification_corner" in issue and "found 0" in issue for issue in issues)
+        )
+
+        issues = audit_resource_bytes(
+            struct.pack("<II", 0xFFD7E3F0, 0x8BF9D3C5),
+            requirement,
+        )
+        self.assertTrue(
+            any("notification_bubble" in issue and "found 0" in issue for issue in issues)
         )
 
     def test_discovers_only_supported_resource_files(self) -> None:

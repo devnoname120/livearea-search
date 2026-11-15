@@ -9,7 +9,7 @@
 | filtered-title-output-ownership | `src/vita/lsdb_index_source.cpp` | PASS |
 | filtered-title-query-semantics | `include/livearea_search/lsdb_abi.h` | PASS |
 | home-edit-and-external-ime-ownership | `src/vita/search_overlay.cpp` | PASS |
-| indicator-notification-corner-resource-hashes | `include/livearea_search/overlay_visibility.h` | PASS |
+| indicator-notification-resource-hashes | `include/livearea_search/overlay_visibility.h` | PASS |
 | indicator-popup-return-classification | `src/core/overlay_visibility.cpp` | PASS |
 | lsdb-abi-layout | `include/livearea_search/lsdb_abi.h` | PASS |
 | lsdb-export-contract | `include/livearea_search/lsdb_abi.h` | PASS |

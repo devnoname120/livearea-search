@@ -1,42 +1,55 @@
 #include "notification_corner.h"
 
+#include <livearea_search/overlay_visibility.h>
+
 namespace livearea_search {
 
-NotificationCornerGuard::NotificationCornerGuard(paf::Plugin* plugin)
-    : plugin_(plugin),
-      page_(NULL) {}
+NotificationCornerGuard::NotificationCornerGuard()
+    : suppressed_(false),
+      was_visible_(false) {}
 
 NotificationCornerGuard::~NotificationCornerGuard() {
     Restore();
 }
 
+paf::ui::Widget* NotificationCornerGuard::ResolveNativeCorner() const {
+    paf::Plugin* indicator = paf::Plugin::Find("indicator_plugin");
+    paf::ui::Scene* root = indicator == NULL ? NULL :
+        indicator->PageRoot(kIndicatorPageHash);
+    return root == NULL ? NULL :
+        root->FindChild(kIndicatorNotificationBubbleHash);
+}
+
 bool NotificationCornerGuard::Suppress() {
-    if (page_ != NULL) {
+    if (suppressed_) {
         return true;
     }
-    if (plugin_ == NULL) {
+
+    paf::ui::Widget* native_corner = ResolveNativeCorner();
+    if (native_corner == NULL) {
         return false;
     }
-
-    paf::Plugin::PageOpenParam occluder_param;
-    occluder_param.fade = false;
-    occluder_param.overwrite_draw_priority = 7;
-    page_ = plugin_->PageOpen("page_notification_occluder", occluder_param);
-    return page_ != NULL;
+    was_visible_ = native_corner->IsVisible();
+    suppressed_ = true;
+    native_corner->Hide(paf::common::transition::Type_Reset);
+    return true;
 }
 
 bool NotificationCornerGuard::Restore() {
-    if (page_ == NULL) {
+    if (!suppressed_) {
         return true;
     }
-    if (plugin_ == NULL) {
-        return false;
-    }
 
-    paf::Plugin::PageCloseParam close_param;
-    close_param.fade = false;
-    plugin_->PageClose("page_notification_occluder", close_param);
-    page_ = NULL;
+    paf::ui::Widget* native_corner = ResolveNativeCorner();
+    const bool should_show = was_visible_;
+    suppressed_ = false;
+    was_visible_ = false;
+    if (native_corner == NULL) {
+        return true;
+    }
+    if (should_show) {
+        native_corner->Show(paf::common::transition::Type_Reset);
+    }
     return true;
 }
 

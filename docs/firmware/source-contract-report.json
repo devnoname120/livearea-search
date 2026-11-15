@@ -26,7 +26,7 @@
       "source": "src/vita/search_overlay.cpp"
     },
     {
-      "id": "indicator-notification-corner-resource-hashes",
+      "id": "indicator-notification-resource-hashes",
       "issues": [],
       "source": "include/livearea_search/overlay_visibility.h"
     },

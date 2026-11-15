@@ -20,7 +20,7 @@ file(READ "${PAF_PAD_HANDLER_HEADER}" pad_handler_adapter)
 
 foreach(required_resource IN ITEMS
     "<layout_hint align=\"1,1\" anchor=\"1,1\" size=\"750,58\" pos=\"18,0\" />"
-    "<layout_hint align=\"2,1\" anchor=\"2,1\" size=\"150,64\" pos=\"-80,0\" />"
+    "<layout_hint align=\"2,1\" anchor=\"2,1\" size=\"150,64\" pos=\"0,0\" />"
     "font_size=\"22\""
     "line_pitch=\"32\""
     "id=\"style_results_count\"")

@@ -18,7 +18,8 @@
       ],
       "required_u32_le": {
         "indicator_page": "0xFFD7E3F0",
-        "notification_corner": "0x8BF9D3C5"
+        "notification_corner": "0x8BF9D3C5",
+        "notification_bubble": "0x718CB7FF"
       },
       "exact_count": 1
     }

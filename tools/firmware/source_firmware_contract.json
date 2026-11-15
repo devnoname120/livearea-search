@@ -171,18 +171,20 @@
       ]
     },
     {
-      "id": "indicator-notification-corner-resource-hashes",
+      "id": "indicator-notification-resource-hashes",
       "source": "include/livearea_search/overlay_visibility.h",
       "source_needles": [
         "kIndicatorPageHash = 0xFFD7E3F0U;",
-        "kIndicatorNotificationCornerHash = 0x8BF9D3C5U;"
+        "kIndicatorNotificationCornerHash = 0x8BF9D3C5U;",
+        "kIndicatorNotificationBubbleHash = 0x718CB7FFU;"
       ],
       "evidence": [
         {
           "path": "tools/firmware/resource_compatibility_manifest.json",
           "needles": [
             "\"indicator_page\": \"0xFFD7E3F0\"",
-            "\"notification_corner\": \"0x8BF9D3C5\""
+            "\"notification_corner\": \"0x8BF9D3C5\"",
+            "\"notification_bubble\": \"0x718CB7FF\""
           ]
         },
         {
@@ -197,6 +199,7 @@
           "needles": [
             "0xFFD7E3F0",
             "0x8BF9D3C5",
+            "0x718CB7FF",
             "all 42 audited indicator resources"
           ]
         }
