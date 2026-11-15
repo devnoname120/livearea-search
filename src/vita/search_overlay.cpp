@@ -428,8 +428,8 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       ime_close_pending_(false),
       results_editing_layout_(false),
       results_draw_priority_(kResultsDisplayDrawPriority),
-      close_requested_(false),
-      close_defer_frames_(0),
+      results_close_state_(ResultsCloseState::Idle),
+      results_close_deadline_us_(0),
       home_close_pending_(false),
       home_pad_press_pending_(false),
       home_ps_owned_(false),
@@ -628,8 +628,8 @@ int SearchOverlay::OpenResultsPage() {
         return BeginImeEdit();
     }
 
-    close_requested_ = false;
-    close_defer_frames_ = 0;
+    results_close_state_ = ResultsCloseState::Idle;
+    results_close_deadline_us_ = 0;
     home_close_pending_ = false;
     home_pad_press_pending_ = false;
     triangle_button_press_pending_ = false;
@@ -734,7 +734,7 @@ int SearchOverlay::BeginImeEdit() {
     QueueInteractionLogResult("ime begin edit", result);
     if (result < 0) {
         ime_transition_active_ = false;
-        RequestCloseResultsPage();
+        RequestCloseResultsPage(ResultsCloseMode::Immediate);
     }
     return result;
 }
@@ -850,7 +850,7 @@ void SearchOverlay::HandleBack() {
     }
     if (action == ResultsBackAction::CloseResults) {
         QueueInteractionLog("back close results");
-        RequestCloseResultsPage();
+        RequestCloseResultsPage(ResultsCloseMode::AnimatedBackCorner);
     }
 }
 
@@ -957,48 +957,79 @@ void SearchOverlay::UpdateHomePadClose() {
     if (action != HomePadCloseAction::ReleaseLockAndClose) {
         return;
     }
-    ReleaseHomePadLock();
-    RequestCloseResultsPage();
+    RequestCloseResultsPage(
+        results_editing_layout_ ?
+            ResultsCloseMode::Immediate :
+            ResultsCloseMode::AnimatedBackCorner);
 }
 
-void SearchOverlay::RequestCloseResultsPage() {
-    if (results_page_ == NULL || close_requested_) {
-        return;
+void SearchOverlay::DisableResultsInput() {
+    const std::uint32_t mask =
+        paf::ui::EV_TOUCH |
+        paf::ui::EV_GESTURE_ALL |
+        paf::ui::EV_KEYCODE |
+        paf::ui::EV_ANALOG |
+        paf::ui::EV_FOCUS;
+    if (results_page_ != NULL) {
+        results_page_->DisableEvent(mask);
+        results_page_->ReleaseFocus();
     }
-    close_requested_ = true;
-    UpdateHomeEditLock(false);
-    close_defer_frames_ = 1;
+    if (search_box_ != NULL) {
+        search_box_->DisableEvent(mask);
+        search_box_->ReleaseFocus();
+    }
     if (result_list_ != NULL) {
-        result_list_->DisableEvent(
-            paf::ui::EV_TOUCH |
-            paf::ui::EV_GESTURE_ALL |
-            paf::ui::EV_KEYCODE |
-            paf::ui::EV_ANALOG |
-            paf::ui::EV_FOCUS);
+        result_list_->DisableEvent(mask);
         result_list_->ReleaseFocus();
     }
+    if (close_button_ != NULL) {
+        close_button_->DisableEvent(mask);
+        close_button_->ReleaseFocus();
+    }
+}
+
+void SearchOverlay::RequestCloseResultsPage(ResultsCloseMode mode) {
+    if (results_page_ == NULL) {
+        return;
+    }
+    DisableResultsInput();
+    UpdateHomeEditLock(false);
+    QueueResultsClose(mode, results_close_state_, results_close_deadline_us_);
 }
 
 void SearchOverlay::ProcessCloseRequest() {
-    const DeferredResultCloseAction action = AdvanceDeferredResultClose(
-        close_requested_,
-        close_defer_frames_);
-    if (action != DeferredResultCloseAction::Close) {
+    const ResultsCloseAction action = AdvanceResultsCloseTransition(
+        static_cast<std::uint64_t>(sceKernelGetSystemTimeWide()),
+        results_close_state_,
+        results_close_deadline_us_);
+    if (action == ResultsCloseAction::StartBackCornerHide) {
+        if (close_button_ == NULL || !close_button_->IsVisible()) {
+            QueueResultsClose(
+                ResultsCloseMode::Immediate,
+                results_close_state_,
+                results_close_deadline_us_);
+            return;
+        }
+        QueueInteractionLog("results Back hide begin");
+        close_button_->Hide(paf::common::transition::Type_Reset);
         return;
     }
-    close_requested_ = false;
+    if (action != ResultsCloseAction::Close) {
+        return;
+    }
+    QueueInteractionLog("results close transition complete");
     CloseResultsPage();
 }
 
 void SearchOverlay::CloseResultsPage() {
+    results_close_state_ = ResultsCloseState::Idle;
+    results_close_deadline_us_ = 0;
     if (plugin_ == NULL || results_page_ == NULL) {
         UpdateHomeEditLock(false);
         ReleaseHomePadLock();
         notification_corner_.Restore();
         return;
     }
-    close_requested_ = false;
-    close_defer_frames_ = 0;
     home_close_pending_ = false;
     home_pad_press_pending_ = false;
     triangle_button_press_pending_ = false;
@@ -1184,7 +1215,7 @@ void SearchOverlay::UpdateImeTransition() {
     if (action == ImeFrameAction::CloseResults) {
         QueueInteractionLog("ime transition close results");
         ime_transition_active_ = false;
-        RequestCloseResultsPage();
+        RequestCloseResultsPage(ResultsCloseMode::Immediate);
     }
 }
 
@@ -1236,7 +1267,7 @@ void SearchOverlay::SetResultsDisplayLayout() {
     QueueInteractionLog("results display layout begin");
     if (!UpdateHomeEditLock(true)) {
         QueueInteractionLog("results display edit lock failed");
-        RequestCloseResultsPage();
+        RequestCloseResultsPage(ResultsCloseMode::Immediate);
         return;
     }
     results_editing_layout_ = false;
@@ -1293,7 +1324,7 @@ void SearchOverlay::UpdateVisibility() {
             results_page_ != NULL,
             ime_transition_active_,
             home_close_pending_)) {
-        RequestCloseResultsPage();
+        RequestCloseResultsPage(ResultsCloseMode::Immediate);
         return;
     }
 
@@ -1494,7 +1525,7 @@ int SearchOverlay::Launch(const String& title_id) {
     const int result = OpenTitleLiveArea(title_id);
     QueueInteractionLogResult("result launch", result);
     if (result >= 0) {
-        RequestCloseResultsPage();
+        RequestCloseResultsPage(ResultsCloseMode::Immediate);
     } else if (normalized_query_.empty() && result_list_ != NULL) {
         Vector<SearchResult> next_results;
         recent_apps_.Resolve(index_.apps(), next_results);

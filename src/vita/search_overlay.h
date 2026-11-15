@@ -8,6 +8,7 @@
 #include <livearea_search/home_corner_transition.h>
 #include <livearea_search/overlay_visibility.h>
 #include <livearea_search/recent_apps.h>
+#include <livearea_search/results_close_transition.h>
 
 #include "icon_cache.h"
 #include "notification_corner.h"
@@ -113,7 +114,8 @@ private:
     void ReleaseHomePadLock();
     bool UpdateHomeEditLock(bool should_hold, bool force_release = false);
     void UpdateHomePadClose();
-    void RequestCloseResultsPage();
+    void DisableResultsInput();
+    void RequestCloseResultsPage(ResultsCloseMode mode);
     void ProcessCloseRequest();
     void CloseResultsPage();
     void SubmitSearch();
@@ -168,8 +170,8 @@ private:
     bool ime_close_pending_;
     bool results_editing_layout_;
     int results_draw_priority_;
-    bool close_requested_;
-    std::uint32_t close_defer_frames_;
+    ResultsCloseState results_close_state_;
+    std::uint64_t results_close_deadline_us_;
     bool home_close_pending_;
     bool home_pad_press_pending_;
     bool home_ps_owned_;
