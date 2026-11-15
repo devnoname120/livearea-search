@@ -24,7 +24,7 @@ foreach(required IN ITEMS
     "application_switcher_owned_ = false;"
     "SetHomeVisible(false, false);"
     "home_edit_mode_visible,\n        application_switcher_owned_);"
-    "paf::common::transition::Type_FadeinFast")
+    "HomeCornerTransitionAction::HideNative")
     string(FIND "${search_overlay}" "${required}" found)
     if(found EQUAL -1)
         message(FATAL_ERROR "Missing application-switcher implementation contract: ${required}")

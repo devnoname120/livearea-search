@@ -5,6 +5,7 @@
 #include "paf_compat.h"
 
 #include <livearea_search/app_index.h>
+#include <livearea_search/home_corner_transition.h>
 #include <livearea_search/overlay_visibility.h>
 #include <livearea_search/recent_apps.h>
 
@@ -125,6 +126,7 @@ private:
     void SetResultsDisplayLayout();
     void UpdateVisibility();
     void SetHomeVisible(bool visible, bool immediate);
+    void UpdateHomeCornerTransition();
     void UpdateResultCount();
     bool IsBubbleHomeVisible(bool& immediate_hide);
     int Launch(const String& title_id);
@@ -156,6 +158,8 @@ private:
     IconCache* icon_cache_;
     bool visibility_registered_;
     bool home_visible_;
+    HomeCornerTransitionState home_corner_transition_state_;
+    std::uint64_t home_corner_transition_deadline_us_;
     NotificationPanelSuppression notification_panel_suppression_;
     std::uint64_t notification_panel_opening_deadline_us_;
     bool ime_transition_active_;

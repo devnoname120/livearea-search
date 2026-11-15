@@ -418,6 +418,8 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       icon_cache_(NULL),
       visibility_registered_(false),
       home_visible_(false),
+      home_corner_transition_state_(HomeCornerTransitionState::Hidden),
+      home_corner_transition_deadline_us_(0),
       notification_panel_suppression_(NotificationPanelSuppression::Inactive),
       notification_panel_opening_deadline_us_(0),
       ime_transition_active_(false),
@@ -476,6 +478,7 @@ SearchOverlay::~SearchOverlay() {
     CloseResultsPage();
     UpdateHomeEditLock(false, true);
     ReleaseHomePadLock();
+    SetHomeVisible(false, true);
 
     if (plugin_ != NULL && home_page_ != NULL) {
         paf::Plugin::PageCloseParam close_param;
@@ -485,6 +488,8 @@ SearchOverlay::~SearchOverlay() {
     home_page_ = NULL;
     home_button_ = NULL;
     home_visible_ = false;
+    home_corner_transition_state_ = HomeCornerTransitionState::Hidden;
+    home_corner_transition_deadline_us_ = 0;
 
     delete icon_cache_;
     icon_cache_ = NULL;
@@ -601,8 +606,14 @@ int SearchOverlay::OpenHomePage() {
     home_button_->DisableEvent(paf::ui::EV_ANALOG);
     home_button_->DisableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);
     home_button_->ReleaseFocus();
+    home_button_->Hide(paf::common::transition::Type_Reset);
+    home_button_->KillAnim(paf::ui::Widget::ANIM_SCALE);
+    home_button_->KillAnim(paf::ui::Widget::ANIM_SIZE);
     home_page_->Hide(paf::common::transition::Type_Reset);
     plugin_->PageInactivate("page_home_search");
+    home_visible_ = false;
+    home_corner_transition_state_ = HomeCornerTransitionState::Hidden;
+    home_corner_transition_deadline_us_ = 0;
     StartupLogResult("home shell allows overlay", ShellAllowsOverlay() ? 1 : 0);
     paf::Plugin* top_menu = paf::Plugin::Find("topmenu_plugin");
     StartupLogResult("home topmenu plugin found", top_menu != NULL ? 1 : 0);
@@ -1301,21 +1312,73 @@ void SearchOverlay::UpdateVisibility() {
 }
 
 void SearchOverlay::SetHomeVisible(bool visible, bool immediate) {
-    if (home_visible_ == visible || home_button_ == NULL ||
-        home_page_ == NULL || plugin_ == NULL) {
+    if (home_button_ == NULL || home_page_ == NULL || plugin_ == NULL) {
+        return;
+    }
+    const HomeCornerTransitionAction action = RequestHomeCornerTransition(
+        visible,
+        immediate,
+        sceKernelGetSystemTimeWide(),
+        home_corner_transition_state_,
+        home_corner_transition_deadline_us_);
+    if (action == HomeCornerTransitionAction::None) {
+        home_visible_ = visible;
         return;
     }
     home_visible_ = visible;
-    if (home_visible_) {
-        home_button_->EnableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);
+
+    if (action == HomeCornerTransitionAction::ShowNative) {
+#if LIVEAREA_SEARCH_DIAGNOSTICS
+        QueueInteractionLog("home corner show native");
+#endif
+        home_page_->Show(paf::common::transition::Type_Reset);
         plugin_->PageActivate("page_home_search");
-        home_page_->Show(paf::common::transition::Type_FadeinFast);
-    } else {
-        home_button_->DisableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);
-        home_page_->Hide(
-            immediate ?
-                paf::common::transition::Type_Reset :
-                paf::common::transition::Type_FadeinFast);
+        home_button_->EnableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);
+        home_button_->Show(paf::common::transition::Type_Reset);
+        return;
+    }
+
+    home_button_->DisableEvent(paf::ui::EV_TOUCH | paf::ui::EV_GESTURE_ALL);
+    if (action == HomeCornerTransitionAction::HideNative) {
+#if LIVEAREA_SEARCH_DIAGNOSTICS
+        QueueInteractionLog("home corner hide native");
+#endif
+        home_button_->Hide(paf::common::transition::Type_Reset);
+        return;
+    }
+
+#if LIVEAREA_SEARCH_DIAGNOSTICS
+    QueueInteractionLog("home corner hide immediate");
+#endif
+    home_button_->Hide(paf::common::transition::Type_Reset);
+    home_button_->KillAnim(paf::ui::Widget::ANIM_SCALE);
+    home_button_->KillAnim(paf::ui::Widget::ANIM_SIZE);
+    home_page_->Hide(paf::common::transition::Type_Reset);
+    plugin_->PageInactivate("page_home_search");
+}
+
+void SearchOverlay::UpdateHomeCornerTransition() {
+    const HomeCornerTransitionCompletion completion = AdvanceHomeCornerTransition(
+        sceKernelGetSystemTimeWide(),
+        home_corner_transition_state_,
+        home_corner_transition_deadline_us_);
+    if (completion == HomeCornerTransitionCompletion::None) {
+        return;
+    }
+#if LIVEAREA_SEARCH_DIAGNOSTICS
+    QueueInteractionLogResult(
+        completion == HomeCornerTransitionCompletion::Show ?
+            "home corner show complete" :
+            "home corner hide complete",
+        1);
+#endif
+    if (completion != HomeCornerTransitionCompletion::Hide) {
+        return;
+    }
+    if (home_page_ != NULL) {
+        home_page_->Hide(paf::common::transition::Type_Reset);
+    }
+    if (plugin_ != NULL) {
         plugin_->PageInactivate("page_home_search");
     }
 }
@@ -1763,6 +1826,9 @@ void SearchOverlay::VisibilityTick(void* user_data) {
         overlay->UpdateHomeEditLock(false);
     }
     overlay->UpdateImeTransition();
+    if (overlay->visibility_registered_) {
+        overlay->UpdateHomeCornerTransition();
+    }
     if (overlay->visibility_registered_) {
         overlay->UpdateVisibility();
     }

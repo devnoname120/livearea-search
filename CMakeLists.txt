@@ -20,6 +20,7 @@ add_library(livearea_search_core STATIC
     src/core/catalog_record.cpp
     src/core/config_failsafe.cpp
     src/core/deferred_log_queue.cpp
+    src/core/home_corner_transition.cpp
     src/core/icon_cache_policy.cpp
     src/core/launch_uri.cpp
     src/core/module_readiness.cpp

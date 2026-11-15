@@ -499,8 +499,8 @@ void TestHomeVisibilityTransitions() {
         "an already visible Home page is left unchanged");
     Check(
         ComputeHomeVisibilityAction(true, false, false, false) ==
-            HomeVisibilityAction::HideWithFade,
-        "ordinary Home departure fades out the Home control");
+            HomeVisibilityAction::HideWithCornerTransition,
+        "ordinary Home departure animates the Home control into its corner");
     Check(
         ComputeHomeVisibilityAction(true, true, true, false) ==
             HomeVisibilityAction::HideImmediately,

@@ -6,6 +6,7 @@ IMAGE=${VITASDK_IMAGE:-vitasdk/vitasdk-softfp@sha256:99814094e0240b7ebe8700ba374
 PAF_ROOT=${LIVEAREA_SEARCH_PAF_ROOT:-"$ROOT/../VitaXMB/build/livearea-deps/vitasdk-paf-component/final"}
 PSP2CXML=${PSP2CXML:-"$ROOT/../VitaXMB/build/livearea-deps/psp2cxml-tool/build-linux/psp2cxml-tool"}
 BUILD_DIR=${LIVEAREA_SEARCH_BUILD_DIR:-build-vita}
+BUILD_TYPE=${LIVEAREA_SEARCH_BUILD_TYPE:-MinSizeRel}
 JOBS=${LIVEAREA_SEARCH_JOBS:-4}
 DIAGNOSTICS=${LIVEAREA_SEARCH_DIAGNOSTICS:-OFF}
 EXPERIMENTAL_SELF_DISABLE=${LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE:-OFF}
@@ -22,6 +23,14 @@ esac
 case "$JOBS" in
     ''|*[!0-9]*)
         printf 'LIVEAREA_SEARCH_JOBS must be a positive integer: %s\n' "$JOBS" >&2
+        exit 2
+        ;;
+esac
+
+case "$BUILD_TYPE" in
+    Debug|Release|RelWithDebInfo|MinSizeRel) ;;
+    *)
+        printf 'LIVEAREA_SEARCH_BUILD_TYPE must be Debug, Release, RelWithDebInfo, or MinSizeRel: %s\n' "$BUILD_TYPE" >&2
         exit 2
         ;;
 esac
@@ -90,6 +99,7 @@ docker run --rm \
     -v "$PAF_ROOT:/deps/paf:ro" \
     -v "$PSP2CXML:/deps/psp2cxml-tool:ro" \
     -e LIVEAREA_BUILD_DIR="$BUILD_DIR" \
+    -e LIVEAREA_BUILD_TYPE="$BUILD_TYPE" \
     -e LIVEAREA_BUILD_JOBS="$JOBS" \
     -e LIVEAREA_SEARCH_DIAGNOSTICS="$DIAGNOSTICS" \
     -e LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE="$EXPERIMENTAL_SELF_DISABLE" \
@@ -100,6 +110,7 @@ docker run --rm \
         set -eu
         export VITASDK=/usr/local/vitasdk
         cmake -S . -B "$LIVEAREA_BUILD_DIR" \
+            -DCMAKE_BUILD_TYPE="$LIVEAREA_BUILD_TYPE" \
             -DCMAKE_TOOLCHAIN_FILE=/usr/local/vitasdk/share/vita.toolchain.cmake \
             -DLIVEAREA_SEARCH_BUILD_TESTS=OFF \
             -DLIVEAREA_SEARCH_BUILD_VITA=ON \

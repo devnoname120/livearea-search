@@ -16,7 +16,7 @@ const std::int32_t kShellEventApplicationSwitcherLeave = 5;
 enum class HomeVisibilityAction {
     None,
     Show,
-    HideWithFade,
+    HideWithCornerTransition,
     HideImmediately,
 };
 

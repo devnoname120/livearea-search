@@ -781,7 +781,7 @@
             "IsHomeBackCornerWidget",
             "ordinary folder view may expose Back without the full-screen edit scroll",
             "external IME must own the lower-right keyboard region",
-            "ordinary Home departure must use the native fade-out"
+            "ordinary Home departure must use the native corner transition"
           ]
         }
       ]
@@ -948,8 +948,8 @@
           "needles": [
             "shell event 4 must begin application-switcher ownership",
             "shell event 5 must end application-switcher ownership",
-            "switcher entry must use the native fast fade-out",
-            "returning Home must use the native fast fade-in",
+            "switcher entry must use the native corner transition",
+            "returning Home must use the native corner transition",
             "system-owned surfaces must retain hard-hide precedence"
           ]
         },

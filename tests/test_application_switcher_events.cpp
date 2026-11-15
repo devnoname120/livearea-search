@@ -58,8 +58,8 @@ int main() {
             true,
             exposed_while_switching,
             false,
-            false) == HomeVisibilityAction::HideWithFade,
-        "switcher entry must use the native fast fade-out");
+            false) == HomeVisibilityAction::HideWithCornerTransition,
+        "switcher entry must use the native corner transition");
 
     const bool exposed_after_return = ShouldExposeHomeSearch(
         true,
@@ -78,7 +78,7 @@ int main() {
             exposed_after_return,
             false,
             false) == HomeVisibilityAction::Show,
-        "returning Home must use the native fast fade-in");
+        "returning Home must use the native corner transition");
 
     Check(
         ComputeHomeVisibilityAction(

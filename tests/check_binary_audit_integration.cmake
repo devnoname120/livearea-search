@@ -22,6 +22,8 @@ endforeach()
 foreach(required IN ITEMS
     "tools/firmware/release_binary_audit.py"
     "tools/firmware/release_binary_contract.json"
+    "BUILD_TYPE=\${LIVEAREA_SEARCH_BUILD_TYPE:-MinSizeRel}"
+    "-DCMAKE_BUILD_TYPE=\"$LIVEAREA_BUILD_TYPE\""
     "BINARY_AUDIT_PROFILE=release"
     "BINARY_AUDIT_PROFILE=experimental"
     "--profile \"$BINARY_AUDIT_PROFILE\""

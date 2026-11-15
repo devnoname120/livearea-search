@@ -66,8 +66,8 @@ int main() {
 
     Check(
         ComputeHomeVisibilityAction(true, false, false, false) ==
-            HomeVisibilityAction::HideWithFade,
-        "ordinary Home departure must use the native fade-out");
+            HomeVisibilityAction::HideWithCornerTransition,
+        "ordinary Home departure must use the native corner transition");
     Check(
         ComputeHomeVisibilityAction(true, false, false, true) ==
             HomeVisibilityAction::HideImmediately,
@@ -79,7 +79,7 @@ int main() {
     Check(
         ComputeHomeVisibilityAction(false, true, false, false) ==
             HomeVisibilityAction::Show,
-        "returning to ordinary Home must retain the native fade-in");
+        "returning to ordinary Home must use the native corner transition");
 
     return failures == 0 ? 0 : 1;
 }

@@ -132,9 +132,11 @@ foreach(required_source IN ITEMS
     "kShellUtilUnlockNid = 0x21A6CF54U;"
     "shell_util_lock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2)"
     "shell_util_unlock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2)"
-    "home_page_->Show(paf::common::transition::Type_FadeinFast);"
+    "home_button_->Show(paf::common::transition::Type_Reset);"
+    "UpdateHomeCornerTransition();"
     "HomeVisibilityAction::HideImmediately"
-    "home_page_->Hide(\n            immediate ?\n                paf::common::transition::Type_Reset :\n                paf::common::transition::Type_FadeinFast);")
+    "HomeCornerTransitionAction::HideNative"
+    "home_button_->Hide(paf::common::transition::Type_Reset);")
     string(FIND "${source}" "${required_source}" found)
     if(found EQUAL -1)
         message(FATAL_ERROR "Missing IME/Home polish behavior: ${required_source}")
@@ -217,7 +219,6 @@ foreach(forbidden IN ITEMS
     "sceCtrlPeekBufferPositiveExt"
     "data->paddata ="
     "OnResultsKeyPress"
-    "home_page_->Show(paf::common::transition::Type_Reset);"
     "SceShellSvc_stub"
     "SceCtrl_stub")
     string(FIND "${source}${vita_cmake}" "${forbidden}" found)

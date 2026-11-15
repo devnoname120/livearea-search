@@ -58,7 +58,7 @@ HomeVisibilityAction ComputeHomeVisibilityAction(
     }
     return immediate_hide || results_open ?
         HomeVisibilityAction::HideImmediately :
-        HomeVisibilityAction::HideWithFade;
+        HomeVisibilityAction::HideWithCornerTransition;
 }
 
 bool ShouldCloseResultsPage(
