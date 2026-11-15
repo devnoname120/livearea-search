@@ -250,6 +250,63 @@ safety escalation use `PendingImmediate`. They still defer destruction until
 the initiating callback has unwound, but they do not retain stale Search UI for
 the visual transition.
 
+### Results Back retail validation
+
+The exact self-disabling candidate passed ordinary-close and ownership testing
+on retail Vita 146 with SUPRX
+`f40803868c7f19ecb06a06df52f613f977d0ec09baf7895141126b55c09cee73`
+and RCO
+`9ed52828b725bc5d7dd16b4d8dfd78bf67dd452d95922a2c7292c1e09f7fbbee`.
+Circle, a direct tap on the Back corner, and released PS/Home each produced
+exactly one `results Back hide begin`, one deadline completion, one final PS
+unlock, and one notification restoration. Circle and tap-Back additionally
+produced their own `back close results` callback marker; PS/Home did not.
+Neither path emitted application-switcher event `4`, and all runs retained the
+exact self-disabled artifact/configuration and 442-core baseline.
+
+Native framebuffer screenshots were captured through the already-installed
+PNG screenshot path after VitaStream UVC ownership became unavailable. The
+screenshots preserve the full results page while the Back corner is shrinking:
+
+| Path | Evidence | Capture point and result |
+| --- | --- | --- |
+| Full-size reference | `results-back-circle-tap-screenshots-20261115T225641Z/tap_back-2026-11-15-235807.png` | Back fully displayed before close |
+| Circle | `results-back-circle-screenshot-20261115T225958Z/2026-11-16-000034.png` and `results-back-circle-screenshot-20261115T230204Z/2026-11-16-000245.png` | approximately 20 ms and 60 ms after the Circle close request |
+| Tap-Back | `results-back-tap-screenshot-20261115T230432Z/2026-11-16-000445.png` | approximately 40 ms after the direct Back callback |
+| Released PS/Home | `results-back-ps-screenshot-20261115T230519Z/2026-11-16-000602.png` and `results-back-ps-screenshot-20261115T230738Z/2026-11-16-000859.png` | approximately 30 ms and 60 ms after physical PS release |
+
+The Circle 60 ms outer edge is approximately three source pixels farther
+inward than the 20 ms frame. The released-PS sequence likewise progresses from
+the full-size reference through successively smaller geometry. In every
+intermediate frame the Search header, list, and results surface remain present;
+the corresponding logs close the page only after `results close transition
+complete`. Contact sheets are stored as
+`results-back-screenshot-comparison/full-circle20-circle60.png` and
+`results-back-screenshot-comparison/full-ps30-ps60.png`.
+
+The remaining production ownership matrix also passed: active-IME PS closes
+immediately after release, notification ownership completed two cycles,
+application launch used immediate teardown, Triangle/Circle and Start/edit/IME
+ownership remained unchanged, and the application switcher retained event-4
+suppression, lower-right pass-through, and event-5 restoration.
+
+The matching diagnostics-off release was then installed from the disabled
+candidate and rebooted twice:
+
+```text
+evidence                 results-back-permanent-deploy-20261115T232510Z
+installed SUPRX          5818525741c533045d3a62eca580813d870eae12540cb8f86eb9a3ecc71bd473
+installed RCO            9ed52828b725bc5d7dd16b4d8dfd78bf67dd452d95922a2c7292c1e09f7fbbee
+config                   1 active, 0 disabled
+stable startup.log       68a5e62f8944fc8e233dd40a6d7c40527a45b4a34aa7b0c4ccc194ff47acdfc8
+startup.log size         18,959 bytes
+core files               442, exact baseline
+```
+
+Search/Circle smoke passed between the two clean boots. The release did not
+append to `startup.log` after the first clean boot, and the fixed-name core
+fingerprints remained byte-identical.
+
 ## Reversal and ownership validation
 
 Rapid reversal was captured separately:

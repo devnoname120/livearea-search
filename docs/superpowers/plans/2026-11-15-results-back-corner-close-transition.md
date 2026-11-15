@@ -1,6 +1,6 @@
 # Results Back-Corner Close Transition Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Preserve Sony's native 150 ms bottom-left Back-corner hide animation before ordinary Search result-page teardown while keeping safety closes immediate and PS/Home ownership leak-free.
 
@@ -32,7 +32,7 @@
 - Modify: `CMakeLists.txt:18-29`
 - Modify: `tests/CMakeLists.txt:88-114`
 
-- [ ] **Step 1: Write the failing policy test**
+- [x] **Step 1: Write the failing policy test**
 
 Create `tests/test_results_close_transition.cpp` with the following cases:
 
@@ -111,7 +111,7 @@ int main() {
 }
 ```
 
-- [ ] **Step 2: Register the missing test and verify RED**
+- [x] **Step 2: Register the missing test and verify RED**
 
 Add the executable and CTest registration to `tests/CMakeLists.txt`, then run:
 
@@ -124,7 +124,7 @@ cmake --build build-host-results-close-red --target livearea_search_results_clos
 
 Expected: compilation fails because `livearea_search/results_close_transition.h` does not exist.
 
-- [ ] **Step 3: Add the policy header**
+- [x] **Step 3: Add the policy header**
 
 Create `include/livearea_search/results_close_transition.h`:
 
@@ -171,7 +171,7 @@ ResultsCloseAction AdvanceResultsCloseTransition(
 } // namespace livearea_search
 ```
 
-- [ ] **Step 4: Add the minimal state-machine implementation**
+- [x] **Step 4: Add the minimal state-machine implementation**
 
 Create `src/core/results_close_transition.cpp`:
 
@@ -223,7 +223,7 @@ ResultsCloseAction AdvanceResultsCloseTransition(
 
 Add `src/core/results_close_transition.cpp` to `livearea_search_core`.
 
-- [ ] **Step 5: Run the focused test and verify GREEN**
+- [x] **Step 5: Run the focused test and verify GREEN**
 
 ```sh
 cmake --build build-host-results-close-red --target livearea_search_results_close_transition_tests
@@ -234,7 +234,7 @@ ctest --test-dir build-host-results-close-red \
 
 Expected: 1/1 passed.
 
-- [ ] **Step 6: Commit the isolated policy**
+- [x] **Step 6: Commit the isolated policy**
 
 ```sh
 git add CMakeLists.txt tests/CMakeLists.txt \
@@ -251,19 +251,19 @@ git commit -m "Add results close transition policy"
 - Modify: `src/core/overlay_visibility.cpp:336-346`
 - Modify: `tests/test_app_index.cpp:591-618,729`
 
-- [ ] **Step 1: Remove `DeferredResultCloseAction` and `AdvanceDeferredResultClose` declarations**
+- [x] **Step 1: Remove `DeferredResultCloseAction` and `AdvanceDeferredResultClose` declarations**
 
 Delete the old enum and function declaration from `overlay_visibility.h`; the new dedicated policy owns all close timing.
 
-- [ ] **Step 2: Remove the old implementation**
+- [x] **Step 2: Remove the old implementation**
 
 Delete `AdvanceDeferredResultClose` from `src/core/overlay_visibility.cpp`.
 
-- [ ] **Step 3: Remove the obsolete unit test**
+- [x] **Step 3: Remove the obsolete unit test**
 
 Delete `TestDeferredResultClosePolicy()` and its `main()` call from `tests/test_app_index.cpp`.
 
-- [ ] **Step 4: Build the two affected host targets**
+- [x] **Step 4: Build the two affected host targets**
 
 ```sh
 cmake --build build-host-results-close-red --target \
@@ -276,7 +276,7 @@ ctest --test-dir build-host-results-close-red \
 
 Expected: both tests pass.
 
-- [ ] **Step 5: Commit the policy replacement**
+- [x] **Step 5: Commit the policy replacement**
 
 ```sh
 git add include/livearea_search/overlay_visibility.h \
@@ -291,11 +291,11 @@ git commit -m "Replace deferred results close policy"
 - Modify: `tests/check_search_polish.cmake`
 - Modify: `tests/CMakeLists.txt:271-278`
 
-- [ ] **Step 1: Extend the close-lifecycle contract inputs**
+- [x] **Step 1: Extend the close-lifecycle contract inputs**
 
 Pass `POLICY_HEADER`, `OVERLAY_HEADER`, and `HOME_TRANSITION_HEADER` to `check_close_lifecycle.cmake`.
 
-- [ ] **Step 2: Require the new state, modes, input quiescence, and ordering**
+- [x] **Step 2: Require the new state, modes, input quiescence, and ordering**
 
 Add checks for these exact source contracts:
 
@@ -315,7 +315,7 @@ Isolate `UpdateHomePadClose()` and require that it queues close without calling 
 
 Require `DisableResultsInput()` to disable the full mask on `results_page_`, `search_box_`, `result_list_`, and `close_button_`, and to release focus on focusable controls.
 
-- [ ] **Step 3: Update the PS/Home polish contract**
+- [x] **Step 3: Update the PS/Home polish contract**
 
 Replace the former `ReleaseLockAndClose -> unlock -> RequestCloseResultsPage()` expectation with `CloseAfterRelease` and:
 
@@ -325,7 +325,7 @@ Replace the former `ReleaseLockAndClose -> unlock -> RequestCloseResultsPage()` 
 
 Forbid `ReleaseHomePadLock();` inside `UpdateHomePadClose()` and retain the existing contract that `HandleHome()` cannot close before physical release.
 
-- [ ] **Step 4: Run the contracts and verify RED**
+- [x] **Step 4: Run the contracts and verify RED**
 
 ```sh
 ctest --test-dir build-host-results-close-red \
@@ -335,7 +335,7 @@ ctest --test-dir build-host-results-close-red \
 
 Expected: both contracts fail because production still has `close_requested_`, `close_defer_frames_`, no explicit close mode, and unlocks before close.
 
-- [ ] **Step 5: Commit the RED contracts**
+- [x] **Step 5: Commit the RED contracts**
 
 ```sh
 git add tests/CMakeLists.txt tests/check_close_lifecycle.cmake \
@@ -349,7 +349,7 @@ git commit -m "Test results Back close animation"
 - Modify: `src/vita/search_overlay.h:7-10,116-118,171-173`
 - Modify: `src/vita/search_overlay.cpp:404-451,626-710,837-870,953-1054,1184-1188,1235-1240,1287-1297,1494-1498`
 
-- [ ] **Step 1: Replace close fields and method declarations**
+- [x] **Step 1: Replace close fields and method declarations**
 
 Include `results_close_transition.h`, replace `close_requested_` / `close_defer_frames_` with:
 
@@ -367,11 +367,11 @@ void ProcessCloseRequest();
 void CloseResultsPage();
 ```
 
-- [ ] **Step 2: Initialize and reset the new state**
+- [x] **Step 2: Initialize and reset the new state**
 
 Initialize `results_close_state_` to `ResultsCloseState::Idle` and the deadline to `0`. Reset both when opening a fresh results page and in every `CloseResultsPage()` path.
 
-- [ ] **Step 3: Add complete input quiescence**
+- [x] **Step 3: Add complete input quiescence**
 
 Implement:
 
@@ -402,7 +402,7 @@ void SearchOverlay::DisableResultsInput() {
 }
 ```
 
-- [ ] **Step 4: Queue explicit animated or immediate closes**
+- [x] **Step 4: Queue explicit animated or immediate closes**
 
 Implement:
 
@@ -419,7 +419,7 @@ void SearchOverlay::RequestCloseResultsPage(ResultsCloseMode mode) {
 
 Call animated mode only from `HandleBack()` and from `UpdateHomePadClose()` when `results_editing_layout_` is false. Call immediate mode from BeginEdit failure, IME cancellation/empty submission, edit-lock failure, shell visibility loss, app launch, and any other non-user safety request.
 
-- [ ] **Step 5: Retain the PS lock through animation**
+- [x] **Step 5: Retain the PS lock through animation**
 
 Change `UpdateHomePadClose()` to:
 
@@ -440,7 +440,7 @@ void SearchOverlay::UpdateHomePadClose() {
 
 Do not unlock here. `CloseResultsPage()` remains the single final PS-unlock location.
 
-- [ ] **Step 6: Start one native hide and close at the deadline**
+- [x] **Step 6: Start one native hide and close at the deadline**
 
 Implement:
 
@@ -469,7 +469,7 @@ void SearchOverlay::ProcessCloseRequest() {
 }
 ```
 
-- [ ] **Step 7: Run focused contracts and host tests**
+- [x] **Step 7: Run focused contracts and host tests**
 
 ```sh
 cmake --build build-host-results-close-red
@@ -480,7 +480,7 @@ ctest --test-dir build-host-results-close-red \
 
 Expected: all selected tests pass.
 
-- [ ] **Step 8: Commit runtime integration**
+- [x] **Step 8: Commit runtime integration**
 
 ```sh
 git add src/vita/search_overlay.h src/vita/search_overlay.cpp \
@@ -498,15 +498,15 @@ git commit -m "Animate results Back before close"
 - Modify: `docs/superpowers/specs/2026-11-15-results-back-corner-close-transition-design.md`
 - Modify: `docs/superpowers/plans/2026-11-15-results-back-corner-close-transition.md`
 
-- [ ] **Step 1: Add the results Back reuse evidence section**
+- [x] **Step 1: Add the results Back reuse evidence section**
 
 Document the state machine, exact 150 ms duration, input-disable ordering, and PS-lock retention in `home-corner-native-transition.md`.
 
-- [ ] **Step 2: Add source-to-firmware needles**
+- [x] **Step 2: Add source-to-firmware needles**
 
 Require the new results-close header constant alias, `Hide(Type_Reset)`, the 150 ms firmware evidence, and final-teardown PS unlock ordering in `source_firmware_contract.json`.
 
-- [ ] **Step 3: Regenerate and verify the source reports**
+- [x] **Step 3: Regenerate and verify the source reports**
 
 ```sh
 python3 tools/firmware/source_contract_audit.py \
@@ -518,11 +518,11 @@ python3 tools/firmware/source_contract_audit.py \
 
 Expected: every source contract passes and both checked-in reports are updated.
 
-- [ ] **Step 4: Mark completed plan steps and append exact final evidence after it exists**
+- [x] **Step 4: Mark completed plan steps and append exact final evidence after it exists**
 
 Use exact hashes and evidence directories from Tasks 6-7; do not invent them.
 
-- [ ] **Step 5: Commit durable offline evidence**
+- [x] **Step 5: Commit durable offline evidence**
 
 ```sh
 git add docs/firmware/home-corner-native-transition.md \
@@ -539,19 +539,19 @@ git commit -m "Document results Back close lifecycle"
 **Files:**
 - Generated/ignored: fresh host build directories, audit receipts, Vita release and experimental build directories.
 
-- [ ] **Step 1: Run a fresh normal host graph**
+- [x] **Step 1: Run a fresh normal host graph**
 
 Configure, build, and run all tests. Expected: every test passes with no compiler warnings.
 
-- [ ] **Step 2: Run a fresh ASan+UBSan host graph**
+- [x] **Step 2: Run a fresh ASan+UBSan host graph**
 
 Configure with the repository's sanitizer flags, build, and run all tests. Expected: every test passes with no sanitizer finding.
 
-- [ ] **Step 3: Run firmware, resource, and source audits**
+- [x] **Step 3: Run firmware, resource, and source audits**
 
 Require the established totals: firmware `203 + 10 = 213`, resources `84`, and all source contracts passing.
 
-- [ ] **Step 4: Build diagnostics-off and self-disabling MinSizeRel artifacts**
+- [x] **Step 4: Build diagnostics-off and self-disabling MinSizeRel artifacts**
 
 Use `deploy/build_vita.sh` with distinct build directories and:
 
@@ -563,7 +563,7 @@ LIVEAREA_SEARCH_EXPERIMENTAL_SELF_DISABLE=OFF
 
 for release, and matching `ON/ON` values for the experimental profile. Require both binary audits to pass and both RCO files to be byte-identical.
 
-- [ ] **Step 5: Record SHA-256 values and verify no diagnostic strings in release**
+- [x] **Step 5: Record SHA-256 values and verify no diagnostic strings in release**
 
 Hash VELF, SUPRX, RCO, and ZIP. Search the release binary for startup-log, TTY, self-disable, and config-mutation strings; require none.
 
@@ -572,23 +572,23 @@ Hash VELF, SUPRX, RCO, and ZIP. Search the release binary for startup-log, TTY, 
 **Files:**
 - Generated/ignored: `build-vita-regression-diagnostic/results-back-close-*` evidence directories and harnesses.
 
-- [ ] **Step 1: Deploy only the exact self-disabling candidate**
+- [x] **Step 1: Deploy only the exact self-disabling candidate**
 
 Preserve the current permanent SUPRX/RCO/config/startup/core baseline, stage exact candidate bytes, read them back, activate last, reboot with outage monitoring, and require config `0 active / 1 disabled` after startup.
 
-- [ ] **Step 2: Capture Circle with keyboard hidden**
+- [x] **Step 2: Capture Circle with keyboard hidden**
 
 Open Search, dismiss IME, press Circle, and capture enough native frames to prove the Back corner shrinks before the results page disappears. Require approximately 150 ms between hide start and page teardown, native notification restoration afterward, exact hashes/config, and no core changes.
 
-- [ ] **Step 3: Capture tap-Back**
+- [x] **Step 3: Capture tap-Back**
 
 Repeat using the bottom-left touch target and require the same visible sequence.
 
-- [ ] **Step 4: Capture PS/Home with keyboard hidden**
+- [x] **Step 4: Capture PS/Home with keyboard hidden**
 
 Require physical PS release before hide start, PS lock held through the hide interval, unlock during final teardown, no crossed-circle indicator, no Home overview/application switcher, and no core changes.
 
-- [ ] **Step 5: Regression-test forced paths and ownership matrix**
+- [x] **Step 5: Regression-test forced paths and ownership matrix**
 
 Run app launch, notification panel, switcher, Start/edit/external-IME, Triangle/Circle, and active-IME PS coverage. Immediate safety paths must not retain stale UI.
 
@@ -597,23 +597,23 @@ Run app launch, notification panel, switcher, Start/edit/external-IME, Triangle/
 **Files:**
 - Modify final evidence sections in the design, plan, and firmware report.
 
-- [ ] **Step 1: Guarded-install the matching release**
+- [x] **Step 1: Guarded-install the matching release**
 
 Install only after Task 7 passes. Require one active and zero disabled config entries, exact readback, two clean boots, Search/Back smoke, stable release startup bytes, and unchanged core fingerprints.
 
-- [ ] **Step 2: Capture final diagnostics-off Circle and PS/Home evidence**
+- [x] **Step 2: Capture final diagnostics-off Circle and PS/Home evidence**
 
 Confirm the same Back-corner animation in the permanent release.
 
-- [ ] **Step 3: Rerun fresh verification after final documentation changes**
+- [x] **Step 3: Rerun fresh verification after final documentation changes**
 
 Run normal tests, sanitizer tests, all audits, binary audits, and `git diff --check` again.
 
-- [ ] **Step 4: Present the aggregate diff**
+- [x] **Step 4: Present the aggregate diff**
 
 Run the project diff review and verify no diagnostic probes, generated evidence, or unrelated changes are tracked.
 
-- [ ] **Step 5: Commit final evidence and push**
+- [x] **Step 5: Commit final evidence and push**
 
 ```sh
 git add \
@@ -639,6 +639,6 @@ git commit -m "Animate results Back corner on close"
 git push origin main
 ```
 
-- [ ] **Step 6: Independently verify completion**
+- [x] **Step 6: Independently verify completion**
 
 Fetch `origin`, query GitHub through `gh`, and require local `main`, `origin/main`, and GitHub `main` to match with divergence `0/0` and a clean worktree. Confirm no new tag or GitHub release exists.

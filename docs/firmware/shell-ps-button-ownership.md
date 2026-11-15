@@ -76,3 +76,22 @@ The static evidence proves export presence, function identity, the distinct `0x1
 Native retail acceptance of the `PS_BTN_2` implementation is captured under `build-vita-regression-diagnostic/rev8-pslock-validation-20261112T162042Z`. Both the IME-active and IME-dismissed sequences retained the Search surface while PS was physically held, then closed after button-up with zero Home-overview frames and zero crossed-circle frames. The same negative conditions remained green in the permanently installed release smoke at `build-vita-regression-diagnostic/rev8-final-release-smoke-20261112T173000Z`.
 
 The later IME-active application-switcher regression is reproduced on the clean release in `build-vita-regression-diagnostic/home-ime-switcher-regression-release-20261114T205735Z`. A controlled build predating switcher-event registration reproduced the same leak in `home-ime-switcher-regression-pre-switcher-20261114T210728Z`, excluding event callbacks as the cause. The exact self-disabling fix is validated in `home-ime-switcher-fix-validation-20261114T211746Z`: both IME-active and IME-dismissed sequences retain Search through button-up, then close with zero switcher event `4`, zero crossed-circle frames, zero Home-overview frames, exact artifact/config readback, and no new core. `home-ime-switcher-fix-switcher-regression-20261114T211856Z/corrected-machine-receipt.json` separately confirms that ordinary switcher entry still emits event `4`, Search remains absent, and a lower-right touch passes through to Sony rather than activating Search. The permanently installed clean release is verified by `home-ime-switcher-fix-release-deploy-20261114T212108Z` and the 1,300-frame smoke at `home-ime-switcher-fix-release-smoke-20261114T212321Z`; both PS states remain green after reboot with exact hashes, an unchanged release startup log, and no new core.
+
+The later results-Back transition preserves the same lock lifetime while adding
+the native 150 ms corner hide. The self-disabling candidate is validated in
+`results-back-ps-log-validation-20261115T212124Z` and in the framebuffer
+captures `results-back-ps-screenshot-20261115T230519Z` and
+`results-back-ps-screenshot-20261115T230738Z`. Active-IME PS remains immediate.
+With the IME dismissed, Search stays visible through physical button-up, starts
+one native Back hide, retains `PS_BTN_2` until the deadline completes, then
+unlocks immediately before page close and notification restoration. The 30 ms
+and 60 ms screenshots show the results surface retained while the corner
+progressively shrinks. No switcher event, crossed-circle indicator, Home
+overview, artifact drift, or core change occurred.
+
+The matching diagnostics-off release is permanently installed and verified at
+`results-back-permanent-deploy-20261115T232510Z`: SUPRX
+`5818525741c533045d3a62eca580813d870eae12540cb8f86eb9a3ecc71bd473`,
+RCO `9ed52828b725bc5d7dd16b4d8dfd78bf67dd452d95922a2c7292c1e09f7fbbee`,
+one active and zero disabled configuration entries, two clean boots, stable
+release `startup.log`, and the unchanged 442-core baseline.

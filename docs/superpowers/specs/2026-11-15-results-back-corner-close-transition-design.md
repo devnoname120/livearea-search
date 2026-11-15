@@ -2,7 +2,12 @@
 
 ## Status
 
-Approved in chat on 2026-11-15. Ordinary Search closes must run Sony's native bottom-left Back-corner disappearance animation before the results page is destroyed. Safety teardown paths remain immediate.
+Approved in chat on 2026-11-15 and completed on retail Vita 146. Ordinary
+Search closes now run Sony's native bottom-left Back-corner disappearance
+animation before the results page is destroyed. Safety teardown paths remain
+immediate. The exact self-disabling candidate passed the complete ownership
+matrix and native framebuffer captures; the matching diagnostics-off release
+was installed permanently and reboot-verified twice.
 
 ## Problem
 
@@ -126,3 +131,23 @@ Retail Vita 146 acceptance requires native capture of:
 - no new or overwritten core dump.
 
 The matching diagnostics-off, non-self-disabling build is installed only after the self-disabling candidate passes. The change is committed and pushed to `main`; no GitHub release or tag is created.
+
+## Final evidence
+
+The native visual gate used the installed PNG screenshot path after VitaStream
+was not available as a host UVC device. Circle was captured approximately 20 ms
+and 60 ms into the native hide, tap-Back at approximately 40 ms, and released
+PS/Home at approximately 30 ms and 60 ms. Each intermediate framebuffer keeps
+the Search results surface alive while the corner shrinks; later frames have a
+smaller outer geometry than earlier frames. The corresponding diagnostics logs
+contain one hide, one deadline completion, one final PS unlock, and one
+notification restoration, with no switcher event or core change.
+
+```text
+experimental SUPRX  f40803868c7f19ecb06a06df52f613f977d0ec09baf7895141126b55c09cee73
+release SUPRX       5818525741c533045d3a62eca580813d870eae12540cb8f86eb9a3ecc71bd473
+shared RCO          9ed52828b725bc5d7dd16b4d8dfd78bf67dd452d95922a2c7292c1e09f7fbbee
+permanent evidence  results-back-permanent-deploy-20261115T232510Z
+release startup     68a5e62f8944fc8e233dd40a6d7c40527a45b4a34aa7b0c4ccc194ff47acdfc8
+core baseline       442 files
+```
