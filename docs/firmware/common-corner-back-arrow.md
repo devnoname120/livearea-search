@@ -128,14 +128,16 @@ larger while the handle is approximately 13% shorter and 7% thinner.
 The native visible bounds are `(10, 9)–(55, 55)` with `1,061` visible pixels.
 The visible-pixel mean alpha is `120.46` versus `116.15` for the arrow; `112`
 magnifier pixels have alpha at least `240` versus `91` arrow pixels, and the
-magnifier's dark edge is capped at alpha `30`. At the exact runtime `48 × 48`
-size, the bounds are `(7, 7)–(41, 41)` with `624` visible pixels and `52` pixels
+magnifier's dark edge is capped at alpha `30`. At the selected runtime `60 × 60`
+size, the bounds are `(9, 8)–(52, 52)` with `991` visible pixels and `79` pixels
 at alpha `240` or above. This keeps it soft on white while retaining enough
 contrast on the blue and navy corner-button backgrounds.
 
-The silhouette remains optically centered for the existing `48 × 48` plane and
-preserves the validated corner-button tint, position, highlight, glow, sound, and
-interaction states.
+The user selected a `60 × 60` plane after comparing `48`, `52`, `56`, `60`, and
+`64` pixel options directly against Sony's exact `64 × 64` Back button. The
+Search plane uses `pos="13.25,-12.5,0"`, interpolating between the former
+`48 × 48` placement and Sony's stock bottom-right `64 × 64` placement. The
+corner-button tint, highlight, glow, sound, and interaction states are unchanged.
 
 Regenerate it with:
 
@@ -163,18 +165,18 @@ Fresh pinned VitaSDK builds produced:
 Both profiles contain the same generated RCO:
 
 ```text
-652bd744c2674ca6898d26890bfad98b77f9352c40390c50cb46eccbb2867570
+2af4792c08650254e28d964fdecb928ce4f08cbeacf493353a3f3a8b7599baba
 ```
 
 The permanent install ZIP SHA-256 is:
 
 ```text
-64d77fad1b8c97ff5144a1a02f1bdc7a7d555677065325936681b32389d4b75d
+88434a158b2d6124b43550940865c78f283494747745bcb89c72c8caf1851a2c
 ```
 
 Both target builds completed without warnings and passed their respective
 release-binary audit profiles.
 
-Hardware validation of these revised proportions remains pending explicit user
-authorization. The currently installed permanent build still uses the preceding
-RCO `4938e89f709f9f1c5ad1b7aad154a962fcd70fbbe605f28f810c7341b8a65cb2`.
+Hardware validation of the selected `60 × 60` plane remains pending. The
+currently installed permanent build still uses the preceding `48 × 48` RCO
+`652bd744c2674ca6898d26890bfad98b77f9352c40390c50cb46eccbb2867570`.

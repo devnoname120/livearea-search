@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved by the user on 2026-11-15. The user requested a slightly larger lens circle and a slightly smaller handle, with no other visual or behavioral changes and no further design questions.
+Approved by the user on 2026-11-15. The user requested a slightly larger lens circle and a slightly smaller handle, with no other visual or behavioral changes and no further design questions. After native hardware capture and direct comparison against Sony's exact `64 × 64` Back button, the user approved a follow-up runtime-plane change to `60 × 60` at `pos="13.25,-12.5,0"`.
 
 ## Goal
 
@@ -36,7 +36,7 @@ The following remain byte-for-byte or structurally unchanged except for the rege
 - `64 × 64` RGBA PNG canvas;
 - fully transparent lens center and canvas corners;
 - grayscale body, directional alpha, highlight, bevel, and low-alpha shadow model;
-- `48 × 48` runtime plane and `pos="14,-17,0"` placement;
+- `60 × 60` runtime plane and `pos="13.25,-12.5,0"` placement;
 - corner background tint, common highlight, common glow, sound, and touch behavior;
 - resource ID and RCO pipeline.
 
@@ -49,8 +49,8 @@ The asset contract will require:
 - deterministic regeneration of the runtime PNG;
 - byte identity between the runtime asset and review copy;
 - exact PNG hash, alpha population, visible bounds, and transparent-center checks;
-- unchanged XML geometry and resource references;
-- visual inspection at native `64 × 64` and rendered `48 × 48` sizes on transparent, navy, and Vita-blue backgrounds;
+- exact XML geometry and unchanged resource references;
+- visual inspection at native `64 × 64` and rendered `60 × 60` sizes on transparent, navy, Vita-blue, and native Home backgrounds;
 - fresh normal and ASan/UBSan host suites;
 - fresh warning-free release and self-disabling Vita builds;
 - release and experimental binary audits plus resource/source audits.

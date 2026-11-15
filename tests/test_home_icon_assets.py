@@ -282,11 +282,11 @@ def verify_magnifier(root: Path) -> None:
     if tuple(rgba[:4]) != (0, 0, 0, 0):
         raise AssertionError("magnifier canvas corners must remain transparent")
 
-    rendered = resize_premultiplied_bilinear(width, height, rgba, 48, 48)
-    rendered_pixels = visible_pixels(48, 48, rendered)
-    if bounding_box(rendered_pixels) != (7, 7, 41, 41):
+    rendered = resize_premultiplied_bilinear(width, height, rgba, 60, 60)
+    rendered_pixels = visible_pixels(60, 60, rendered)
+    if bounding_box(rendered_pixels) != (9, 8, 52, 52):
         raise AssertionError("rendered magnifier optical bounds changed")
-    if len(rendered_pixels) != 624:
+    if len(rendered_pixels) != 991:
         raise AssertionError("rendered magnifier alpha population changed")
     rendered_alpha = [color[3] for _, _, color in rendered_pixels]
     if (min(rendered_alpha), max(rendered_alpha)) != (1, 255):
@@ -294,9 +294,9 @@ def verify_magnifier(root: Path) -> None:
     rendered_edge = [
         color for _, _, color in rendered_pixels if max(color[:3]) <= 64
     ]
-    if len(rendered_edge) != 201 or max(color[3] for color in rendered_edge) > 32:
+    if len(rendered_edge) != 325 or max(color[3] for color in rendered_edge) > 32:
         raise AssertionError("rendered magnifier edge treatment changed")
-    if sum(color[3] >= 240 for _, _, color in rendered_pixels) != 52:
+    if sum(color[3] >= 240 for _, _, color in rendered_pixels) != 79:
         raise AssertionError("rendered magnifier highlight population changed")
 
 
@@ -308,7 +308,7 @@ def verify_integration(root: Path) -> None:
         'color="0.21,0.43,0.73,0.9" '
         'texture0="_common_texture_corner_button_base" '
         'id="home_search_bg_obj"',
-        'size="48,48,0" texture0="texture_home_search" id="home_search_corner_obj" pos="14,-17,0"',
+        'size="60,60,0" texture0="texture_home_search" id="home_search_corner_obj" pos="13.25,-12.5,0"',
         '<texture src="texture/search.png" compress="on" '
         'id="texture_home_search" type="texture/png" />',
     )
