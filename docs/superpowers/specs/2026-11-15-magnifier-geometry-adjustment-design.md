@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved by the user on 2026-11-15. The user requested a slightly larger lens circle and a slightly smaller handle, with no other visual or behavioral changes and no further design questions. After native hardware capture and direct comparison against Sony's exact `64 × 64` Back button, the user approved a follow-up runtime-plane change to `60 × 60` at `pos="13.25,-12.5,0"`.
+Approved by the user on 2026-11-15. The user requested a slightly larger lens circle and a slightly smaller handle, with no other visual or behavioral changes and no further design questions. After native hardware capture and direct comparison against Sony's exact `64 × 64` Back button, the user approved a follow-up runtime-plane change to `60 × 60`. The first interpolated position, `pos="13.25,-12.5,0"`, produced a retail SceShell core; the accepted position is the nearest integer-valued PAF placement, `pos="13,-13,0"`.
 
 ## Goal
 
@@ -36,7 +36,7 @@ The following remain byte-for-byte or structurally unchanged except for the rege
 - `64 × 64` RGBA PNG canvas;
 - fully transparent lens center and canvas corners;
 - grayscale body, directional alpha, highlight, bevel, and low-alpha shadow model;
-- `60 × 60` runtime plane and `pos="13.25,-12.5,0"` placement;
+- `60 × 60` runtime plane and `pos="13,-13,0"` placement;
 - corner background tint, common highlight, common glow, sound, and touch behavior;
 - resource ID and RCO pipeline.
 

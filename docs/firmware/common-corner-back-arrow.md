@@ -135,9 +135,10 @@ contrast on the blue and navy corner-button backgrounds.
 
 The user selected a `60 × 60` plane after comparing `48`, `52`, `56`, `60`, and
 `64` pixel options directly against Sony's exact `64 × 64` Back button. The
-Search plane uses `pos="13.25,-12.5,0"`, interpolating between the former
-`48 × 48` placement and Sony's stock bottom-right `64 × 64` placement. The
-corner-button tint, highlight, glow, sound, and interaction states are unchanged.
+Search plane uses `pos="13,-13,0"`, the nearest integer-valued placement to the
+visual interpolation between the former `48 × 48` position and Sony's stock
+bottom-right `64 × 64` position. The corner-button tint, highlight, glow, sound,
+and interaction states are unchanged.
 
 Regenerate it with:
 
@@ -165,18 +166,44 @@ Fresh pinned VitaSDK builds produced:
 Both profiles contain the same generated RCO:
 
 ```text
-2af4792c08650254e28d964fdecb928ce4f08cbeacf493353a3f3a8b7599baba
+8002f41ed882adb5dd4c4b3d749c25e8954a919d1ceb8bd35f96068527a7277a
 ```
 
 The permanent install ZIP SHA-256 is:
 
 ```text
-88434a158b2d6124b43550940865c78f283494747745bcb89c72c8caf1851a2c
+6547c9b3afbafad98689d836951cf995eb14c3086b0c0e06b4fc0f4503b29295
 ```
 
 Both target builds completed without warnings and passed their respective
 release-binary audit profiles.
 
-Hardware validation of the selected `60 × 60` plane remains pending. The
-currently installed permanent build still uses the preceding `48 × 48` RCO
+## Hardware placement validation
+
+The first `60 × 60` candidate used fractional position
+`pos="13.25,-12.5,0"`. Its first permanent boot produced a transient
+`psp2core-SceShell.spsp2dmp` before interaction testing. The exact dump was
+captured as 543,504 bytes with SHA-256
+`e6da835b16e46e7a454459353cc4c6e13241bf95904fee9030404661608fb664`,
+then the verified `48 × 48` RCO was restored. Rollback, reboot, Search/Back
+smoke, startup-log stability, and the 442-core baseline all passed.
+
+Static comparison showed that the failed RCO differed from the working RCO only
+in the two size floats and two position floats. Sony's audited 3.60
+`common_resource.rco` contains no fractional `pos` or `size` array values. The
+replacement therefore keeps the selected `60 × 60` size but rounds the position
+to the nearest integer-valued PAF placement, `pos="13,-13,0"`.
+
+The self-disabling integer-position candidate passed two independent retail
+boots, exact config/hash readback, Search plus two-stage Back smoke, and a
+180-frame native Home capture with zero new cores. Evidence is stored under:
+
+```text
+build-vita-regression-diagnostic/
+  magnifier-plane60-integer-experimental-20261115T013509Z/
+```
+
+The native capture confirms the selected visual size and placement. Permanent
+installation remains pending the final guarded release deployment. The currently
+installed permanent build still uses the preceding `48 × 48` RCO
 `652bd744c2674ca6898d26890bfad98b77f9352c40390c50cb46eccbb2867570`.
