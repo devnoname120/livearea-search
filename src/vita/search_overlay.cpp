@@ -954,7 +954,7 @@ void SearchOverlay::UpdateHomePadClose() {
     const HomePadCloseAction action = ComputeHomePadCloseAction(
         home_close_pending_,
         home_ps_owned_);
-    if (action != HomePadCloseAction::ReleaseLockAndClose) {
+    if (action != HomePadCloseAction::CloseAfterRelease) {
         return;
     }
     RequestCloseResultsPage(

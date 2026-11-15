@@ -298,7 +298,7 @@ HomePadCloseAction ComputeHomePadCloseAction(
     }
     return ps_owned ?
         HomePadCloseAction::WaitForRelease :
-        HomePadCloseAction::ReleaseLockAndClose;
+        HomePadCloseAction::CloseAfterRelease;
 }
 
 bool ShouldAdoptExternalImeEdit(

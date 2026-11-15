@@ -317,7 +317,7 @@ Require `DisableResultsInput()` to disable the full mask on `results_page_`, `se
 
 - [ ] **Step 3: Update the PS/Home polish contract**
 
-Replace the former `ReleaseLockAndClose -> unlock -> RequestCloseResultsPage()` expectation with:
+Replace the former `ReleaseLockAndClose -> unlock -> RequestCloseResultsPage()` expectation with `CloseAfterRelease` and:
 
 ```cmake
 "RequestCloseResultsPage(\n        results_editing_layout_ ?\n            ResultsCloseMode::Immediate :\n            ResultsCloseMode::AnimatedBackCorner);"
@@ -428,7 +428,7 @@ void SearchOverlay::UpdateHomePadClose() {
     const HomePadCloseAction action = ComputeHomePadCloseAction(
         home_close_pending_,
         home_ps_owned_);
-    if (action != HomePadCloseAction::ReleaseLockAndClose) {
+    if (action != HomePadCloseAction::CloseAfterRelease) {
         return;
     }
     RequestCloseResultsPage(

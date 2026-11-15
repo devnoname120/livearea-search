@@ -309,7 +309,9 @@
         "shell_util_lock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2)",
         "shell_util_unlock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2)",
         "ComputeHomePadCloseAction(",
-        "ReleaseHomePadLock();\n    RequestCloseResultsPage();"
+        "HomePadCloseAction::CloseAfterRelease",
+        "RequestCloseResultsPage(\n        results_editing_layout_ ?\n            ResultsCloseMode::Immediate :\n            ResultsCloseMode::AnimatedBackCorner);",
+        "ReleaseHomePadLock();\n    plugin_->PageClose(\"page_search_results\", close_param);"
       ],
       "evidence": [
         {
@@ -339,7 +341,7 @@
             "0x21A6CF54",
             "SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2",
             "without the stop symbol",
-            "unlock before Search teardown",
+            "retain the lock until final teardown",
             "45 audited SceShellSvc images"
           ]
         },
@@ -347,8 +349,80 @@
           "path": "tests/test_home_pad_filter.cpp",
           "needles": [
             "HomePadCloseAction::WaitForRelease",
-            "HomePadCloseAction::ReleaseLockAndClose",
-            "button-up must unlock SceShell before Search exposes Home"
+            "HomePadCloseAction::CloseAfterRelease",
+            "button-up permits Search closure while the shell lock remains held"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "results-back-close-transition-policy",
+      "source": "include/livearea_search/results_close_transition.h",
+      "source_needles": [
+        "kResultsBackHideDurationUs =\n    kHomeCornerHideDurationUs;",
+        "enum class ResultsCloseMode",
+        "AnimatedBackCorner",
+        "Immediate",
+        "enum class ResultsCloseState",
+        "PendingAnimated",
+        "AnimatingBackCorner",
+        "PendingImmediate",
+        "enum class ResultsCloseAction",
+        "StartBackCornerHide",
+        "AdvanceResultsCloseTransition("
+      ],
+      "evidence": [
+        {
+          "path": "docs/firmware/home-corner-native-transition.md",
+          "needles": [
+            "## Results Back close reuse",
+            "CornerButton::Hide(Type_Reset)",
+            "150,000 us",
+            "Repeated requests do not restart the deadline",
+            "retains `SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2` throughout the animation"
+          ]
+        },
+        {
+          "path": "include/livearea_search/home_corner_transition.h",
+          "needles": [
+            "kHomeCornerHideDurationUs = 150000"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "results-back-close-transition-runtime",
+      "source": "src/vita/search_overlay.cpp",
+      "source_needles": [
+        "RequestCloseResultsPage(ResultsCloseMode::AnimatedBackCorner);",
+        "RequestCloseResultsPage(ResultsCloseMode::Immediate);",
+        "void SearchOverlay::DisableResultsInput()",
+        "QueueResultsClose(mode, results_close_state_, results_close_deadline_us_);",
+        "AdvanceResultsCloseTransition(",
+        "ResultsCloseAction::StartBackCornerHide",
+        "close_button_->Hide(paf::common::transition::Type_Reset);",
+        "ResultsCloseAction::Close",
+        "ReleaseHomePadLock();\n    plugin_->PageClose(\"page_search_results\", close_param);"
+      ],
+      "source_forbidden_needles": [
+        "close_requested_",
+        "close_defer_frames_",
+        "AdvanceDeferredResultClose("
+      ],
+      "evidence": [
+        {
+          "path": "tests/test_results_close_transition.cpp",
+          "needles": [
+            "ordinary close queues without running inside the callback",
+            "repeated ordinary requests do not restart the deadline",
+            "safety ownership preempts an active animation"
+          ]
+        },
+        {
+          "path": "tests/check_close_lifecycle.cmake",
+          "needles": [
+            "The Back corner must hide before deadline-driven page teardown",
+            "Final teardown must release the PS lock immediately before PageClose"
           ]
         }
       ]

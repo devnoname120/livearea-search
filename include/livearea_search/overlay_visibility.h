@@ -37,7 +37,7 @@ enum class ResultsBackAction {
 enum class HomePadCloseAction {
     None,
     WaitForRelease,
-    ReleaseLockAndClose,
+    CloseAfterRelease,
 };
 
 enum class HomeEditLockAction {

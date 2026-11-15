@@ -5,7 +5,7 @@ LiveArea Search must own two independent input paths while its results page is o
 1. the PAF pad sample delivered to widget input consumers; and
 2. SceShell's system-level PS-button route.
 
-Filtering only the copied PAF sample is insufficient. Retail hardware showed that Search closed exactly once while the same physical PS press still entered Sony's Home overview. The first restored shell-lock candidate used lock type `0x1`; it prevented Home overview, but native capture showed Sony's crossed-circle stop symbol after Search teardown. The shell ABI provides a distinct PS-button ownership type, `0x800`, specifically for suppressing the system route without that stop symbol. The required lifetime is still bounded by the physical press: acquire before Search becomes interactive, retain ownership while PS is down, then unlock before Search teardown after button-up.
+Filtering only the copied PAF sample is insufficient. Retail hardware showed that Search closed exactly once while the same physical PS press still entered Sony's Home overview. The first restored shell-lock candidate used lock type `0x1`; it prevented Home overview, but native capture showed Sony's crossed-circle stop symbol after Search teardown. The shell ABI provides a distinct PS-button ownership type, `0x800`, specifically for suppressing the system route without that stop symbol. The required lifetime begins before Search becomes interactive and extends through the complete owned close lifecycle: retain ownership while PS is down, observe button-up, then release the lock only during final Search teardown. When the visible results Back corner is animating, final teardown occurs after its firmware-derived 150 ms hide interval.
 
 ## Export identity
 
@@ -55,18 +55,19 @@ The accepted sequence is:
 3. Acquire `SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2` before opening the Search results page.
 4. When PS is pressed, copy the PAF pad record, remove only the PS bit from the forwarded copy, and pass all unrelated bits to Sony's previous handler unchanged.
 5. End IME editing immediately, but keep the Search page visible while the physical PS press remains owned. This prevents the shell lock indicator from becoming exposed over Home.
-6. On the first button-up sample, unlock before Search teardown, then request the existing deferred page close.
-7. Release the lock on every failed-open and destruction path as a fail-safe.
+6. On the first button-up sample, queue the appropriate close mode. A visible results Back corner uses its native 150 ms hide transition; an IME-owned layout closes immediately because no Back corner is visible.
+7. Keep `PS_BTN_2` held throughout any native Back-corner hide and release it only in final teardown immediately before `page_search_results` closes.
+8. Release the lock on every failed-open and destruction path as a fail-safe.
 
-The critical invariants are **use the no-stop-symbol `PS_BTN_2` type** and **unlock before Search teardown**. Together they suppress the independent SceShell Home route without deliberately requesting Sony's crossed-circle UI.
+The critical invariants are **use the no-stop-symbol `PS_BTN_2` type**, **never close before physical button-up**, and **retain the lock until final teardown**. Together they suppress the independent SceShell Home route without deliberately requesting Sony's crossed-circle UI or exposing the route during the results Back animation.
 
 ## IME-active early-teardown regression
 
 The external-IME ownership gate introduced in commit `23910d5` exposed a second lock-lifetime failure that affected only the IME-active PS path. `HandleHome()` correctly marked the PS-owned close, ended editing, and kept the physical-button ownership bit. During the same PAF frame, however, the IME plugin was still visible while `ime_transition_active_` had already been cleared. The generic visibility policy therefore interpreted the temporary loss of Home eligibility as an unrelated surface transition, requested result teardown, and reached `CloseResultsPage()` before button-up. That fail-safe close released `PS_BTN_2` while the original physical press remained down, allowing SceShell to open the application switcher. The already-dismissed IME path did not create this transient ownership mismatch and remained correct.
 
-The bounded fix makes the explicit PS-owned lifecycle authoritative over generic visibility closure. `ShouldCloseResultsPage` now receives `home_close_pending`; while that flag is set it cannot schedule teardown from shell or Home-surface visibility. Only `UpdateHomePadClose()` may proceed, and it does so after `ObserveHomePadPress` sees button-up: unlock first, then request the existing deferred close. Normal foreground-app, LiveArea, switcher, quick-menu, notification, and external-IME visibility closure remains unchanged outside that owned lifecycle.
+The bounded fix makes the explicit PS-owned lifecycle authoritative over generic visibility closure. `ShouldCloseResultsPage` now receives `home_close_pending`; while that flag is set it cannot schedule teardown from shell or Home-surface visibility. Only `UpdateHomePadClose()` may proceed after `ObserveHomePadPress` sees button-up. It queues an animated close when the results Back corner is visible and an immediate close while the IME-owned layout is active. `CloseResultsPage()` remains the only normal final-unlock point. Normal foreground-app, LiveArea, switcher, quick-menu, notification, and external-IME visibility closure remains unchanged outside that owned lifecycle.
 
-The focused host regression requires a results page with the IME transition already inactive, Home temporarily unavailable, and `home_close_pending=true` to remain open. The corresponding source contract requires the live call site to pass both `ime_transition_active_` and `home_close_pending_`, preventing a future four-argument policy call from silently restoring the early unlock.
+The focused host regression requires a results page with the IME transition already inactive, Home temporarily unavailable, and `home_close_pending=true` to remain open. The corresponding source contract requires the live call site to pass both `ime_transition_active_` and `home_close_pending_`, preventing a future four-argument policy call from silently restoring early teardown. The close-policy contract separately requires `UpdateHomePadClose()` to queue closure without unlocking and requires `ReleaseHomePadLock()` to remain in final teardown before `PageClose`.
 
 ## Evidence boundary
 

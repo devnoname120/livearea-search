@@ -214,6 +214,42 @@ ordinary Home visibility changes. Search therefore disables touch and gesture
 events before issuing native hide. A lower-right touch during the captured hide
 produced no `home search callback`, result page, or IME activation.
 
+## Results Back close reuse
+
+The results page reuses the same native `CornerButton::Hide(Type_Reset)` path
+instead of destroying `page_search_results` immediately. Its dedicated close
+state machine separates input-callback requests from main-thread transition
+work:
+
+```text
+Idle
+  -> PendingAnimated
+  -> AnimatingBackCorner (150,000 us)
+  -> final PageClose
+
+Idle / AnimatingBackCorner
+  -> PendingImmediate
+  -> final PageClose on the next main-thread tick
+```
+
+Circle with the IME already dismissed, a tap on the bottom-left Back corner,
+and PS/Home after physical button-up use `PendingAnimated` while the Back corner
+is visible. The first main-thread close tick disables the complete results-page,
+TextBox, list, and Back-corner input masks, releases focus, and issues exactly
+one native hide. Repeated requests do not restart the deadline. The results page
+and native-notification suppression remain alive until the deadline expires.
+
+PS/Home retains `SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2` throughout the animation.
+`CloseResultsPage()` releases the lock immediately before closing the page, so
+the system Home route cannot leak during the 150 ms interval. An active-IME
+PS/Home close is immediate after physical release because the Back corner is not
+visible in that layout.
+
+App launch, shell ownership loss, initialization failure, unload, and any
+safety escalation use `PendingImmediate`. They still defer destruction until
+the initiating callback has unwound, but they do not retain stale Search UI for
+the visual transition.
+
 ## Reversal and ownership validation
 
 Rapid reversal was captured separately:

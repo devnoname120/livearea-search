@@ -91,6 +91,16 @@
       "source": "CMakeLists.txt"
     },
     {
+      "id": "results-back-close-transition-policy",
+      "issues": [],
+      "source": "include/livearea_search/results_close_transition.h"
+    },
+    {
+      "id": "results-back-close-transition-runtime",
+      "issues": [],
+      "source": "src/vita/search_overlay.cpp"
+    },
+    {
       "id": "results-layout-contract",
       "issues": [],
       "source": "resources/livearea_search_plugin.xml"
@@ -133,8 +143,8 @@
   ],
   "schema": 1,
   "summary": {
-    "checks": 26,
+    "checks": 28,
     "failed": 0,
-    "passed": 26
+    "passed": 28
   }
 }

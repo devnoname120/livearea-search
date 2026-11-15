@@ -50,8 +50,8 @@ int main() {
     Check(!owned, "releasing PS ends ownership");
     Check(
         ComputeHomePadCloseAction(true, owned) ==
-            HomePadCloseAction::ReleaseLockAndClose,
-        "button-up must unlock SceShell before Search exposes Home");
+            HomePadCloseAction::CloseAfterRelease,
+        "button-up permits Search closure while the shell lock remains held");
     Check(
         ComputeHomePadCloseAction(false, owned) == HomePadCloseAction::None,
         "an idle Home-close policy must not release the shell lock");

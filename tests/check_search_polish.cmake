@@ -140,7 +140,7 @@ foreach(required_source IN ITEMS
     "results_pending_display_ = false;"
     "ime_transition_active_,\n            home_close_pending_))"
     "const HomePadCloseAction action = ComputeHomePadCloseAction("
-    "HomePadCloseAction::ReleaseLockAndClose"
+    "HomePadCloseAction::CloseAfterRelease"
     "RequestCloseResultsPage(\n        results_editing_layout_ ?\n            ResultsCloseMode::Immediate :\n            ResultsCloseMode::AnimatedBackCorner);"
     "if (!AcquireHomePadLock())"
     "kShellUtilLockNid = 0xA9537233U;"
