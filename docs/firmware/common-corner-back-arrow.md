@@ -110,7 +110,7 @@ docs/assets/livearea-search-magnifier.png
 SHA-256:
 
 ```text
-ee9d27f4517842252ad12e634b27470047aae38f4dd9d0c6fee1e93534e393f1
+c16942c7a2805306fe84d09621bb4b91f6df7ab027b1ed54a41ad4e7e91b4d95
 ```
 
 The first generated revision (`e067e832...e86954e`) was rejected after a direct
@@ -120,11 +120,18 @@ shadow were visibly heavier than Sony's artwork, especially on white.
 The corrected magnifier uses the stock arrow as a pixel-distribution reference,
 not merely a thematic reference. It has a nearly white plastic body, transparent
 negative space, top-left directional highlighting, a restrained pale-gray bevel,
-and a sparse low-alpha dark edge. The visible-pixel mean alpha is `122.28` versus
-`116.15` for the arrow; `100` magnifier pixels have alpha at least `240` versus
-`91` arrow pixels, and the magnifier's dark edge is capped at alpha `32`. This
-keeps it soft on white while retaining enough contrast on the blue and navy
-corner-button backgrounds.
+and a sparse low-alpha dark edge. Its revised lens uses outer/inner radii
+`15.3 / 10.0`; the handle centerline runs from `(37.2, 36.3)` to `(49.0, 48.1)`
+with radius `3.8`. Relative to the prior revision, the lens is approximately 8%
+larger while the handle is approximately 13% shorter and 7% thinner.
+
+The native visible bounds are `(10, 9)–(55, 55)` with `1,061` visible pixels.
+The visible-pixel mean alpha is `120.46` versus `116.15` for the arrow; `112`
+magnifier pixels have alpha at least `240` versus `91` arrow pixels, and the
+magnifier's dark edge is capped at alpha `30`. At the exact runtime `48 × 48`
+size, the bounds are `(7, 7)–(41, 41)` with `624` visible pixels and `52` pixels
+at alpha `240` or above. This keeps it soft on white while retaining enough
+contrast on the blue and navy corner-button backgrounds.
 
 The silhouette remains optically centered for the existing `48 × 48` plane and
 preserves the validated corner-button tint, position, highlight, glow, sound, and
@@ -141,9 +148,10 @@ python3 tools/assets/generate_skeuomorphic_magnifier.py \
 
 The final source asset was passed through the normal `psp2cxml-tool` RCO
 pipeline. The generated RCO stores the PNG as one zlib-compressed
-`texture/png` entry with ID `0xD743FC5B`; decompression returns all 1,732 source
+`texture/png` entry with ID `0xD743FC5B`; decompression returns all 1,891 source
 bytes exactly, including SHA-256
-`ee9d27f4517842252ad12e634b27470047aae38f4dd9d0c6fee1e93534e393f1`.
+`c16942c7a2805306fe84d09621bb4b91f6df7ab027b1ed54a41ad4e7e91b4d95`.
+The RCO entry is at tree node `0x000015D8`; its zlib payload is 1,902 bytes.
 
 Fresh pinned VitaSDK builds produced:
 
@@ -155,16 +163,18 @@ Fresh pinned VitaSDK builds produced:
 Both profiles contain the same generated RCO:
 
 ```text
-4938e89f709f9f1c5ad1b7aad154a962fcd70fbbe605f28f810c7341b8a65cb2
+652bd744c2674ca6898d26890bfad98b77f9352c40390c50cb46eccbb2867570
 ```
 
 The permanent install ZIP SHA-256 is:
 
 ```text
-05d722ed92eb40b8342cd4f22f3cb2d7144206a3577f0899b19e14ebd0989a43
+64d77fad1b8c97ff5144a1a02f1bdc7a7d555677065325936681b32389d4b75d
 ```
 
 Both target builds completed without warnings and passed their respective
 release-binary audit profiles.
 
-Hardware validation remains pending explicit user authorization.
+Hardware validation of these revised proportions remains pending explicit user
+authorization. The currently installed permanent build still uses the preceding
+RCO `4938e89f709f9f1c5ad1b7aad154a962fcd70fbbe605f28f810c7341b8a65cb2`.
