@@ -117,8 +117,8 @@ Both Vita profiles built without warnings and passed their binary audits:
 
 | Profile | VELF SHA-256 | SUPRX SHA-256 |
 | --- | --- | --- |
-| Permanent release | `88990d61a36cdf075d79c99b939208e202f9957e04fa3b939dbfe7113986c735` | `aa08c0d3eef615fd4c8c356dda399b8a29063b12d37c580a95ea29311fc18a64` |
-| Self-disabling experimental | `e3b5ac17bfd810e93c09892312175982bb37d168a08b866cb7520e407de10151` | `7c0c7f0fa6417e433a873ec2c197609e430650669f5445869c4b5ddb7eec9f6d` |
+| Permanent release | `88990d618996eef756d283efa11e644f6d07b64f08c3ab709090a1d2cbe6c735` | `aa08c0d3eef615fd4c8c356dda399b8a29063b12d37c580a95ea29311fc18a64` |
+| Self-disabling experimental | `e3b5ac17577aad8bac8678aeaa62cb9d213e7a62890a06d77f09edb344e40151` | `7c0c7f0fa6417e433a873ec2c197609e430650669f5445869c4b5ddb7eec9f6d` |
 
 The change is code-only. Both profiles contain the existing v1.0.3 RCO:
 
