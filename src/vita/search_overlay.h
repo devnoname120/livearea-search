@@ -170,6 +170,8 @@ private:
     bool home_ps_owned_;
     bool start_button_open_pending_;
     bool start_button_owned_;
+    bool triangle_button_press_pending_;
+    bool triangle_button_owned_;
     bool application_switcher_owned_;
     bool shell_events_registered_;
     bool shell_util_ready_;

@@ -144,6 +144,11 @@ bool ObserveStartButtonPress(
     std::uint32_t start_button_mask,
     std::uint32_t& forwarded_buttons,
     bool& start_owned) noexcept;
+bool ObserveSearchOwnedButton(
+    bool search_owns_button,
+    std::uint32_t button_mask,
+    std::uint32_t& forwarded_buttons,
+    bool& button_owned) noexcept;
 HomePadCloseAction ComputeHomePadCloseAction(
     bool close_pending,
     bool ps_owned) noexcept;

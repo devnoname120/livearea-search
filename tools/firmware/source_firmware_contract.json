@@ -787,6 +787,51 @@
       ]
     },
     {
+      "id": "triangle-search-ownership",
+      "source": "src/vita/search_overlay.cpp",
+      "source_needles": [
+        "paf::inputdevice::pad::Data::Keycode::PAD_MENU",
+        "ObserveSearchOwnedButton(",
+        "overlay->results_page_ != NULL &&\n                !overlay->results_editing_layout_,",
+        "overlay->triangle_button_press_pending_ = true;",
+        "QueueInteractionLog(\"triangle pad suppressed\");",
+        "previous_home_pad_handler_(forwarded_data);"
+      ],
+      "source_forbidden_needles": [
+        "data->paddata &="
+      ],
+      "evidence": [
+        {
+          "path": "docs/firmware/triangle-search-ownership.md",
+          "needles": [
+            "Contract ID: `triangle-search-ownership-v1`",
+            "`PAD_MENU = 0x40`",
+            "IME-active Search forwards Triangle unchanged",
+            "ownership remains until physical button-up",
+            "results page remains open"
+          ]
+        },
+        {
+          "path": "tests/test_home_pad_filter.cpp",
+          "needles": [
+            "IME-active Search forwards Triangle unchanged",
+            "Search claims a Triangle rising edge while results are open",
+            "held Triangle remains hidden from the previous Home handler",
+            "Triangle ownership survives Search closure until physical release",
+            "closed Search forwards a fresh Triangle press to SceShell"
+          ]
+        },
+        {
+          "path": "tests/check_search_polish.cmake",
+          "needles": [
+            "PAD_MENU",
+            "ObserveSearchOwnedButton(",
+            "triangle pad suppressed"
+          ]
+        }
+      ]
+    },
+    {
       "id": "start-button-shortcut",
       "source": "src/vita/search_overlay.cpp",
       "source_needles": [

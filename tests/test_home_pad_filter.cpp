@@ -19,8 +19,10 @@ void Check(bool condition, const char* message) {
 int main() {
     using livearea_search::ComputeHomePadCloseAction;
     using livearea_search::HomePadCloseAction;
+    using livearea_search::ObserveSearchOwnedButton;
 
     const std::uint32_t ps = 0x00001000U;
+    const std::uint32_t triangle = 0x00000040U;
 
     std::uint32_t current = ps | 0x20U;
     bool owned = false;
@@ -57,6 +59,73 @@ int main() {
           "PS is not intercepted while Search is closed");
     Check(current == ps && !owned,
           "closed Search leaves the shell pad state untouched");
+
+    bool triangle_owned = false;
+    current = triangle;
+    Check(
+        !ObserveSearchOwnedButton(
+            false,
+            triangle,
+            current,
+            triangle_owned),
+        "IME-active Search must not claim Triangle from the keyboard");
+    Check(current == triangle && !triangle_owned,
+          "IME-active Search forwards Triangle unchanged");
+
+    current = triangle | 0x80U;
+    Check(
+        ObserveSearchOwnedButton(
+            true,
+            triangle,
+            current,
+            triangle_owned),
+        "Search claims a Triangle rising edge while results are open");
+    Check(current == 0x80U && triangle_owned,
+          "owned Triangle is removed while unrelated buttons survive");
+
+    current = triangle | 0x10U;
+    Check(
+        !ObserveSearchOwnedButton(
+            true,
+            triangle,
+            current,
+            triangle_owned),
+        "a held or repeated Triangle press is not claimed twice");
+    Check(current == 0x10U && triangle_owned,
+          "held Triangle remains hidden from the previous Home handler");
+
+    current = triangle | 0x20U;
+    Check(
+        !ObserveSearchOwnedButton(
+            false,
+            triangle,
+            current,
+            triangle_owned),
+        "closing Search while Triangle is held does not create another claim");
+    Check(current == 0x20U && triangle_owned,
+          "Triangle ownership survives Search closure until physical release");
+
+    current = 0x20U;
+    Check(
+        !ObserveSearchOwnedButton(
+            false,
+            triangle,
+            current,
+            triangle_owned),
+        "Triangle button-up does not claim an action");
+    Check(current == 0x20U && !triangle_owned,
+          "Triangle button-up releases ownership without altering other input");
+
+    current = triangle;
+    Check(
+        !ObserveSearchOwnedButton(
+            false,
+            triangle,
+            current,
+            triangle_owned),
+        "Triangle is not intercepted while Search is closed");
+    Check(current == triangle && !triangle_owned,
+          "closed Search forwards a fresh Triangle press to SceShell");
 
     if (failures != 0) {
         std::cerr << failures << " test(s) failed\n";

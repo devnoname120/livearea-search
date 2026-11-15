@@ -1,6 +1,6 @@
 # LiveArea Search source-to-firmware contract audit
 
-25 checks: 25 passed, 0 failed.
+26 checks: 26 passed, 0 failed.
 
 | Check | Source | Result |
 |---|---|---|
@@ -29,3 +29,4 @@
 | start-button-shortcut | `src/vita/search_overlay.cpp` | PASS |
 | system-overlay-identifiers | `src/vita/search_overlay.cpp` | PASS |
 | topmenu-resource-hashes | `include/livearea_search/overlay_visibility.h` | PASS |
+| triangle-search-ownership | `src/vita/search_overlay.cpp` | PASS |

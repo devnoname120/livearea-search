@@ -433,6 +433,8 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       home_ps_owned_(false),
       start_button_open_pending_(false),
       start_button_owned_(false),
+      triangle_button_press_pending_(false),
+      triangle_button_owned_(false),
       application_switcher_owned_(false),
       shell_events_registered_(false),
       shell_util_ready_(false),
@@ -616,6 +618,7 @@ int SearchOverlay::OpenResultsPage() {
     close_defer_frames_ = 0;
     home_close_pending_ = false;
     home_pad_press_pending_ = false;
+    triangle_button_press_pending_ = false;
     if (!AcquireHomePadLock()) {
         return -1;
     }
@@ -935,6 +938,7 @@ void SearchOverlay::CloseResultsPage() {
     close_defer_frames_ = 0;
     home_close_pending_ = false;
     home_pad_press_pending_ = false;
+    triangle_button_press_pending_ = false;
     if (icon_cache_ != NULL) {
         icon_cache_->SetNotificationsEnabled(false);
     }
@@ -1608,6 +1612,14 @@ void SearchOverlay::HomePadDeviceHandler(paf::inputdevice::pad::Data* data) {
                 overlay->start_button_owned_)) {
             overlay->start_button_open_pending_ = true;
         }
+        if (ObserveSearchOwnedButton(
+                overlay->results_page_ != NULL &&
+                !overlay->results_editing_layout_,
+                paf::inputdevice::pad::Data::Keycode::PAD_MENU,
+                forwarded.paddata,
+                overlay->triangle_button_owned_)) {
+            overlay->triangle_button_press_pending_ = true;
+        }
     }
     if (previous_home_pad_handler_ != NULL &&
         previous_home_pad_handler_ != HomePadDeviceHandler) {
@@ -1682,6 +1694,10 @@ void SearchOverlay::VisibilityTick(void* user_data) {
         overlay->start_button_open_pending_ = false;
         QueueInteractionLog("start pad device callback");
         overlay->HandleStartButton();
+    }
+    if (overlay->triangle_button_press_pending_) {
+        overlay->triangle_button_press_pending_ = false;
+        QueueInteractionLog("triangle pad suppressed");
     }
     overlay->UpdateImeTransition();
     if (overlay->visibility_registered_) {

@@ -124,12 +124,17 @@
       "id": "topmenu-resource-hashes",
       "issues": [],
       "source": "include/livearea_search/overlay_visibility.h"
+    },
+    {
+      "id": "triangle-search-ownership",
+      "issues": [],
+      "source": "src/vita/search_overlay.cpp"
     }
   ],
   "schema": 1,
   "summary": {
-    "checks": 25,
+    "checks": 26,
     "failed": 0,
-    "passed": 25
+    "passed": 26
   }
 }
