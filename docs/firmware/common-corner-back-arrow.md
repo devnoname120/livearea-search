@@ -203,7 +203,37 @@ build-vita-regression-diagnostic/
   magnifier-stock64-experimental-20261115T015321Z/
 ```
 
-The native capture confirms the selected visual size and placement. Permanent
-installation remains pending the final guarded release deployment. The currently
-installed permanent build still uses the preceding `48 × 48` RCO
-`652bd744c2674ca6898d26890bfad98b77f9352c40390c50cb46eccbb2867570`.
+The native capture confirms the selected visual size and placement.
+
+## Permanent installation
+
+The exact clean release was installed permanently on retail Vita 146 using a
+guarded disabled-config staging sequence. The installed artifacts are:
+
+```text
+SUPRX  8de3fd0d220954af759d7f6e6f001e3467d580b149f029a09f13450ee25dd5f1
+RCO    e5472bd34a84f22ae0db302e55c0302174de72b5b650cd7c6abd83868d899d61
+```
+
+Acceptance evidence is stored under:
+
+```text
+build-vita-regression-diagnostic/
+  magnifier-stock64-permanent-deploy-20261115T015941Z/
+```
+
+The permanent artifact passed:
+
+- one active and zero disabled taiHEN config entries;
+- exact SUPRX/RCO readback after two clean-release boots;
+- Start → Search → two-stage Back interaction smoke;
+- byte-stable clean-release `startup.log`, SHA-256
+  `92e0f7dfae7b5fa0189c74f5295f4133097459ac0fcea03f59ee9552316531e5`,
+  across the smoke and second reboot;
+- exact 442-file pre-deployment core baseline with no new or transient core;
+- a 180-frame native Home capture confirming the final visual placement.
+
+The final full-screen capture SHA-256 is
+`18c5f06c43ba9207fe25e8ec06dc39ac70c98489d1b26968df0dc8e95b8baf8e`;
+the magnifier close-up SHA-256 is
+`34a7544a11b1099edf9942916650ea99c85c4dce1f68abf608d95d8f58163097`.

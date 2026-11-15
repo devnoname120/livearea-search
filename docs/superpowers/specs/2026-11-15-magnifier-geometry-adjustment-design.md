@@ -56,4 +56,9 @@ The asset contract will require:
 - fresh warning-free release and self-disabling Vita builds;
 - release and experimental binary audits plus resource/source audits.
 
-Hardware deployment is not part of the geometry edit unless separately requested after offline verification.
+The user separately authorized hardware deployment after offline verification.
+The accepted stock-plane implementation passed two self-disabling experimental
+boots and a guarded permanent install on retail Vita 146, including exact
+artifact/config readback, Search/Back interaction smoke, byte-stable logless
+release behavior through a second reboot, native visual capture, and the exact
+pre-deployment core baseline.
