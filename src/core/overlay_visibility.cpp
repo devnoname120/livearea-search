@@ -333,19 +333,6 @@ ImeFrameAction ComputeImeFrameAction(
     return editing_seen ? ImeFrameAction::CloseResults : ImeFrameAction::None;
 }
 
-DeferredResultCloseAction AdvanceDeferredResultClose(
-    bool close_requested,
-    std::uint32_t& frames_remaining) noexcept {
-    if (!close_requested) {
-        return DeferredResultCloseAction::None;
-    }
-    if (frames_remaining != 0) {
-        --frames_remaining;
-        return DeferredResultCloseAction::Wait;
-    }
-    return DeferredResultCloseAction::Close;
-}
-
 ResultsBackAction ComputeResultsBackAction(
     bool results_open,
     bool ime_editing,

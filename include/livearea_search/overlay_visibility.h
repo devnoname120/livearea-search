@@ -28,12 +28,6 @@ enum class ImeFrameAction {
     CloseResults,
 };
 
-enum class DeferredResultCloseAction {
-    None,
-    Wait,
-    Close,
-};
-
 enum class ResultsBackAction {
     None,
     EndImeEdit,
@@ -175,9 +169,6 @@ ImeFrameAction ComputeImeFrameAction(
     bool show_results_pending,
     bool close_results_pending,
     bool shell_ready) noexcept;
-DeferredResultCloseAction AdvanceDeferredResultClose(
-    bool close_requested,
-    std::uint32_t& frames_remaining) noexcept;
 ResultsBackAction ComputeResultsBackAction(
     bool results_open,
     bool ime_editing,
