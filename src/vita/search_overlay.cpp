@@ -435,6 +435,8 @@ SearchOverlay::SearchOverlay(paf::Plugin* plugin)
       start_button_owned_(false),
       triangle_button_press_pending_(false),
       triangle_button_owned_(false),
+      home_edit_lock_held_(false),
+      home_edit_lock_release_pending_(false),
       application_switcher_owned_(false),
       shell_events_registered_(false),
       shell_util_ready_(false),
@@ -472,6 +474,7 @@ SearchOverlay::~SearchOverlay() {
         previous_home_pad_handler_ = NULL;
     }
     CloseResultsPage();
+    UpdateHomeEditLock(false, true);
     ReleaseHomePadLock();
 
     if (plugin_ != NULL && home_page_ != NULL) {
@@ -810,9 +813,13 @@ void SearchOverlay::HandleShellEvent(int event) {
         ClassifyApplicationSwitcherEvent(event);
     if (action == ApplicationSwitcherEventAction::Enter) {
         application_switcher_owned_ = true;
+        UpdateHomeEditLock(false);
         SetHomeVisible(false, false);
     } else if (action == ApplicationSwitcherEventAction::Leave) {
         application_switcher_owned_ = false;
+        if (results_page_ != NULL && !results_editing_layout_) {
+            UpdateHomeEditLock(true);
+        }
     }
 }
 
@@ -841,6 +848,7 @@ void SearchOverlay::HandleHome() {
         return;
     }
     home_close_pending_ = true;
+    UpdateHomeEditLock(false);
     results_pending_display_ = false;
     ime_close_pending_ = true;
     ime_transition_active_ = false;
@@ -889,6 +897,48 @@ void SearchOverlay::ReleaseHomePadLock() {
     }
 }
 
+bool SearchOverlay::UpdateHomeEditLock(bool should_hold, bool force_release) {
+    const HomeEditLockAction action = ComputeHomeEditLockAction(
+        home_edit_lock_held_,
+        should_hold,
+        triangle_button_owned_,
+        force_release);
+    if (action == HomeEditLockAction::None) {
+        if (home_edit_lock_held_ && !should_hold && triangle_button_owned_ &&
+            !force_release) {
+            if (!home_edit_lock_release_pending_) {
+                QueueInteractionLog("home edit unlock deferred");
+            }
+            home_edit_lock_release_pending_ = true;
+        } else if (should_hold) {
+            home_edit_lock_release_pending_ = false;
+        }
+        return true;
+    }
+    if (!shell_util_ready_ || shell_util_lock_ == NULL || shell_util_unlock_ == NULL) {
+        return false;
+    }
+    if (action == HomeEditLockAction::Acquire) {
+        const int result = shell_util_lock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
+        QueueInteractionLogResult("home edit lock", result);
+        if (result < 0) {
+            return false;
+        }
+        home_edit_lock_held_ = true;
+        home_edit_lock_release_pending_ = false;
+        return true;
+    }
+    const int result = shell_util_unlock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
+    QueueInteractionLogResult("home edit unlock", result);
+    if (result < 0) {
+        home_edit_lock_release_pending_ = true;
+        return false;
+    }
+    home_edit_lock_held_ = false;
+    home_edit_lock_release_pending_ = false;
+    return true;
+}
+
 void SearchOverlay::UpdateHomePadClose() {
     const HomePadCloseAction action = ComputeHomePadCloseAction(
         home_close_pending_,
@@ -905,6 +955,7 @@ void SearchOverlay::RequestCloseResultsPage() {
         return;
     }
     close_requested_ = true;
+    UpdateHomeEditLock(false);
     close_defer_frames_ = 1;
     if (result_list_ != NULL) {
         result_list_->DisableEvent(
@@ -930,6 +981,7 @@ void SearchOverlay::ProcessCloseRequest() {
 
 void SearchOverlay::CloseResultsPage() {
     if (plugin_ == NULL || results_page_ == NULL) {
+        UpdateHomeEditLock(false);
         ReleaseHomePadLock();
         notification_corner_.Restore();
         return;
@@ -949,6 +1001,7 @@ void SearchOverlay::CloseResultsPage() {
     ime_editing_seen_ = false;
     results_pending_display_ = false;
     ime_close_pending_ = false;
+    UpdateHomeEditLock(false);
 
     if (result_list_ != NULL) {
         result_list_->DisableEvent(
@@ -1137,6 +1190,7 @@ void SearchOverlay::SetResultsDrawPriority(int priority) {
 }
 
 void SearchOverlay::SetResultsEditingLayout() {
+    UpdateHomeEditLock(false);
     results_editing_layout_ = true;
     if (results_backdrop_ != NULL) {
         results_backdrop_->Show(paf::common::transition::Type_Reset);
@@ -1169,6 +1223,11 @@ void SearchOverlay::SetResultsEditingLayout() {
 
 void SearchOverlay::SetResultsDisplayLayout() {
     QueueInteractionLog("results display layout begin");
+    if (!UpdateHomeEditLock(true)) {
+        QueueInteractionLog("results display edit lock failed");
+        RequestCloseResultsPage();
+        return;
+    }
     results_editing_layout_ = false;
     if (results_backdrop_ != NULL) {
         results_backdrop_->Show(paf::common::transition::Type_Reset);
@@ -1698,6 +1757,10 @@ void SearchOverlay::VisibilityTick(void* user_data) {
     if (overlay->triangle_button_press_pending_) {
         overlay->triangle_button_press_pending_ = false;
         QueueInteractionLog("triangle pad suppressed");
+    }
+    if (overlay->home_edit_lock_release_pending_ &&
+        !overlay->triangle_button_owned_) {
+        overlay->UpdateHomeEditLock(false);
     }
     overlay->UpdateImeTransition();
     if (overlay->visibility_registered_) {

@@ -110,6 +110,7 @@ private:
     void HandleStartButton();
     bool AcquireHomePadLock();
     void ReleaseHomePadLock();
+    bool UpdateHomeEditLock(bool should_hold, bool force_release = false);
     void UpdateHomePadClose();
     void RequestCloseResultsPage();
     void ProcessCloseRequest();
@@ -172,6 +173,8 @@ private:
     bool start_button_owned_;
     bool triangle_button_press_pending_;
     bool triangle_button_owned_;
+    bool home_edit_lock_held_;
+    bool home_edit_lock_release_pending_;
     bool application_switcher_owned_;
     bool shell_events_registered_;
     bool shell_util_ready_;

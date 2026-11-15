@@ -272,6 +272,24 @@ bool ObserveSearchOwnedButton(
     return true;
 }
 
+HomeEditLockAction ComputeHomeEditLockAction(
+    bool lock_held,
+    bool search_display_owned,
+    bool triangle_owned,
+    bool force_release) noexcept {
+    if (!lock_held) {
+        return search_display_owned ?
+            HomeEditLockAction::Acquire : HomeEditLockAction::None;
+    }
+    if (search_display_owned) {
+        return HomeEditLockAction::None;
+    }
+    if (triangle_owned && !force_release) {
+        return HomeEditLockAction::None;
+    }
+    return HomeEditLockAction::Release;
+}
+
 HomePadCloseAction ComputeHomePadCloseAction(
     bool close_pending,
     bool ps_owned) noexcept {

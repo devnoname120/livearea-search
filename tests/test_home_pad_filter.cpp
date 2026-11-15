@@ -17,7 +17,9 @@ void Check(bool condition, const char* message) {
 } // namespace
 
 int main() {
+    using livearea_search::ComputeHomeEditLockAction;
     using livearea_search::ComputeHomePadCloseAction;
+    using livearea_search::HomeEditLockAction;
     using livearea_search::HomePadCloseAction;
     using livearea_search::ObserveSearchOwnedButton;
 
@@ -126,6 +128,35 @@ int main() {
         "Triangle is not intercepted while Search is closed");
     Check(current == triangle && !triangle_owned,
           "closed Search forwards a fresh Triangle press to SceShell");
+
+    Check(
+        ComputeHomeEditLockAction(false, false, false, false) ==
+            HomeEditLockAction::None,
+        "an inactive Search surface does not acquire the TopMenu edit lock");
+    Check(
+        ComputeHomeEditLockAction(false, true, false, false) ==
+            HomeEditLockAction::Acquire,
+        "keyboard-dismissed Search acquires the TopMenu edit lock");
+    Check(
+        ComputeHomeEditLockAction(true, true, false, false) ==
+            HomeEditLockAction::None,
+        "an already-held TopMenu edit lock is stable");
+    Check(
+        ComputeHomeEditLockAction(true, false, true, false) ==
+            HomeEditLockAction::None,
+        "unlock is deferred while an owned Triangle press remains down");
+    Check(
+        ComputeHomeEditLockAction(true, false, false, false) ==
+            HomeEditLockAction::Release,
+        "button-up releases a no-longer-needed TopMenu edit lock");
+    Check(
+        ComputeHomeEditLockAction(true, false, true, true) ==
+            HomeEditLockAction::Release,
+        "teardown force-releases the TopMenu edit lock even during a held press");
+    Check(
+        ComputeHomeEditLockAction(false, true, true, false) ==
+            HomeEditLockAction::Acquire,
+        "a stale local Triangle owner cannot prevent a required lock acquisition");
 
     if (failures != 0) {
         std::cerr << failures << " test(s) failed\n";

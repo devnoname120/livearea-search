@@ -794,7 +794,13 @@
         "ObserveSearchOwnedButton(",
         "overlay->results_page_ != NULL &&\n                !overlay->results_editing_layout_,",
         "overlay->triangle_button_press_pending_ = true;",
+        "ComputeHomeEditLockAction(",
+        "shell_util_lock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN)",
+        "shell_util_unlock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN)",
         "QueueInteractionLog(\"triangle pad suppressed\");",
+        "QueueInteractionLogResult(\"home edit lock\", result);",
+        "QueueInteractionLogResult(\"home edit unlock\", result);",
+        "QueueInteractionLog(\"home edit unlock deferred\");",
         "previous_home_pad_handler_(forwarded_data);"
       ],
       "source_forbidden_needles": [
@@ -804,11 +810,13 @@
         {
           "path": "docs/firmware/triangle-search-ownership.md",
           "needles": [
-            "Contract ID: `triangle-search-ownership-v1`",
+            "Contract ID: `triangle-search-ownership-v2`",
             "`PAD_MENU = 0x40`",
-            "IME-active Search forwards Triangle unchanged",
-            "ownership remains until physical button-up",
-            "results page remains open"
+            "`SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN = 0x1`",
+            "`SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2 = 0x800`",
+            "TopMenu field 48",
+            "unlock is deferred until button-up",
+            "IME-active Search forwards Triangle unchanged"
           ]
         },
         {
@@ -816,17 +824,19 @@
           "needles": [
             "IME-active Search forwards Triangle unchanged",
             "Search claims a Triangle rising edge while results are open",
-            "held Triangle remains hidden from the previous Home handler",
             "Triangle ownership survives Search closure until physical release",
-            "closed Search forwards a fresh Triangle press to SceShell"
+            "keyboard-dismissed Search acquires the TopMenu edit lock",
+            "unlock is deferred while an owned Triangle press remains down",
+            "teardown force-releases the TopMenu edit lock even during a held press"
           ]
         },
         {
           "path": "tests/check_search_polish.cmake",
           "needles": [
             "PAD_MENU",
-            "ObserveSearchOwnedButton(",
-            "triangle pad suppressed"
+            "SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN",
+            "ComputeHomeEditLockAction(",
+            "home edit unlock deferred"
           ]
         }
       ]

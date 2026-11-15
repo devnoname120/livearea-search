@@ -47,6 +47,8 @@ foreach(required_header IN ITEMS
     "bool start_button_owned_;"
     "bool triangle_button_press_pending_;"
     "bool triangle_button_owned_;"
+    "bool home_edit_lock_held_;"
+    "bool home_edit_lock_release_pending_;"
     "bool home_ps_lock_held_;"
     "ShellUtilLockFunction shell_util_lock_;"
     "ShellUtilUnlockFunction shell_util_unlock_;"
@@ -86,6 +88,7 @@ foreach(required_source IN ITEMS
     "paf::inputdevice::pad::Data::Keycode::PAD_PS"
     "paf::inputdevice::pad::Data::Keycode::PAD_START"
     "paf::inputdevice::pad::Data::Keycode::PAD_MENU"
+    "SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN"
     "overlay->HandleHome();"
     "overlay->HandleStartButton();"
     "previous_home_pad_handler_ = paf_pad_device_handler::SetDeviceHandler(HomePadDeviceHandler);"
@@ -96,6 +99,7 @@ foreach(required_source IN ITEMS
     "ObserveHomePadPress("
     "ObserveStartButtonPress("
     "ObserveSearchOwnedButton("
+    "ComputeHomeEditLockAction("
     "overlay->results_page_ != NULL &&\n                !overlay->results_editing_layout_,"
     "overlay->results_page_ != NULL,"
     "overlay->home_visible_ && overlay->results_page_ == NULL;"
@@ -106,6 +110,11 @@ foreach(required_source IN ITEMS
     "triangle_button_press_pending_ = true;"
     "start pad device callback"
     "triangle pad suppressed"
+    "home edit lock"
+    "home edit unlock"
+    "home edit unlock deferred"
+    "UpdateHomeEditLock(true);"
+    "UpdateHomeEditLock(false);"
     "void SearchOverlay::HandleStartButton()"
     "if (!home_visible_ || results_page_ != NULL)"
     "if (!IsBubbleHomeVisible(immediate_hide))"
@@ -135,8 +144,6 @@ endforeach()
 foreach(forbidden_source IN ITEMS
     "paf::Plugin::Find(\"impose_plugin\")"
     "paf::Plugin::Find(\"impose_net_plugin\")"
-    "shell_util_lock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN)"
-    "shell_util_unlock_(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN)"
     "\"edit_decide\""
     "\"edit_open\""
     "\"edit_cancel\""
@@ -150,13 +157,8 @@ foreach(forbidden_source IN ITEMS
     "topmenu tree")
     string(FIND "${source}" "${forbidden_source}" found)
     if(NOT found EQUAL -1)
-        if(forbidden_source MATCHES "SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN")
-            message(FATAL_ERROR
-                "Search must use the no-stop-symbol PS_BTN_2 shell lock: ${forbidden_source}")
-        else()
-            message(FATAL_ERROR
-                "Search must use the AppMgr system-UI overlay word instead of a coarse plugin scan: ${forbidden_source}")
-        endif()
+        message(FATAL_ERROR
+            "Search must use the AppMgr system-UI overlay word instead of a coarse plugin scan: ${forbidden_source}")
     endif()
 endforeach()
 

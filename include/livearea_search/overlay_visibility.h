@@ -45,6 +45,12 @@ enum class HomePadCloseAction {
     ReleaseLockAndClose,
 };
 
+enum class HomeEditLockAction {
+    None,
+    Acquire,
+    Release,
+};
+
 enum class NotificationPanelSuppression {
     Inactive,
     Triggered,
@@ -149,6 +155,11 @@ bool ObserveSearchOwnedButton(
     std::uint32_t button_mask,
     std::uint32_t& forwarded_buttons,
     bool& button_owned) noexcept;
+HomeEditLockAction ComputeHomeEditLockAction(
+    bool lock_held,
+    bool search_display_owned,
+    bool triangle_owned,
+    bool force_release) noexcept;
 HomePadCloseAction ComputeHomePadCloseAction(
     bool close_pending,
     bool ps_owned) noexcept;
