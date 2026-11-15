@@ -9,6 +9,9 @@ from pathlib import Path
 
 SIZE = 64
 SCALE = 8
+CONTENT_SIZE = 60
+CONTENT_OFFSET_X = 2
+CONTENT_OFFSET_Y = 4
 PARAMETERS = {
     "cx": 26.7,
     "cy": 25.8,
@@ -97,7 +100,7 @@ def body_normal(x: float, y: float) -> tuple[float, float]:
     return gradient_x / length, gradient_y / length
 
 
-def generate_rgba() -> bytes:
+def generate_source_rgba() -> bytes:
     high_size = SIZE * SCALE
     accumulated = [0.0] * (SIZE * SIZE * 4)
     light_x = -math.sqrt(0.5)
@@ -195,6 +198,67 @@ def generate_rgba() -> bytes:
                 255.0,
             )
         )
+    return bytes(output)
+
+
+def resize_premultiplied_bilinear(
+    width: int,
+    height: int,
+    rgba: bytes,
+    output_width: int,
+    output_height: int,
+) -> bytes:
+    pixels = [tuple(rgba[index : index + 4]) for index in range(0, len(rgba), 4)]
+    output = bytearray(output_width * output_height * 4)
+    for output_y in range(output_height):
+        source_y = (output_y + 0.5) * height / output_height - 0.5
+        y0 = max(0, min(height - 1, math.floor(source_y)))
+        y1 = max(0, min(height - 1, y0 + 1))
+        fraction_y = source_y - math.floor(source_y)
+        for output_x in range(output_width):
+            source_x = (output_x + 0.5) * width / output_width - 0.5
+            x0 = max(0, min(width - 1, math.floor(source_x)))
+            x1 = max(0, min(width - 1, x0 + 1))
+            fraction_x = source_x - math.floor(source_x)
+            samples = (
+                ((1.0 - fraction_x) * (1.0 - fraction_y), pixels[y0 * width + x0]),
+                (fraction_x * (1.0 - fraction_y), pixels[y0 * width + x1]),
+                ((1.0 - fraction_x) * fraction_y, pixels[y1 * width + x0]),
+                (fraction_x * fraction_y, pixels[y1 * width + x1]),
+            )
+            alpha = sum(weight * color[3] for weight, color in samples)
+            destination = (output_y * output_width + output_x) * 4
+            output[destination + 3] = round(alpha)
+            if alpha == 0.0:
+                continue
+            for channel in range(3):
+                output[destination + channel] = round(
+                    sum(
+                        weight * color[channel] * color[3]
+                        for weight, color in samples
+                    )
+                    / alpha
+                )
+    return bytes(output)
+
+
+def generate_rgba() -> bytes:
+    content = resize_premultiplied_bilinear(
+        SIZE,
+        SIZE,
+        generate_source_rgba(),
+        CONTENT_SIZE,
+        CONTENT_SIZE,
+    )
+    output = bytearray(SIZE * SIZE * 4)
+    for y in range(CONTENT_SIZE):
+        source = y * CONTENT_SIZE * 4
+        destination = (
+            (y + CONTENT_OFFSET_Y) * SIZE + CONTENT_OFFSET_X
+        ) * 4
+        output[destination : destination + CONTENT_SIZE * 4] = content[
+            source : source + CONTENT_SIZE * 4
+        ]
     return bytes(output)
 
 

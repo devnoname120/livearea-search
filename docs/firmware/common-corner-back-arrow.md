@@ -110,7 +110,7 @@ docs/assets/livearea-search-magnifier.png
 SHA-256:
 
 ```text
-c16942c7a2805306fe84d09621bb4b91f6df7ab027b1ed54a41ad4e7e91b4d95
+36497dcd1c7d773433dfeea8750c51d3bebdf5144612afe5eb79ce1f7a2f42d2
 ```
 
 The first generated revision (`e067e832...e86954e`) was rejected after a direct
@@ -125,20 +125,16 @@ and a sparse low-alpha dark edge. Its revised lens uses outer/inner radii
 with radius `3.8`. Relative to the prior revision, the lens is approximately 8%
 larger while the handle is approximately 13% shorter and 7% thinner.
 
-The native visible bounds are `(10, 9)–(55, 55)` with `1,061` visible pixels.
-The visible-pixel mean alpha is `120.46` versus `116.15` for the arrow; `112`
-magnifier pixels have alpha at least `240` versus `91` arrow pixels, and the
-magnifier's dark edge is capped at alpha `30`. At the selected runtime `60 × 60`
-size, the bounds are `(9, 8)–(52, 52)` with `991` visible pixels and `79` pixels
-at alpha `240` or above. This keeps it soft on white while retaining enough
-contrast on the blue and navy corner-button backgrounds.
+The visible artwork is deterministically pre-scaled to `60 × 60` with
+premultiplied bilinear filtering and padded at `(2,4)` inside the `64 × 64`
+source PNG. The final visible bounds are `(11, 12)–(54, 56)` with `991` visible
+pixels, `79` pixels at alpha `240` or above, and a low-alpha dark edge capped at
+alpha `30`. This preserves the user-selected apparent size while keeping the
+runtime plane on Sony's firmware-proven geometry.
 
-The user selected a `60 × 60` plane after comparing `48`, `52`, `56`, `60`, and
-`64` pixel options directly against Sony's exact `64 × 64` Back button. The
-Search plane uses `pos="13,-13,0"`, the nearest integer-valued placement to the
-visual interpolation between the former `48 × 48` position and Sony's stock
-bottom-right `64 × 64` position. The corner-button tint, highlight, glow, sound,
-and interaction states are unchanged.
+The Search control uses Sony's exact stock bottom-right icon-plane geometry:
+`size="64,64,0"` and `pos="13,-11,0"`. The corner-button tint, highlight, glow,
+sound, and interaction states are unchanged.
 
 Regenerate it with:
 
@@ -151,10 +147,10 @@ python3 tools/assets/generate_skeuomorphic_magnifier.py \
 
 The final source asset was passed through the normal `psp2cxml-tool` RCO
 pipeline. The generated RCO stores the PNG as one zlib-compressed
-`texture/png` entry with ID `0xD743FC5B`; decompression returns all 1,891 source
+`texture/png` entry with ID `0xD743FC5B`; decompression returns all 2,242 source
 bytes exactly, including SHA-256
-`c16942c7a2805306fe84d09621bb4b91f6df7ab027b1ed54a41ad4e7e91b4d95`.
-The RCO entry is at tree node `0x000015D8`; its zlib payload is 1,902 bytes.
+`36497dcd1c7d773433dfeea8750c51d3bebdf5144612afe5eb79ce1f7a2f42d2`.
+The RCO entry is at tree node `0x000015D8`; its zlib payload is 2,253 bytes.
 
 Fresh pinned VitaSDK builds produced:
 
@@ -166,13 +162,13 @@ Fresh pinned VitaSDK builds produced:
 Both profiles contain the same generated RCO:
 
 ```text
-8002f41ed882adb5dd4c4b3d749c25e8954a919d1ceb8bd35f96068527a7277a
+e5472bd34a84f22ae0db302e55c0302174de72b5b650cd7c6abd83868d899d61
 ```
 
 The permanent install ZIP SHA-256 is:
 
 ```text
-6547c9b3afbafad98689d836951cf995eb14c3086b0c0e06b4fc0f4503b29295
+9ac30527094c3c1af46eee1a9dc72c7b7fc3c9c1c36cfca922b2fc3b4ff35c8c
 ```
 
 Both target builds completed without warnings and passed their respective
@@ -190,17 +186,21 @@ smoke, startup-log stability, and the 442-core baseline all passed.
 
 Static comparison showed that the failed RCO differed from the working RCO only
 in the two size floats and two position floats. Sony's audited 3.60
-`common_resource.rco` contains no fractional `pos` or `size` array values. The
-replacement therefore keeps the selected `60 × 60` size but rounds the position
-to the nearest integer-valued PAF placement, `pos="13,-13,0"`.
+`common_resource.rco` contains no fractional `pos` or `size` array values. A
+second candidate used integer `pos="13,-13,0"`; its self-disabling diagnostic
+profile passed two boots, but the clean release produced another transient
+SceShell core on a later reboot. Direct `60 × 60` plane geometry is therefore
+rejected for permanent use.
 
-The self-disabling integer-position candidate passed two independent retail
-boots, exact config/hash readback, Search plus two-stage Back smoke, and a
-180-frame native Home capture with zero new cores. Evidence is stored under:
+The accepted candidate uses Sony's exact `64 × 64` plane at `pos="13,-11,0"`
+and moves the selected `60 × 60` footprint into the texture itself. Its
+self-disabling profile passed two independent retail boots, exact
+config/hash readback, Search plus two-stage Back smoke, and a 180-frame native
+Home capture with zero new cores. Evidence is stored under:
 
 ```text
 build-vita-regression-diagnostic/
-  magnifier-plane60-integer-experimental-20261115T013509Z/
+  magnifier-stock64-experimental-20261115T015321Z/
 ```
 
 The native capture confirms the selected visual size and placement. Permanent

@@ -12,7 +12,7 @@ import zlib
 
 
 ARROW_SHA256 = "6d18fe0829e3767f9ba972cb8774a908e6a0c01526295e11284df4fba6bbfa1d"
-MAGNIFIER_SHA256 = "c16942c7a2805306fe84d09621bb4b91f6df7ab027b1ed54a41ad4e7e91b4d95"
+MAGNIFIER_SHA256 = "36497dcd1c7d773433dfeea8750c51d3bebdf5144612afe5eb79ce1f7a2f42d2"
 SOURCE_RCO_SHA256 = "6ee58e58d1e78fecd99ea93e585c81efde3e940e3e0ca5cec4e64ba7cacdc806"
 
 
@@ -241,6 +241,18 @@ def verify_magnifier(root: Path) -> None:
                 f"{generator.PARAMETERS.get(key)!r} != {expected!r}"
             )
 
+    expected_output_layout = {
+        "CONTENT_SIZE": 60,
+        "CONTENT_OFFSET_X": 2,
+        "CONTENT_OFFSET_Y": 4,
+    }
+    for key, expected in expected_output_layout.items():
+        if getattr(generator, key, None) != expected:
+            raise AssertionError(
+                f"magnifier output layout {key!r}: "
+                f"{getattr(generator, key, None)!r} != {expected!r}"
+            )
+
     asset_path = root / "resources/texture/search.png"
     preview_path = root / "docs/assets/livearea-search-magnifier.png"
     asset = asset_path.read_bytes()
@@ -258,9 +270,9 @@ def verify_magnifier(root: Path) -> None:
     pixels = visible_pixels(width, height, rgba)
     if (width, height) != (64, 64):
         raise AssertionError("magnifier must remain 64x64")
-    if bounding_box(pixels) != (10, 9, 55, 55):
+    if bounding_box(pixels) != (11, 12, 54, 56):
         raise AssertionError("magnifier optical bounds changed")
-    if len(pixels) != 1061:
+    if len(pixels) != 991:
         raise AssertionError("magnifier alpha population changed")
     if (min(color[3] for _, _, color in pixels), max(color[3] for _, _, color in pixels)) != (
         1,
@@ -272,19 +284,19 @@ def verify_magnifier(root: Path) -> None:
     dark_edge = [color for _, _, color in pixels if max(color[:3]) <= 64]
     if len(dark_edge) < 300 or max(color[3] for color in dark_edge) > 32:
         raise AssertionError("magnifier lost its low-alpha dark edge/shadow")
-    if sum(min(color[:3]) >= 220 and color[3] >= 180 for _, _, color in pixels) < 500:
+    if sum(min(color[:3]) >= 220 and color[3] >= 180 for _, _, color in pixels) != 409:
         raise AssertionError("magnifier lost its bright beveled body")
-    if sum(color[3] >= 240 for _, _, color in pixels) != 112:
+    if sum(color[3] >= 240 for _, _, color in pixels) != 79:
         raise AssertionError("magnifier highlight population changed")
-    center = tuple(rgba[(25 * width + 26) * 4 : (25 * width + 26) * 4 + 4])
+    center = tuple(rgba[(32 * width + 32) * 4 : (32 * width + 32) * 4 + 4])
     if center != (0, 0, 0, 0):
         raise AssertionError("magnifier negative space must remain transparent")
     if tuple(rgba[:4]) != (0, 0, 0, 0):
         raise AssertionError("magnifier canvas corners must remain transparent")
 
-    rendered = resize_premultiplied_bilinear(width, height, rgba, 60, 60)
-    rendered_pixels = visible_pixels(60, 60, rendered)
-    if bounding_box(rendered_pixels) != (9, 8, 52, 52):
+    rendered = resize_premultiplied_bilinear(width, height, rgba, 64, 64)
+    rendered_pixels = visible_pixels(64, 64, rendered)
+    if bounding_box(rendered_pixels) != (11, 12, 54, 56):
         raise AssertionError("rendered magnifier optical bounds changed")
     if len(rendered_pixels) != 991:
         raise AssertionError("rendered magnifier alpha population changed")
@@ -308,7 +320,7 @@ def verify_integration(root: Path) -> None:
         'color="0.21,0.43,0.73,0.9" '
         'texture0="_common_texture_corner_button_base" '
         'id="home_search_bg_obj"',
-        'size="60,60,0" texture0="texture_home_search" id="home_search_corner_obj" pos="13,-13,0"',
+        'size="64,64,0" texture0="texture_home_search" id="home_search_corner_obj" pos="13,-11,0"',
         '<texture src="texture/search.png" compress="on" '
         'id="texture_home_search" type="texture/png" />',
     )
