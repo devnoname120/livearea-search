@@ -112,6 +112,33 @@ add_test(
     COMMAND livearea_search_home_corner_transition_tests
 )
 
+add_executable(livearea_search_results_close_transition_tests
+    test_results_close_transition.cpp
+)
+
+target_link_libraries(
+    livearea_search_results_close_transition_tests
+    PRIVATE
+        livearea_search_core
+)
+
+target_compile_features(
+    livearea_search_results_close_transition_tests
+    PRIVATE
+        cxx_std_11
+)
+
+target_compile_options(
+    livearea_search_results_close_transition_tests
+    PRIVATE
+        $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Wsign-conversion>
+)
+
+add_test(
+    NAME livearea_search_results_close_transition_tests
+    COMMAND livearea_search_results_close_transition_tests
+)
+
 add_executable(livearea_search_application_switcher_event_tests
     test_application_switcher_events.cpp
 )

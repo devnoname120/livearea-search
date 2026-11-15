@@ -26,6 +26,7 @@ add_library(livearea_search_core STATIC
     src/core/module_readiness.cpp
     src/core/overlay_visibility.cpp
     src/core/recent_apps.cpp
+    src/core/results_close_transition.cpp
 )
 
 target_include_directories(livearea_search_core
