@@ -299,6 +299,8 @@ add_test(
     NAME livearea_search_close_lifecycle
     COMMAND ${CMAKE_COMMAND}
         -DSEARCH_OVERLAY=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.cpp
+        -DOVERLAY_HEADER=${CMAKE_SOURCE_DIR}/src/vita/search_overlay.h
+        -DPOLICY_HEADER=${CMAKE_SOURCE_DIR}/include/livearea_search/results_close_transition.h
         -DICON_CACHE_HEADER=${CMAKE_SOURCE_DIR}/src/vita/icon_cache.h
         -DICON_CACHE_SOURCE=${CMAKE_SOURCE_DIR}/src/vita/icon_cache.cpp
         -P ${CMAKE_CURRENT_SOURCE_DIR}/check_close_lifecycle.cmake

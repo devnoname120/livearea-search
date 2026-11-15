@@ -141,8 +141,7 @@ foreach(required_source IN ITEMS
     "ime_transition_active_,\n            home_close_pending_))"
     "const HomePadCloseAction action = ComputeHomePadCloseAction("
     "HomePadCloseAction::ReleaseLockAndClose"
-    "ReleaseHomePadLock();"
-    "RequestCloseResultsPage();"
+    "RequestCloseResultsPage(\n        results_editing_layout_ ?\n            ResultsCloseMode::Immediate :\n            ResultsCloseMode::AnimatedBackCorner);"
     "if (!AcquireHomePadLock())"
     "kShellUtilLockNid = 0xA9537233U;"
     "kShellUtilUnlockNid = 0x21A6CF54U;"
@@ -311,12 +310,12 @@ if(handle_home_start EQUAL -1 OR update_home_start EQUAL -1 OR
 endif()
 math(EXPR handle_home_length "${update_home_start} - ${handle_home_start}")
 string(SUBSTRING "${source}" ${handle_home_start} ${handle_home_length} handle_home_source)
-string(FIND "${handle_home_source}" "RequestCloseResultsPage();" immediate_home_close)
+string(FIND "${handle_home_source}" "RequestCloseResultsPage(" immediate_home_close)
 if(NOT immediate_home_close EQUAL -1)
     message(FATAL_ERROR "Search must remain visible until the owned PS press is physically released")
 endif()
 
-string(FIND "${source}" "void SearchOverlay::RequestCloseResultsPage()" request_close_start)
+string(FIND "${source}" "void SearchOverlay::RequestCloseResultsPage(ResultsCloseMode mode)" request_close_start)
 if(update_home_start EQUAL -1 OR request_close_start EQUAL -1 OR
    NOT update_home_start LESS request_close_start)
     message(FATAL_ERROR "Missing delayed Home-close policy body")
@@ -325,10 +324,15 @@ math(EXPR update_home_length "${request_close_start} - ${update_home_start}")
 string(SUBSTRING "${source}" ${update_home_start} ${update_home_length} update_home_source)
 string(FIND "${update_home_source}" "const HomePadCloseAction action = ComputeHomePadCloseAction(" close_policy_index)
 string(FIND "${update_home_source}" "ReleaseHomePadLock();" unlock_index)
-string(FIND "${update_home_source}" "RequestCloseResultsPage();" delayed_close_index)
-if(close_policy_index EQUAL -1 OR unlock_index EQUAL -1 OR delayed_close_index EQUAL -1 OR
-   NOT close_policy_index LESS unlock_index OR NOT unlock_index LESS delayed_close_index)
-    message(FATAL_ERROR "Button-up must unlock SceShell before Search exposes Home")
+string(FIND "${update_home_source}"
+    "RequestCloseResultsPage(\n        results_editing_layout_ ?\n            ResultsCloseMode::Immediate :\n            ResultsCloseMode::AnimatedBackCorner);"
+    delayed_close_index)
+if(close_policy_index EQUAL -1 OR delayed_close_index EQUAL -1 OR
+   NOT close_policy_index LESS delayed_close_index)
+    message(FATAL_ERROR "Button-up must queue the correct close mode")
+endif()
+if(NOT unlock_index EQUAL -1)
+    message(FATAL_ERROR "PS lock must remain held through the Back-corner hide interval")
 endif()
 
 foreach(forbidden_listener IN ITEMS
