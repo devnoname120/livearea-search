@@ -120,3 +120,7 @@ ctest --test-dir build-host --output-on-failure
 - Normal release builds never read or mutate `ur0:tai/config.txt`; once installed, they remain active across reboot. Diagnostic experimental builds use a separate startup fail-safe profile.
 
 The implementation does not patch SceShell instructions or use fixed firmware offsets. Firmware, resource, ABI, and binary-audit details are kept under [`docs/firmware`](docs/firmware/).
+
+## Acknowledgements
+
+Thanks to [GrapheneCt](https://github.com/GrapheneCt) for [ScePaf-RE](https://github.com/GrapheneCt/ScePaf-RE), and to [Princess-of-Sleeping](https://github.com/Princess-of-Sleeping) for [psp2cxml-tool](https://github.com/Princess-of-Sleeping/psp2cxml-tool).
