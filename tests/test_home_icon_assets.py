@@ -12,7 +12,7 @@ import zlib
 
 
 ARROW_SHA256 = "6d18fe0829e3767f9ba972cb8774a908e6a0c01526295e11284df4fba6bbfa1d"
-MAGNIFIER_SHA256 = "ee9d27f4517842252ad12e634b27470047aae38f4dd9d0c6fee1e93534e393f1"
+MAGNIFIER_SHA256 = "c16942c7a2805306fe84d09621bb4b91f6df7ab027b1ed54a41ad4e7e91b4d95"
 SOURCE_RCO_SHA256 = "6ee58e58d1e78fecd99ea93e585c81efde3e940e3e0ca5cec4e64ba7cacdc806"
 
 
@@ -222,6 +222,25 @@ def verify_arrow(root: Path) -> None:
 
 
 def verify_magnifier(root: Path) -> None:
+    generator = load_generator(root)
+    expected_geometry = {
+        "cx": 26.7,
+        "cy": 25.8,
+        "outer": 15.3,
+        "inner": 10.0,
+        "hx0": 37.2,
+        "hy0": 36.3,
+        "hx1": 49.0,
+        "hy1": 48.1,
+        "handle": 3.8,
+    }
+    for key, expected in expected_geometry.items():
+        if generator.PARAMETERS.get(key) != expected:
+            raise AssertionError(
+                f"magnifier geometry {key!r}: "
+                f"{generator.PARAMETERS.get(key)!r} != {expected!r}"
+            )
+
     asset_path = root / "resources/texture/search.png"
     preview_path = root / "docs/assets/livearea-search-magnifier.png"
     asset = asset_path.read_bytes()
@@ -231,7 +250,7 @@ def verify_magnifier(root: Path) -> None:
     if sha256(asset) != MAGNIFIER_SHA256:
         raise AssertionError("skeuomorphic magnifier bytes changed")
 
-    generated = load_generator(root).generate_png()
+    generated = generator.generate_png()
     if generated != asset:
         raise AssertionError("magnifier generator no longer reproduces the runtime asset")
 
@@ -239,9 +258,9 @@ def verify_magnifier(root: Path) -> None:
     pixels = visible_pixels(width, height, rgba)
     if (width, height) != (64, 64):
         raise AssertionError("magnifier must remain 64x64")
-    if bounding_box(pixels) != (11, 11, 57, 56):
+    if bounding_box(pixels) != (10, 9, 55, 55):
         raise AssertionError("magnifier optical bounds changed")
-    if len(pixels) != 1029:
+    if len(pixels) != 1061:
         raise AssertionError("magnifier alpha population changed")
     if (min(color[3] for _, _, color in pixels), max(color[3] for _, _, color in pixels)) != (
         1,
@@ -255,7 +274,7 @@ def verify_magnifier(root: Path) -> None:
         raise AssertionError("magnifier lost its low-alpha dark edge/shadow")
     if sum(min(color[:3]) >= 220 and color[3] >= 180 for _, _, color in pixels) < 500:
         raise AssertionError("magnifier lost its bright beveled body")
-    if sum(color[3] >= 240 for _, _, color in pixels) != 100:
+    if sum(color[3] >= 240 for _, _, color in pixels) != 112:
         raise AssertionError("magnifier highlight population changed")
     center = tuple(rgba[(25 * width + 26) * 4 : (25 * width + 26) * 4 + 4])
     if center != (0, 0, 0, 0):
@@ -265,9 +284,9 @@ def verify_magnifier(root: Path) -> None:
 
     rendered = resize_premultiplied_bilinear(width, height, rgba, 48, 48)
     rendered_pixels = visible_pixels(48, 48, rendered)
-    if bounding_box(rendered_pixels) != (8, 8, 43, 42):
+    if bounding_box(rendered_pixels) != (7, 7, 41, 41):
         raise AssertionError("rendered magnifier optical bounds changed")
-    if len(rendered_pixels) != 610:
+    if len(rendered_pixels) != 624:
         raise AssertionError("rendered magnifier alpha population changed")
     rendered_alpha = [color[3] for _, _, color in rendered_pixels]
     if (min(rendered_alpha), max(rendered_alpha)) != (1, 255):
@@ -275,9 +294,9 @@ def verify_magnifier(root: Path) -> None:
     rendered_edge = [
         color for _, _, color in rendered_pixels if max(color[:3]) <= 64
     ]
-    if len(rendered_edge) != 188 or max(color[3] for color in rendered_edge) > 32:
+    if len(rendered_edge) != 201 or max(color[3] for color in rendered_edge) > 32:
         raise AssertionError("rendered magnifier edge treatment changed")
-    if sum(color[3] >= 240 for _, _, color in rendered_pixels) != 48:
+    if sum(color[3] >= 240 for _, _, color in rendered_pixels) != 52:
         raise AssertionError("rendered magnifier highlight population changed")
 
 
